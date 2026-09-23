@@ -3,33 +3,21 @@
 namespace App\Enums;
 
 /**
- * Where a response on one of my entries came from, as advanced search offers it.
- * Strava and Swarm share their values with Source, which is what the synced rows store.
+ * Where a response on one of my entries came from, one case per table that
+ * holds them. Which platform a synced response came from is Source's to say.
  */
 enum ResponseSource: string
 {
     case Comment = 'comment';
     case Webmention = 'webmention';
-    case Strava = 'strava';
-    case Swarm = 'swarm';
+    case Syndicated = 'syndicated';
 
     public function label(): string
     {
         return match ($this) {
             self::Comment => 'Local comment',
             self::Webmention => 'Webmention',
-            self::Strava => 'Strava',
-            self::Swarm => 'Swarm',
+            self::Syndicated => 'Platform',
         };
-    }
-
-    /**
-     * The values of every source synced from another platform.
-     *
-     * @return list<string>
-     */
-    public static function syndicatedValues(): array
-    {
-        return [self::Strava->value, self::Swarm->value];
     }
 }

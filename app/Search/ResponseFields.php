@@ -4,6 +4,7 @@ namespace App\Search;
 
 use App\Enums\ReactionType;
 use App\Enums\ResponseSource;
+use App\Enums\Source;
 use App\Enums\WebmentionKind;
 use BackedEnum;
 
@@ -24,6 +25,7 @@ final class ResponseFields
 
         return [
             'response_source' => [...$response, 'label' => 'From', 'dataType' => 'enum', 'operators' => ['is', 'is_not'], 'enum' => ResponseSource::class, 'options' => self::values(ResponseSource::cases())],
+            'response_platform' => [...$response, 'label' => 'Platform', 'dataType' => 'enum', 'operators' => ['is', 'is_not'], 'enum' => Source::class, 'options' => self::values(self::platforms())],
             'response_kind' => [...$response, 'label' => 'Kind', 'dataType' => 'enum', 'operators' => ['is', 'is_not'], 'enum' => WebmentionKind::class, 'options' => self::values(WebmentionKind::cases())],
             'response_text' => [...$response, 'label' => 'Text', 'dataType' => 'text', 'operators' => ['contains']],
             'response_author' => [...$response, 'label' => 'Author', 'dataType' => 'text', 'operators' => $text],
@@ -32,6 +34,16 @@ final class ResponseFields
             'reaction' => [...$reaction, 'label' => 'Reaction', 'dataType' => 'enum', 'operators' => ['is', 'is_not'], 'enum' => ReactionType::class, 'options' => self::values(ReactionType::cases())],
             'reactions' => [...$reaction, 'label' => 'Reactions', 'dataType' => 'number', 'suffix' => 'reactions'],
         ];
+    }
+
+    /**
+     * Every platform responses are synced from: the sources with a site to respond on.
+     *
+     * @return list<Source>
+     */
+    private static function platforms(): array
+    {
+        return array_values(array_filter(Source::cases(), fn (Source $source): bool => $source->host() !== null));
     }
 
     /**

@@ -62,18 +62,16 @@ final class ResponseFilter
     {
         $sources = $this->sources($filters);
         $filters = array_values(array_filter($filters, fn (array $filter): bool => $filter[0]['key'] !== 'response_source'));
-        $syndicated = array_values(array_intersect(ResponseSource::syndicatedValues(), $sources));
 
         $tables = [
             in_array(ResponseSource::Comment->value, $sources, true)
-                ? $this->count($entry, new Comment, 'commentable', $filters, kind: null, text: [], documents: ['body'], site: [])
+                ? $this->count($entry, new Comment, 'commentable', $filters, kind: null, platform: null, text: [], documents: ['body'], site: [])
                 : null,
             in_array(ResponseSource::Webmention->value, $sources, true)
-                ? $this->count($entry, new Webmention, 'target', $filters, kind: 'kind', text: ['title'], documents: ['content'], site: ['author_host', 'source_url'])
+                ? $this->count($entry, new Webmention, 'target', $filters, kind: 'kind', platform: null, text: ['title'], documents: ['content'], site: ['author_host', 'source_url'])
                 : null,
-            $syndicated !== []
-                ? $this->count($entry, new SyndicatedResponse, 'target', $filters, kind: 'kind', text: [], documents: ['body'], site: ['url'])
-                    ?->whereIn('source', $syndicated)
+            in_array(ResponseSource::Syndicated->value, $sources, true)
+                ? $this->count($entry, new SyndicatedResponse, 'target', $filters, kind: 'kind', platform: 'source', text: [], documents: ['body'], site: ['url'])
                 : null,
         ];
 
@@ -86,11 +84,12 @@ final class ResponseFilter
      *
      * @param  list<array{0: array<string, mixed>, 1: string, 2: mixed}>  $filters
      * @param  string|null  $kind  The kind column, or null for a table whose rows are all replies.
+     * @param  string|null  $platform  The column naming the platform, or null for a table that is not synced from one.
      * @param  list<string>  $text  Plain text columns searched by response text.
      * @param  list<string>  $documents  Portable Text columns searched by response text.
      * @param  list<string>  $site  Columns naming the site a response came from.
      */
-    private function count(Builder $entry, Model $model, string $morph, array $filters, ?string $kind, array $text, array $documents, array $site): ?QueryBuilder
+    private function count(Builder $entry, Model $model, string $morph, array $filters, ?string $kind, ?string $platform, array $text, array $documents, array $site): ?QueryBuilder
     {
         $sub = $this->correlated($entry, $model, $morph)
             ->where($model->qualifyColumn('status'), CommentStatus::Approved->value);
@@ -100,6 +99,7 @@ final class ResponseFilter
                 'response_kind' => $kind === null
                     ? $this->allows(WebmentionKind::Reply->value, $operator, $value)
                     : $this->whereList($sub, $model->qualifyColumn($kind), $operator, $value),
+                'response_platform' => $platform !== null && $this->whereList($sub, $model->qualifyColumn($platform), $operator, $value),
                 'response_text' => $this->whereText($sub, array_map($model->qualifyColumn(...), $text), array_map($model->qualifyColumn(...), $documents), (string) $value),
                 'response_author' => $this->whereLike($sub, [$model->qualifyColumn('author_name')], $operator, (string) $value),
                 'response_site' => $this->whereLike($sub, array_map($model->qualifyColumn(...), $site), $operator, (string) $value),

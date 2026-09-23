@@ -73,10 +73,15 @@ it('holds every per-response condition to the same response', function () {
     syndicatedOn(noteSaying('Spam'), WebmentionKind::Reply, 'Bob', status: CommentStatus::Spam);
 
     expect(notesMatching([
-        ['field' => 'response_source', 'operator' => 'is', 'value' => ['strava']],
+        ['field' => 'response_platform', 'operator' => 'is', 'value' => ['strava']],
         ['field' => 'response_kind', 'operator' => 'is', 'value' => ['reply']],
         ['field' => 'response_author', 'operator' => 'contains', 'value' => 'bob'],
-    ], 'note'))->toBe(['Bob replied']);
+    ], 'note'))->toBe(['Bob replied'])
+        ->and(notesMatching([
+            ['field' => 'response_source', 'operator' => 'is', 'value' => ['syndicated']],
+            ['field' => 'response_kind', 'operator' => 'is', 'value' => ['reply']],
+            ['field' => 'response_author', 'operator' => 'contains', 'value' => 'bob'],
+        ], 'note'))->toBe(['Bob replied', 'Swarm']);
 });
 
 it('tells a local comment apart from a webmention and finds a webmention by its site', function () {
@@ -92,7 +97,8 @@ it('tells a local comment apart from a webmention and finds a webmention by its 
 
     expect(notesMatching([['field' => 'response_source', 'operator' => 'is', 'value' => ['comment']]]))->toBe(['Commented'])
         ->and(notesMatching([['field' => 'response_source', 'operator' => 'is_not', 'value' => ['comment']]]))->toBe(['Mentioned'])
-        ->and(notesMatching([['field' => 'response_site', 'operator' => 'contains', 'value' => 'aaronparecki.com']]))->toBe(['Mentioned']);
+        ->and(notesMatching([['field' => 'response_site', 'operator' => 'contains', 'value' => 'aaronparecki.com']]))->toBe(['Mentioned'])
+        ->and(notesMatching([['field' => 'response_platform', 'operator' => 'is_not', 'value' => ['strava']]]))->toBe([]);
 });
 
 it('counts reactions, optionally of one emoji', function () {
@@ -121,7 +127,7 @@ it('counts only the responses the group describes', function () {
 
     expect(notesMatching([['field' => 'responses', 'operator' => 'gte', 'value' => 3]]))->toBe(['Busy', 'Quiet'])
         ->and(notesMatching([
-            ['field' => 'response_source', 'operator' => 'is', 'value' => ['strava']],
+            ['field' => 'response_platform', 'operator' => 'is', 'value' => ['strava']],
             ['field' => 'responses', 'operator' => 'gte', 'value' => 2],
         ]))->toBe(['Busy']);
 });
