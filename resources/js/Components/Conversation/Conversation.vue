@@ -1,5 +1,5 @@
 <script setup>
-import { computed, defineAsyncComponent, nextTick, ref, watch } from 'vue';
+import { computed, defineAsyncComponent, nextTick, onMounted, ref, watch } from 'vue';
 import ReactionBar from './ReactionBar.vue';
 import ResponseAsides from './ResponseAsides.vue';
 import ResponseItem from './ResponseItem.vue';
@@ -219,6 +219,22 @@ const heading = computed(() => {
  */
 const replyParentId = computed(() => replyingTo.value?.commentId ?? null);
 
+/**
+ * Arrived from a feed card's replies link. A short thread ends the page too
+ * soon for the heading to reach the top, so the section holds a screen's height.
+ */
+const arrived = ref(false);
+
+onMounted(async () => {
+    if (window.location.hash !== '#responses') {
+        return;
+    }
+
+    arrived.value = true;
+    await nextTick();
+    document.getElementById('responses')?.scrollIntoView();
+});
+
 /** Open the reply form inside the thread, and take the reader to it. */
 async function reply(item) {
     replyingTo.value = item;
@@ -231,7 +247,7 @@ async function reply(item) {
 <template>
     <!-- No rules anywhere in here. Separation is space and the weight of the
          headings, which is what stops a short entry looking like a form. -->
-    <section aria-labelledby="responses">
+    <section aria-labelledby="responses" :class="arrived && 'min-h-dvh'">
         <!-- The heading is here whether or not anybody has said anything. An
              entry that opened straight onto a summary line and a text box had
              nothing naming what any of it was for, which read as debris at the
