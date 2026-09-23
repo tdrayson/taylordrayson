@@ -7,6 +7,7 @@ use App\Models\Place;
 use App\Models\User;
 use App\Presenters\CardPresenter;
 use App\Presenters\Cards\PlaceCard;
+use App\Search\ResponseFields;
 use App\Search\SearchSchema;
 use App\Support\TypeCatalogue;
 use App\Timeline\TypeRegistry;
@@ -67,7 +68,7 @@ it('matches the registry entry each type has today', function (Dataset $dataset)
 
 it('feeds the search schema from each dataset', function (Dataset $dataset) {
     $key = $dataset->type()->value;
-    $fields = array_diff_key(SearchSchema::types()[$key]['fields'], array_flip(['day', 'month', 'year', 'status']));
+    $fields = array_diff_key(SearchSchema::types()[$key]['fields'], array_flip(['day', 'month', 'year', 'status']), ResponseFields::all());
 
     expect(array_keys($fields))->toBe(array_keys($dataset->searchFields()))
         ->and(SearchSchema::textColumns()[$key] ?? [])->toBe($dataset->textColumns());

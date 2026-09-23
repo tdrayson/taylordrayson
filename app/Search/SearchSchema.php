@@ -62,6 +62,7 @@ class SearchSchema
                 'fields' => self::normalise([
                     'text' => ['label' => 'Text', 'dataType' => 'text', 'column' => null, 'category' => 'Where', 'operators' => ['contains']],
                     'photos' => ['label' => 'Media', 'dataType' => 'media', 'column' => null, 'category' => 'Where', 'suffix' => 'photos'],
+                    ...ResponseFields::all(),
                 ]),
             ],
         ];
@@ -70,7 +71,7 @@ class SearchSchema
             $schema[$type] = [
                 'label' => $dataset->plural(),
                 'model' => $dataset->model(),
-                'fields' => self::normalise([...$dataset->searchFields(), 'status' => self::statusField()]),
+                'fields' => self::normalise([...$dataset->searchFields(), 'status' => self::statusField(), ...ResponseFields::all()]),
             ];
         }
 
