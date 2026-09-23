@@ -236,7 +236,7 @@ onMounted(() => {
         return;
     }
 
-    const observer = new ResizeObserver(() => heading.scrollIntoView({ behavior: 'instant' }));
+    const observer = new ResizeObserver(() => heading.scrollIntoView());
 
     release = () => {
         observer.disconnect();
