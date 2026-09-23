@@ -47,3 +47,25 @@ it('offers the same mark on a hub response row', function () {
 
     visit('/hq')->assertPresent('[data-response-row] [aria-label="Mark as mine"]');
 });
+
+it('marks a kudo as mine from the entry page', function () {
+    $this->actingAs(User::factory()->create());
+
+    $activity = Activity::factory()->create(['occurred_at' => now()->subDay()]);
+
+    $kudo = SyndicatedResponse::factory()->create([
+        'target_type' => $activity->getMorphClass(),
+        'target_id' => $activity->id,
+        'kind' => WebmentionKind::Like,
+        'source_id' => null,
+        'author_name' => 'Taylor D.',
+        'body' => null,
+        'occurred_at' => now()->subDay(),
+    ]);
+
+    visit($activity->url())
+        ->click('[aria-label="Mark as mine"]')
+        ->assertPresent('[aria-label="Not mine"]');
+
+    expect($kudo->fresh()->mine)->toBeTrue();
+});

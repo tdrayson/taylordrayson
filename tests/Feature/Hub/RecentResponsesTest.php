@@ -25,7 +25,22 @@ it('collapses a day of kudos on one entry into one row', function () {
 
     expect($items)->toHaveCount(1)
         ->and($items[0]->sentence)->toContain('Clare A.')
-        ->and($items[0]->sentence)->toContain('Brian D.');
+        ->and($items[0]->sentence)->toContain('Brian D.')
+        ->and($items[0]->markable)->toBeFalse();
+});
+
+it('offers the mark on a row of kudos from one person', function () {
+    $activity = Activity::factory()->create(['occurred_at' => now()->subDay()]);
+
+    SyndicatedResponse::factory()->create([
+        'target_type' => $activity->getMorphClass(),
+        'target_id' => $activity->id,
+        'kind' => WebmentionKind::Like,
+        'author_name' => 'Taylor D.',
+        'occurred_at' => now()->subDay(),
+    ]);
+
+    expect(app(RecentResponses::class)(6)[0]->markable)->toBeTrue();
 });
 
 it('does not let a burst of same-day likes crowd out an older distinct response', function () {

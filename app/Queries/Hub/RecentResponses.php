@@ -214,6 +214,8 @@ final class RecentResponses
             body: $row['body'],
             age: $row['at']->diffForHumans(),
             isNew: $seenAt === null || $row['at']->greaterThan($seenAt),
+            // A folded row of kudos is several responses, so only a row of one has a single response to mark.
+            markable: str_starts_with($row['id'], 'syndicated-') && count($row['people'] ?? [$row['who']]) === 1,
         );
     }
 

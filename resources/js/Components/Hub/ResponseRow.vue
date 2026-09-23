@@ -9,13 +9,13 @@ const props = defineProps({
 });
 
 /**
- * The id to mark this reply as mine with. Once marked it leaves the list on
- * reload, since my own reply is not somebody responding to me.
+ * The id to mark this response as mine with. Once marked it leaves the list on
+ * reload, since my own response is not somebody responding to me.
  *
- * Replies only here: a row of likes is collapsed across everyone who left one
- * that day, so there is no single response for the mark to land on.
+ * The server says whether the row is a single response: kudos from several
+ * people fold into one row, which has no single response for the mark to land on.
  */
-const markable = computed(() => (props.item.kind === 'reply' ? markableId(props.item) : null));
+const markable = computed(() => (props.item.markable ? markableId(props.item) : null));
 </script>
 
 <template>

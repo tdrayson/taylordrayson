@@ -21,6 +21,7 @@ final readonly class ResponseItem implements Arrayable, JsonSerializable
         public ?string $body,
         public string $age,
         public bool $isNew,
+        public bool $markable = false,
     ) {}
 
     /**
@@ -37,6 +38,7 @@ final readonly class ResponseItem implements Arrayable, JsonSerializable
             'body' => $this->body,
             'age' => $this->age,
             'isNew' => $this->isNew,
+            'markable' => $this->markable,
         ];
     }
 
