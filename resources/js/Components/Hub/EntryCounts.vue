@@ -62,15 +62,17 @@ const summary = computed(
                     <span class="w-28 shrink-0 text-right text-xs text-neutral-500">{{ type.lag }}</span>
 
                     <!-- Held open on every row, so both groups' columns line up. -->
-                    <span class="w-16 shrink-0 text-right">
+                    <span class="-my-0.5 flex w-6 shrink-0 justify-end self-center">
                         <button
                             v-if="type.syncable"
                             type="button"
-                            class="rounded-sm text-xs text-neutral-500 transition-colors hover:text-accent-500 focus-visible:text-accent-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500 disabled:text-neutral-400 disabled:hover:text-neutral-400"
+                            class="flex size-6 items-center justify-center rounded-full text-neutral-400 transition-colors hover:bg-neutral-25 hover:text-accent-500 focus-visible:text-accent-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500 disabled:text-green-600 disabled:hover:bg-transparent"
                             :disabled="queued === type.type"
+                            :aria-label="queued === type.type ? `${type.label} sync queued` : `Sync ${type.label} now`"
+                            :title="queued === type.type ? 'Queued' : 'Sync now'"
                             @click="sync(type)"
                         >
-                            {{ queued === type.type ? 'Queued' : 'Sync now' }}<span class="sr-only">, {{ type.label }}</span>
+                            <Icon :name="queued === type.type ? 'Tick02Icon' : 'RefreshIcon'" class="size-4" />
                         </button>
                     </span>
                 </li>

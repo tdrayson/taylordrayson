@@ -10,8 +10,8 @@ it('queues a sync from its HQ row and says so on that row', function () {
 
     visit('/hq')
         ->assertNotPresent('li:has-text("Sleep") button')
-        ->click('li:has-text("Activities") button')
-        ->assertSee('Queued')
+        ->click('[aria-label="Sync Activities now"]')
+        ->assertPresent('[aria-label="Activities sync queued"]')
         ->assertNoJavaScriptErrors()
         ->screenshot(true, 'sync-now');
 
