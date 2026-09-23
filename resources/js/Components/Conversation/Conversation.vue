@@ -1,5 +1,5 @@
 <script setup>
-import { computed, defineAsyncComponent, nextTick, onMounted, ref, watch } from 'vue';
+import { computed, defineAsyncComponent, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import ReactionBar from './ReactionBar.vue';
 import ResponseAsides from './ResponseAsides.vue';
 import ResponseItem from './ResponseItem.vue';
@@ -219,21 +219,36 @@ const heading = computed(() => {
  */
 const replyParentId = computed(() => replyingTo.value?.commentId ?? null);
 
-/**
- * Arrived from a feed card's replies link. A short thread ends the page too
- * soon for the heading to reach the top, so the section holds a screen's height.
- */
-const arrived = ref(false);
+/** Input that means the reader has taken over the scroll. */
+const RELEASE_EVENTS = ['wheel', 'touchstart', 'keydown'];
 
-onMounted(async () => {
-    if (window.location.hash !== '#responses') {
+let release = () => {};
+
+/**
+ * Arrived from a feed card's replies link. Images and maps above load after the
+ * jump and push the heading back down, so hold it at the top until the page
+ * settles or the reader scrolls.
+ */
+onMounted(() => {
+    const heading = document.getElementById('responses');
+
+    if (window.location.hash !== '#responses' || ! heading) {
         return;
     }
 
-    arrived.value = true;
-    await nextTick();
-    document.getElementById('responses')?.scrollIntoView();
+    const observer = new ResizeObserver(() => heading.scrollIntoView({ behavior: 'instant' }));
+
+    release = () => {
+        observer.disconnect();
+        RELEASE_EVENTS.forEach((name) => window.removeEventListener(name, release));
+    };
+
+    observer.observe(document.body);
+    RELEASE_EVENTS.forEach((name) => window.addEventListener(name, release, { passive: true }));
+    setTimeout(release, 3000);
 });
+
+onBeforeUnmount(() => release());
 
 /** Open the reply form inside the thread, and take the reader to it. */
 async function reply(item) {
@@ -247,7 +262,7 @@ async function reply(item) {
 <template>
     <!-- No rules anywhere in here. Separation is space and the weight of the
          headings, which is what stops a short entry looking like a form. -->
-    <section aria-labelledby="responses" :class="arrived && 'min-h-dvh'">
+    <section aria-labelledby="responses">
         <!-- The heading is here whether or not anybody has said anything. An
              entry that opened straight onto a summary line and a text box had
              nothing naming what any of it was for, which read as debris at the
