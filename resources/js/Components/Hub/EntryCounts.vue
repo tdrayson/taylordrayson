@@ -1,6 +1,6 @@
 <script setup>
-import { computed } from 'vue';
-import { router, usePage } from '@inertiajs/vue3';
+import { computed, ref } from 'vue';
+import { router } from '@inertiajs/vue3';
 import Eyebrow from '../Ui/Eyebrow.vue';
 import Icon from '../Ui/Icon.vue';
 import { number } from '../../lib/format.js';
@@ -21,14 +21,26 @@ const byHand = computed(() => props.types.filter((type) => ! type.synced));
 
 const total = (rows) => rows.reduce((sum, type) => sum + type.count, 0);
 
-const page = usePage();
+/** How long a queued row keeps its tick before it offers to sync again. */
+const TICK_MS = 4000;
 
-/** The type just queued, flashed back by the server for this one visit. */
-const queued = computed(() => page.flash?.syncQueued ?? null);
+/** Types queued in the last few seconds, each on its own timer. */
+const queued = ref([]);
+
+const isQueued = (type) => queued.value.includes(type.type);
 
 /** Pull this type now rather than wait for its slot on the schedule. */
 function sync(type) {
-    router.post(`/hq/sync/${type.type}`, {}, { preserveScroll: true });
+    router.post(`/hq/sync/${type.type}`, {}, {
+        preserveScroll: true,
+        preserveState: true,
+        onSuccess: () => {
+            queued.value = [...queued.value, type.type];
+            setTimeout(() => {
+                queued.value = queued.value.filter((key) => key !== type.type);
+            }, TICK_MS);
+        },
+    });
 }
 
 const summary = computed(
@@ -67,12 +79,12 @@ const summary = computed(
                             v-if="type.syncable"
                             type="button"
                             class="flex size-6 items-center justify-center rounded-full text-neutral-400 transition-colors hover:bg-neutral-25 hover:text-accent-500 focus-visible:text-accent-500 disabled:text-green-600 disabled:hover:bg-transparent"
-                            :disabled="queued === type.type"
-                            :aria-label="queued === type.type ? `${type.label} sync queued` : `Sync ${type.label} now`"
-                            :title="queued === type.type ? 'Queued' : 'Sync now'"
+                            :disabled="isQueued(type)"
+                            :aria-label="isQueued(type) ? `${type.label} sync queued` : `Sync ${type.label} now`"
+                            :title="isQueued(type) ? 'Queued' : 'Sync now'"
                             @click="sync(type)"
                         >
-                            <Icon :name="queued === type.type ? 'Tick02Icon' : 'RefreshIcon'" class="size-4" />
+                            <Icon :name="isQueued(type) ? 'Tick02Icon' : 'RefreshIcon'" class="size-4" />
                         </button>
                     </span>
                 </li>
