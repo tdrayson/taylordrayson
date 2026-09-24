@@ -36,6 +36,7 @@ final class ConvertContent
     public function __construct(
         private readonly BlockParser $parser = new BlockParser,
         private readonly InlineHtml $inline = new InlineHtml,
+        private readonly ClassifyPreformatted $classify = new ClassifyPreformatted,
     ) {}
 
     /**
@@ -48,7 +49,7 @@ final class ConvertContent
 
         $nodes = $this->blocks($this->parser->parse($markup), $resolveVideo, 1);
 
-        return new ConvertedContent(array_values($nodes), $this->notes);
+        return new ConvertedContent(array_values($this->boldLabelsAsHeadings($nodes)), $this->notes);
     }
 
     /**
@@ -137,10 +138,96 @@ final class ConvertContent
         // left out of the attributes entirely.
         preg_match('/<h([1-6])\b/i', $block->innerHtml, $match);
 
-        $level = (int) ($match[1] ?? $block->attribute('level', 2));
+        // A GenerateBlocks headline is a styling block, not a semantic one, and
+        // half of them rendered as paragraphs. Forcing those to h2 invented
+        // headings the old site never had, and put whole sentences in the
+        // table of contents.
+        if (! isset($match[1])) {
+            return $this->textBlock($block->innerHtml, 'normal');
+        }
 
         // h1 belongs to the page title, so a heading written as one steps down.
-        return $this->textBlock($block->innerHtml, 'h'.max(2, min(6, $level)));
+        return $this->textBlock($this->plainHeading($block->innerHtml), 'h'.max(2, min(6, (int) $match[1])));
+    }
+
+    /**
+     * A paragraph that is bold from end to end was a heading the old editor had
+     * no button for. It takes the level below whatever heading it follows,
+     * which is where every one of them sits.
+     *
+     * @param  list<array<string, mixed>>  $nodes
+     * @return list<array<string, mixed>>
+     */
+    private function boldLabelsAsHeadings(array $nodes): array
+    {
+        $previous = 2;
+
+        foreach ($nodes as $index => $node) {
+            if (($node['_type'] ?? '') === 'block' && preg_match('/^h([2-6])$/', $node['style'] ?? '', $match)) {
+                $previous = (int) $match[1];
+
+                continue;
+            }
+
+            if (! $this->isBoldLabel($node)) {
+                continue;
+            }
+
+            $nodes[$index]['style'] = 'h'.min(6, $previous + 1);
+            $nodes[$index]['children'] = array_map(function (array $span): array {
+                // A heading is already bold, so the mark would double it.
+                $span['marks'] = array_values(array_diff($span['marks'] ?? [], ['strong']));
+
+                return $span;
+            }, $node['children']);
+
+            $last = count($nodes[$index]['children']) - 1;
+            $nodes[$index]['children'][$last]['text'] = (string) preg_replace('/\s*:\s*$/u', '', $nodes[$index]['children'][$last]['text'] ?? '');
+        }
+
+        return $nodes;
+    }
+
+    /**
+     * @param  array<string, mixed>  $node
+     */
+    private function isBoldLabel(array $node): bool
+    {
+        if (($node['_type'] ?? '') !== 'block' || ($node['style'] ?? '') !== 'normal' || isset($node['listItem'])) {
+            return false;
+        }
+
+        $children = $node['children'] ?? [];
+        $text = '';
+
+        foreach ($children as $child) {
+            if (! in_array('strong', $child['marks'] ?? [], true)) {
+                return false;
+            }
+
+            $text .= $child['text'] ?? '';
+        }
+
+        $text = trim($text);
+
+        // A sentence break mid-string means this is emphatic prose, not a label.
+        return $text !== '' && str_word_count($text) <= 12 && preg_match('/[.!?]\s+\S/u', $text) !== 1;
+    }
+
+    /**
+     * A heading without its old numbering or trailing colon.
+     *
+     * The source numbered its steps by hand, so a heading read "2.1 Metabox"
+     * and the table of contents read as an outline of an outline. The colon
+     * belonged to a label introducing something, which a heading already does.
+     */
+    private function plainHeading(string $html): string
+    {
+        // `2.` and `2.1`, but never a bare number: a heading may legitimately
+        // open with a year.
+        $html = (string) preg_replace('/^((?:\s|<[^>]*>)*)(?:\d+\.\d+(?:\.\d+)*|\d+\.)\s+/u', '$1', $html);
+
+        return (string) preg_replace('/\s*:\s*((?:<\/[^>]*>\s*)*)$/u', '$1', $html);
     }
 
     /**
@@ -223,8 +310,7 @@ final class ConvertContent
 
     /**
      * A grey preformatted box was the old site's only aside, so it holds both
-     * code fragments and notes. Emitted as code and flagged, since which one it
-     * is cannot be read off the markup.
+     * code fragments and notes. Which one it is has to be read off the text.
      *
      * @return list<array<string, mixed>>
      */
@@ -236,16 +322,42 @@ final class ConvertContent
             return [];
         }
 
-        $this->notes[] = 'preformatted block, may want to be a callout: '.mb_strimwidth($text, 0, 80, '...');
+        $variant = ($this->classify)($text);
 
-        return [$this->pruned([
-            '_type' => 'code',
+        if ($variant === null) {
+            return [$this->pruned([
+                '_type' => 'code',
+                '_key' => PortableText::key(),
+                'code' => $text,
+                'language' => null,
+                'filename' => null,
+                'lineNumbers' => false,
+            ])];
+        }
+
+        $this->notes[] = 'was a grey box, now a '.$variant.' callout: '.mb_strimwidth($text, 0, 70, '...');
+
+        // Blocks, not spans: the editor's callout node declares `block+`, so a
+        // callout of spans is emptied the first time one is opened and saved.
+        return [[
+            '_type' => 'callout',
             '_key' => PortableText::key(),
-            'code' => $text,
-            'language' => null,
-            'filename' => null,
-            'lineNumbers' => false,
-        ])];
+            'variant' => $variant,
+            'children' => $this->textBlock($this->withoutMarker($block->innerHtml), 'normal'),
+        ]];
+    }
+
+    /**
+     * Drop a leading `Note:` or `Warning:` from a callout's body. The panel's
+     * own label already says which it is, so the words are said twice.
+     */
+    private function withoutMarker(string $html): string
+    {
+        return (string) preg_replace(
+            '/^((?:\s|<[^>]*>)*)(note|important|warning|caution|tip)s?\s*:\s*/iu',
+            '$1',
+            $html,
+        );
     }
 
     /**

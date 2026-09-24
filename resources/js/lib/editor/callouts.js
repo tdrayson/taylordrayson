@@ -9,10 +9,13 @@
 // with no dark shade to guarantee contrast.
 // `code` is the panel's own hue a shade darker, used for inline code inside the
 // panel: the default grey chip reads as a patch of something else laid on top.
+// Note is the one variant with no hue to borrow, so it sits a step darker than
+// a code block rather than on the same grey, which read as one slab when the
+// two stacked.
 // A CSS value rather than a class, since it is applied to descendants through a
 // custom property.
 export const CALLOUT_VARIANTS = {
-    note: { label: 'Note', panel: 'bg-neutral-25', chip: 'bg-neutral-900 text-neutral-0', code: 'var(--color-neutral-100)' },
+    note: { label: 'Note', panel: 'bg-neutral-50', chip: 'bg-neutral-900 text-neutral-0', code: 'var(--color-neutral-200)' },
     tip: { label: 'Tip', panel: 'bg-activity/10', chip: 'bg-activity text-neutral-0', code: 'color-mix(in oklab, var(--color-activity) 22%, transparent)' },
     important: { label: 'Important', panel: 'bg-accent-50', chip: 'bg-accent-500 text-neutral-0', code: 'color-mix(in oklab, var(--color-accent-500) 18%, transparent)' },
     warning: { label: 'Warning', panel: 'bg-fuel/10', chip: 'bg-fuel text-neutral-900', code: 'color-mix(in oklab, var(--color-fuel) 24%, transparent)' },

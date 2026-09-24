@@ -1,8 +1,11 @@
 <?php
 
+use App\Actions\Snippetclub\ClassifyPreformatted;
 use App\Actions\Snippetclub\ConvertContent;
 use App\Actions\Snippetclub\ImportPost;
+use App\Actions\Snippetclub\PromoteAsides;
 use App\Actions\Snippetclub\RewriteLinks;
+use App\Actions\Snippetclub\TagMap;
 use App\Models\Article;
 use App\Support\Gutenberg\BlockParser;
 
@@ -86,11 +89,22 @@ it('lifts an image out of the paragraph it was written inside', function () {
         ->and($nodes[1])->toMatchArray(['_type' => 'image', 'url' => 'https://example.com/a.png', 'alt' => 'A']);
 });
 
-it('flags a preformatted box for review rather than guessing at it', function () {
-    $result = (new ConvertContent)('<!-- wp:preformatted --><pre>A note.</pre><!-- /wp:preformatted -->');
+it('turns an advisory grey box into a callout, and says it did', function () {
+    $result = (new ConvertContent)(
+        '<!-- wp:preformatted --><pre>Make sure to replace line 3 with your API key.</pre><!-- /wp:preformatted -->'
+    );
+
+    expect($result->nodes[0])->toMatchArray(['_type' => 'callout', 'variant' => 'note'])
+        ->and($result->nodes[0]['children'][0]['_type'])->toBe('block')
+        ->and($result->nodes[0]['children'][0]['children'][0]['text'])->toBe('Make sure to replace line 3 with your API key.')
+        ->and($result->notes)->toHaveCount(1);
+});
+
+it('leaves a short fragment as code, unremarked', function () {
+    $result = (new ConvertContent)('<!-- wp:preformatted --><pre>[my_shortcode]</pre><!-- /wp:preformatted -->');
 
     expect($result->nodes[0]['_type'])->toBe('code')
-        ->and($result->notes)->toHaveCount(1);
+        ->and($result->notes)->toBeEmpty();
 });
 
 it('imports a post, and importing it again changes nothing', function () {
@@ -178,11 +192,144 @@ it('decodes the entities WordPress stores in titles and tags', function () {
         'status' => 'publish',
         'date' => '2022-11-16 19:27:41',
         'content_raw' => '',
-        'tags' => [['name' => 'Hooks &amp; Filters']],
+        'tags' => [['name' => 'Design &amp; Build']],
     ]);
 
     $article = Article::where('slug', 'prefixes')->first();
 
     expect($article->title)->toBe('Removing Prefixes & Suffixes')
-        ->and($article->tagNames())->toContain('Hooks & Filters');
+        // An unmapped tag, so this tests the decoding rather than the tag map.
+        ->and($article->tagNames())->toContain('Design & Build');
+});
+
+// The old site had no callout, so a grey <pre> did both jobs: an aside to the
+// reader, and a shortcode or path shown inline.
+it('tells an aside apart from a code fragment in a grey box', function (string $text, ?string $variant) {
+    expect(app(ClassifyPreformatted::class)($text))->toBe($variant);
+})->with([
+    ['Make sure your ACF date field returns in the format Ymd.', 'note'],
+    ['Credit to Luke for the snippet.', 'note'],
+    // Starts with a product name, so an allow-list of openings would miss it.
+    ['OpenWeatherMap has a lenient free API tier that we can use.', 'note'],
+    ['Note: Tooltip tutorial requires GenerateBlocks Pro.', 'important'],
+    ["Note: You shouldn't rely soley on the AI generator for your Alt text.", 'warning'],
+    ['[dynamic_fluentform field="fluent_form"]', null],
+    ['/fluent-crm/app/Hooks/Handlers/ExternalPages.php', null],
+    ['https://domain.com/?pw=password123', null],
+    ['FluentForm\App\Modules\Component - line 548', null],
+    ['Name = tct_author_meta Arguments = role', null],
+    // An encoded polyline runs to 857 characters without a space, and PHP's
+    // str_word_count still calls that 166 words.
+    ['cwjwHggc@LCZ?DED@TGLQFELYDgAIsABo@GSGKAWEW@]Kw@@WCk@IYI{@Ia@Wo@GQSg@Gg@IOAaAPQ^@BAFGF@h@h@PFf@FVHH@FCXa@VmAPa@HYDET', null],
+]);
+
+// A snippet site tags by plugin, so two thirds of its tags named a product
+// mentioned in exactly one post.
+it('folds the old site\'s narrow tags into ones worth filtering by', function (array $source, array $expected) {
+    expect(app(TagMap::class)->apply($source))->toEqualCanonicalizing($expected);
+})->with([
+    'a Pro tier is the same subject' => [['GeneratePress', 'GP Premium'], ['GeneratePress']],
+    'a product acronym is spelled out' => [['ACF', 'Repeater'], ['Advanced Custom Fields']],
+    'one-post plugins become WordPress' => [['SearchWP', 'Kadence', 'Options Page'], ['WordPress']],
+    // 68 of 127 articles carried it, so it separated nothing.
+    'hooks & filters was too broad to filter by' => [['Hooks & Filters'], ['WordPress']],
+    'a library is the language it is written in' => [['LityJS', 'Flatpickr'], ['JavaScript']],
+    'the broad ones are left alone' => [['PHP', 'CSS', 'Accessibility'], ['PHP', 'CSS', 'Accessibility']],
+    'dead ones are dropped' => [['Demo', 'Cheatsheet'], []],
+    // A tag added to the old site after this map was written should survive
+    // rather than vanish silently.
+    'an unmapped tag is kept' => [['Something New'], ['Something New']],
+]);
+
+// The importer overwrites content every run, so a fix made by hand would not
+// survive one. Per-article corrections live in code for that reason.
+it('applies a per-article correction, and survives a re-import', function () {
+    $post = [
+        'title' => 'Lightbox any Gutenberg image with Lity',
+        'slug' => 'lightbox-any-gutenberg-image-with-lity',
+        'status' => 'publish',
+        'date' => '2022-09-01 10:00:00',
+        'content_raw' => '<!-- wp:snippetclub/lightbox {"blockstudio":{"attributes":'
+            .'{"target":"https://www.youtube.com/embed/dQw4w9WgXcQ","text":"Click Me"}}} /-->'
+            .'<!-- wp:paragraph --><p>The real content.</p><!-- /wp:paragraph -->',
+    ];
+
+    $import = app(ImportPost::class);
+    $import($post);
+    $import($post);
+
+    $content = Article::where('slug', 'lightbox-any-gutenberg-image-with-lity')->first()->content;
+
+    expect(collect($content)->where('_type', 'video'))->toBeEmpty()
+        ->and($content[0]['children'][0]['text'])->toBe('The real content.');
+});
+
+// The old site had no callout, so an aside was written as ordinary prose.
+it('lifts an advisory paragraph into a callout, but leaves the walkthrough alone', function (string $text, ?string $variant) {
+    $node = [
+        '_type' => 'block', '_key' => 'b1', 'style' => 'normal', 'markDefs' => [],
+        'children' => [['_type' => 'span', '_key' => 's1', 'text' => $text, 'marks' => []]],
+    ];
+
+    $result = app(PromoteAsides::class)([$node]);
+
+    expect($result['nodes'][0]['_type'])->toBe($variant === null ? 'block' : 'callout');
+
+    if ($variant !== null) {
+        expect($result['nodes'][0]['variant'])->toBe($variant)
+            // The panel's label already says which kind it is.
+            ->and($result['nodes'][0]['children'][0]['children'][0]['text'])->not->toStartWith('Note:');
+    }
+})->with([
+    ['Note: There are certain url params that are protected by WordPress.', 'note'],
+    ['Make sure you set the Return format to Image URL.', 'note'],
+    ['I recommend watching Kyles video for an easy guide.', 'note'],
+    ['Important: this needs the Pro version.', 'important'],
+    ["Note: you shouldn't rely solely on the AI generator.", 'warning'],
+    // A step confirmation reads like an aside but is the walkthrough itself.
+    ['You should now see the Blockstudio editor in your sidebar.', null],
+    ['We next need to convert our polyline to an array of points.', null],
+]);
+
+// The source numbered its steps by hand, so the table of contents read as an
+// outline of an outline. A year is not numbering.
+it('strips a heading\'s old numbering and trailing colon', function (string $html, string $expected) {
+    $nodes = (new ConvertContent)('<!-- wp:heading -->'.$html.'<!-- /wp:heading -->')->nodes;
+
+    $text = '';
+
+    foreach ($nodes[0]['children'] as $child) {
+        $text .= $child['text'];
+    }
+
+    expect(trim($text))->toBe($expected);
+})->with([
+    ['<h2>2. Creating our form</h2>', 'Creating our form'],
+    ['<h3>2.1 Advanced Custom Fields</h3>', 'Advanced Custom Fields'],
+    ['<h2>Available options:</h2>', 'Available options'],
+    ['<h2>3. How to use:</h2>', 'How to use'],
+    ['<h2>2024 in review</h2>', '2024 in review'],
+    ['<h2>10 things I learned</h2>', '10 things I learned'],
+]);
+
+// The old editor had no button for a fourth-level heading, so a section label
+// was written as a paragraph in bold.
+it('reads a fully bold paragraph as the heading it was standing in for', function () {
+    $nodes = (new ConvertContent)(
+        '<!-- wp:heading {"level":3} --><h3>Adding our block markup</h3><!-- /wp:heading -->'
+        .'<!-- wp:paragraph --><p><strong>Transients</strong></p><!-- /wp:paragraph -->'
+    )->nodes;
+
+    // One level below the heading it follows, and no longer doubly bold.
+    expect($nodes[1]['style'])->toBe('h4')
+        ->and($nodes[1]['children'][0]['marks'])->toBe([]);
+});
+
+it('leaves emphatic prose as prose', function () {
+    $nodes = (new ConvertContent)(
+        '<!-- wp:paragraph --><p><strong>The best part.... It relies on 1 line of code!</strong></p><!-- /wp:paragraph -->'
+    )->nodes;
+
+    expect($nodes[0]['style'])->toBe('normal')
+        ->and($nodes[0]['children'][0]['marks'])->toBe(['strong']);
 });

@@ -388,7 +388,11 @@ function renderCallout(node, favicons, previews) {
             h('span', {
                 class: `absolute -top-3 left-6 inline-block -rotate-2 rounded-md px-3 py-1 font-display text-xs font-bold uppercase tracking-widest shadow-card ${variant.chip}`,
             }, variant.label),
-            h('p', { class: 'text-body leading-relaxed text-neutral-800' }, renderChildren(node, favicons, previews)),
+            // Real blocks, matching the `block+` the editor's node declares, so
+            // a callout can hold more than one paragraph and survives being
+            // opened and saved.
+            h('div', { class: 'callout-body text-body leading-relaxed text-neutral-800' },
+                renderDocument(node.children ?? [], new Map(), () => {}, favicons, previews, {})),
         ]),
     ]);
 }

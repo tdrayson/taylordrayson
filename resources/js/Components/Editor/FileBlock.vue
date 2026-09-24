@@ -94,17 +94,21 @@ function useRelease() {
              what publishes. A release shows no version here: resolving it is the
              server's job and the editor has not asked. -->
         <div v-if="ready" class="group relative" contenteditable="false">
-            <FileCard
-                :source="attrs.source"
-                :url="attrs.url"
-                :name="attrs.name"
-                :mime="attrs.mime"
-                :size="attrs.size"
-                :repo="attrs.repo"
-                :asset="attrs.asset"
-                :poster="attrs.poster"
-                :title="attrs.title"
-            />
+            <!-- inert while writing: the card's own Download would otherwise
+                 fetch the file rather than select the block. -->
+            <div inert>
+                <FileCard
+                    :source="attrs.source"
+                    :url="attrs.url"
+                    :name="attrs.name"
+                    :mime="attrs.mime"
+                    :size="attrs.size"
+                    :repo="attrs.repo"
+                    :asset="attrs.asset"
+                    :poster="attrs.poster"
+                    :title="attrs.title"
+                />
+            </div>
 
             <div class="absolute right-2 top-2 z-10 flex gap-1 opacity-0 transition-opacity focus-within:opacity-100 group-hover:opacity-100">
                 <!-- Swapping the file in place rather than deleting the block

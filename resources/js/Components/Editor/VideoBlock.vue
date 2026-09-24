@@ -43,16 +43,21 @@ function useTypedUrl() {
              is then the one they are looking at, and the editor stops loading a
              player for every video in the document. -->
         <div v-if="url" class="group relative" contenteditable="false">
-            <VideoEmbed
-                v-if="! unsupported"
-                :url="url"
-                :caption="node.attrs.caption"
-                :poster="node.attrs.poster"
-            />
+            <!-- inert while writing: pressing play is the whole surface of an
+                 embed, so without this a click meant for the block selects
+                 nothing and starts the video instead. Takes it out of the tab
+                 order too, which pointer-events alone would not. -->
+            <div v-if="! unsupported" inert>
+                <VideoEmbed
+                    :url="url"
+                    :caption="node.attrs.caption"
+                    :poster="node.attrs.poster"
+                />
+            </div>
 
             <p v-else class="flex items-center gap-2 rounded-lg border border-dashed border-neutral-100 p-4 text-meta text-neutral-500">
                 <Icon name="Alert02Icon" class="size-4 shrink-0" />
-                <span>Not a YouTube, Vimeo or video-file URL, so this will not play.</span>
+                <span>Not a YouTube, Vimeo, Loom, Zight or video-file URL, so this will not play.</span>
             </p>
 
             <button

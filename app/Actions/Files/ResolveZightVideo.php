@@ -81,11 +81,13 @@ final class ResolveZightVideo
         }
 
         $html = $response->body();
-        $url = $this->meta($html, 'og:video');
         $poster = $this->meta($html, 'og:image');
 
-        if ($url !== null) {
-            return new ZightVideo($url, $poster);
+        // The share url, not the mp4 behind it. Zight's own player is what
+        // renders, so a change to how they sign a CDN address cannot rot the
+        // link, and pasting a share url works the same way in the editor.
+        if ($this->meta($html, 'og:video') !== null) {
+            return new ZightVideo(strtok($shareUrl, '?'), $poster);
         }
 
         // A Zight item can be a GIF rather than a video, in which case it

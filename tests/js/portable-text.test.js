@@ -247,6 +247,16 @@ describe('empty documents', () => {
 });
 
 describe('video providers', () => {
+    // Their own player, so a change to how they sign a CDN address cannot rot
+    // the link the way a stored mp4 would.
+    it('embeds a Zight share, and leaves its deeper urls alone', () => {
+        assert.equal(videoProvider('https://share.getcloudapp.com/12uPrQbL'), 'Zight');
+        assert.equal(videoEmbed('https://share.getcloudapp.com/12uPrQbL'), 'https://share.getcloudapp.com/12uPrQbL?embed=true');
+        assert.equal(videoProvider('https://share.zight.com/017ccc16-9ff8'), 'Zight');
+        // The mp4 address behind a share page is not itself a share code.
+        assert.equal(videoProvider('https://share.getcloudapp.com/items/017ccc16/content_link'), null);
+    });
+
     it('recognises a Loom share and embed url', () => {
         const id = '882bb5cb095240fe85d7dee8ddc84604';
 

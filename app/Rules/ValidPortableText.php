@@ -164,13 +164,31 @@ class ValidPortableText implements ValidationRule
         return null;
     }
 
+    /**
+     * A callout holds blocks rather than one paragraph of spans, matching the
+     * `block+` its editor node declares.
+     */
     private function calloutError(array $node): ?string
     {
         if (! in_array($node['variant'] ?? null, self::CALLOUT_VARIANTS, true)) {
             return 'callout requires a valid variant';
         }
 
-        return $this->richTextError($node, 'callout');
+        $children = $node['children'] ?? null;
+
+        if (! is_array($children) || ! array_is_list($children) || $children === []) {
+            return 'callout requires at least one block';
+        }
+
+        foreach ($children as $child) {
+            $error = $this->nodeError($child);
+
+            if ($error !== null) {
+                return 'callout child is invalid: '.$error;
+            }
+        }
+
+        return null;
     }
 
     private function codeError(array $node): ?string
