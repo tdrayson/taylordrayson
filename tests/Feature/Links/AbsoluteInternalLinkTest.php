@@ -30,7 +30,7 @@ it('reads a pasted absolute URL as the path it points at', function () {
 it('previews an entry linked by its full address, not just by path', function () {
     config(['app.url' => 'https://taylordrayson.test']);
 
-    $page = Page::factory()->create(['slug' => 'colophon', 'title' => 'Colophon', 'published' => true]);
+    $page = Page::factory()->create(['slug' => 'colophon', 'title' => 'Colophon', 'status' => 'published']);
 
     $previews = app(BuildLinkPreviews::class)(documentLinkingTo('https://taylordrayson.test/'.$page->slug));
 

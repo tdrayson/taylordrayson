@@ -20,6 +20,9 @@ final readonly class TypeMeta implements Arrayable, JsonSerializable
      * @param  ?string  $href  Where the type's archive lives, when it has one.
      * @param  ?string  $keywords  Command-palette synonyms.
      * @param  ?string  $eyebrow  The OG card's section label, when it is not the label.
+     * @param  ?string  $noun  Singular count noun for /more, timeline types only.
+     * @param  ?string  $nounPlural  Plural count noun for /more, timeline types only.
+     * @param  ?string  $kind  The dataset kind value, timeline types only.
      */
     public function __construct(
         public string $key,
@@ -30,6 +33,9 @@ final readonly class TypeMeta implements Arrayable, JsonSerializable
         public ?string $href = null,
         public ?string $keywords = null,
         private ?string $eyebrow = null,
+        public ?string $noun = null,
+        public ?string $nounPlural = null,
+        public ?string $kind = null,
     ) {}
 
     /**
@@ -61,6 +67,9 @@ final readonly class TypeMeta implements Arrayable, JsonSerializable
             'href' => $this->href,
             'accent' => $this->accent,
             'keywords' => $this->keywords,
+            'noun' => $this->noun,
+            'nounPlural' => $this->nounPlural,
+            'kind' => $this->kind,
         ], fn (?string $value): bool => $value !== null);
     }
 

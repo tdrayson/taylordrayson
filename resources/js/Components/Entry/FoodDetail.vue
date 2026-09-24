@@ -1,0 +1,117 @@
+<script setup>
+import { computed } from 'vue';
+import DetailList from '../Ui/DetailList.vue';
+import SectionHead from '../Ui/SectionHead.vue';
+import Eyebrow from '../Ui/Eyebrow.vue';
+import Heading from '../Ui/Heading.vue';
+import Stat from '../Ui/Stat.vue';
+import { number, titleCase } from '../../lib/format.js';
+import { useFormat } from '../../composables/useFormat';
+
+const props = defineProps({
+    entry: { type: Object, required: true },
+});
+
+const { measure, exactMeasure } = useFormat();
+
+const totals = computed(() => props.entry.totals ?? {});
+const meals = computed(() => props.entry.meals ?? []);
+
+const MACROS = [
+    { key: 'protein', label: 'Protein', kcalPerGram: 4, color: 'var(--color-macro-protein)' },
+    { key: 'carbs', label: 'Carbs', kcalPerGram: 4, color: 'var(--color-macro-carbs)' },
+    { key: 'fat', label: 'Fat', kcalPerGram: 9, color: 'var(--color-macro-fat)' },
+];
+
+// Macro split by calorie contribution (protein/carbs 4 kcal/g, fat 9 kcal/g).
+const macros = computed(() => {
+    const entries = MACROS.map((macro) => ({
+        ...macro,
+        grams: totals.value[macro.key] || 0,
+        energy: (totals.value[macro.key] || 0) * macro.kcalPerGram,
+    })).filter((macro) => macro.grams > 0);
+
+    const energyTotal = entries.reduce((sum, macro) => sum + macro.energy, 0) || 1;
+
+    return entries.map((macro) => ({ ...macro, percent: (macro.energy / energyTotal) * 100 }));
+});
+
+// Per-nutrient breakdown, ordered and nested like a UK/EU nutrition label:
+// saturated fat sits under fat, sugars under carbs (the "of which" sub-rows).
+// Calories are omitted here since they already headline the page. Micros are
+// only supplied by some sources (e.g. Lose It, not Rovi) and appear when present.
+const nutrition = computed(() => {
+    const t = totals.value;
+
+    return [
+        { label: 'Fat', value: t.fat ? `${number(t.fat, 1)} g` : null },
+        { label: 'Saturated fat', value: t.saturated_fat ? `${number(t.saturated_fat, 1)} g` : null, sub: true },
+        { label: 'Carbs', value: t.carbs ? `${number(t.carbs, 1)} g` : null },
+        { label: 'Sugars', value: t.sugars ? `${number(t.sugars, 1)} g` : null, sub: true },
+        { label: 'Fibre', value: t.fibre ? `${number(t.fibre, 1)} g` : null },
+        { label: 'Protein', value: t.protein ? `${number(t.protein, 1)} g` : null },
+        { label: 'Sodium', value: t.sodium ? `${number(t.sodium)} mg` : null },
+    ].filter((row) => row.value);
+});
+
+function quantity(item) {
+    if (!item.quantity) {
+        return item.units || '';
+    }
+
+    return `${number(item.quantity, item.quantity % 1 ? 1 : 0)} ${item.units || ''}`.trim();
+}
+</script>
+
+<template>
+    <div class="space-y-10">
+        <div v-if="entry.inProgress" class="flex items-center gap-2">
+            <span class="relative flex size-2">
+                <span class="absolute inline-flex size-full animate-ping-slow rounded-full bg-food opacity-75" />
+                <span class="relative inline-flex size-2 rounded-full bg-food" />
+            </span>
+            <Eyebrow as="span" class="tracking-wide text-food">Still logging today</Eyebrow>
+        </div>
+
+        <div v-if="macros.length">
+            <div class="flex h-2.5 overflow-hidden rounded-full">
+                <div v-for="macro in macros" :key="macro.key" :style="{ width: `${macro.percent}%`, background: macro.color }" />
+            </div>
+            <div class="mt-4 flex flex-wrap gap-x-10 gap-y-4">
+                <div v-for="macro in macros" :key="macro.key" class="flex items-center gap-2.5">
+                    <span class="size-2.5 rounded-full" :style="{ background: macro.color }" />
+                    <div>
+                        <Stat as="div">{{ number(macro.grams) }}<span class="ml-0.5 text-base font-semibold text-neutral-500">g</span></Stat>
+                        <Eyebrow class="mt-1 text-neutral-500">{{ macro.label }}, {{ Math.round(macro.percent) }}%</Eyebrow>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div v-if="meals.length">
+            <SectionHead title="Meals" />
+            <div v-twemoji class="space-y-3">
+                <div v-for="meal in meals" :key="meal.meal" class="overflow-hidden rounded-lg border border-neutral-50">
+                    <div class="flex items-baseline justify-between bg-neutral-25 px-4 py-2.5">
+                        <Heading as="span" size="section">{{ titleCase(meal.meal) }}</Heading>
+                        <span :title="exactMeasure('energy', meal.calories, `${number(meal.calories)} kcal`)" class="text-sm font-semibold text-neutral-700 tabular-nums">{{ measure('energy', meal.calories, `${number(meal.calories)} kcal`) }}</span>
+                    </div>
+                    <div class="divide-y divide-neutral-50">
+                        <div v-for="(item, index) in meal.items" :key="index" class="flex items-center justify-between gap-4 px-4 py-2.5">
+                            <div class="min-w-0">
+                                <div class="text-sm text-neutral-900">{{ item.name }}</div>
+                                <div class="text-xs text-neutral-500">{{ quantity(item) }}</div>
+                            </div>
+                            <div :title="exactMeasure('energy', item.calories, number(item.calories))" class="shrink-0 text-sm font-semibold text-neutral-900 tabular-nums">{{ measure('energy', item.calories, number(item.calories)) }}</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div v-if="nutrition.length">
+            <SectionHead title="Nutrition" />
+            <DetailList :rows="nutrition" />
+        </div>
+    </div>
+</template>

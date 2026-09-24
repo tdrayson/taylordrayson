@@ -20,5 +20,11 @@ describe('the editor link mark', () => {
                 'a caret after a link must sit outside it, or a space typed there is swallowed into the link',
             );
         });
+
+        it(`declares the expanded attribute in the ${profile} profile`, () => {
+            const schema = getSchema(extensionsFor(profile));
+
+            assert.ok('expanded' in schema.marks.link.spec.attrs, 'ProseMirror drops any attribute a mark does not declare');
+        });
     }
 });

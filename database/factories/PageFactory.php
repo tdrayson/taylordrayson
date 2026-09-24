@@ -2,6 +2,7 @@
 
 namespace Database\Factories;
 
+use App\Enums\EntryStatus;
 use App\Models\Page;
 use App\Support\PortableText;
 use Illuminate\Database\Eloquent\Factories\Factory;
@@ -27,12 +28,17 @@ class PageFactory extends Factory
                 PortableText::block(rtrim($title, '.'), 'h2'),
                 PortableText::block($this->faker->paragraph()),
             ],
-            'published' => true,
+            'status' => EntryStatus::Published,
         ];
+    }
+
+    public function published(): static
+    {
+        return $this->state(fn (): array => ['status' => EntryStatus::Published]);
     }
 
     public function draft(): static
     {
-        return $this->state(fn (): array => ['published' => false]);
+        return $this->state(fn (): array => ['status' => EntryStatus::Draft]);
     }
 }

@@ -41,7 +41,7 @@ final class Preferences
      *
      * @var list<string>
      */
-    public const SETTINGS = ['distanceUnit', 'weightUnit'];
+    public const SETTINGS = ['distanceUnit', 'weightUnit', 'temperatureUnit', 'timeFormat', 'dateFormat', 'sillyUnits', 'textMode'];
 
     /**
      * Every cookie the browser writes, which must not be encrypted.
@@ -97,6 +97,16 @@ final class Preferences
         }
 
         return $settings;
+    }
+
+    /**
+     * A Celsius reading in the visitor's chosen unit, e.g. "18°C" or "64°F".
+     */
+    public static function temperature(Request $request, float $celsius): string
+    {
+        $fahrenheit = $request->cookie(self::SETTING_PREFIX.'temperatureUnit') === 'f';
+
+        return round($fahrenheit ? $celsius * 9 / 5 + 32 : $celsius).($fahrenheit ? '°F' : '°C');
     }
 
     /**

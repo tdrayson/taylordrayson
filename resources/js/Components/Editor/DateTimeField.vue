@@ -1,10 +1,12 @@
 <script setup>
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import * as chrono from 'chrono-node';
+import Eyebrow from '../Ui/Eyebrow.vue';
 import Input from '../Ui/Input.vue';
-import { CONTROL, CONTROL_BORDER } from '../../lib/editor/control.js';
+import { CONTROL, CONTROL_BORDER, READONLY } from '../../lib/editor/control.js';
 import { clock } from '../../lib/format.js';
-import { useDismissable } from '../../lib/editor/dismissable.js';
+import { formatDate } from '../../lib/dateFormat.js';
+import { useDismissable } from '../../composables/useDismissable.js';
 import { stampWallClock, toWallClockDate, wallClockParts } from '../../lib/editor/wallClock.js';
 
 /**
@@ -20,11 +22,21 @@ const props = defineProps({
     // relativeTo: an event's end is nearly always a few hours after its start.
     relativeToValue: { type: String, default: null },
     relativeToLabel: { type: String, default: 'start' },
+    readonly: { type: Boolean, default: false },
 });
 
 const emit = defineEmits(['update:modelValue']);
 
 const { isOpen: open, root, close, toggle } = useDismissable();
+
+/** The picker never opens read-only: there is nothing to change. */
+function onToggle() {
+    if (props.readonly) {
+        return;
+    }
+
+    toggle();
+}
 const typed = ref('');
 
 /** Read the stored wall clock literally rather than through Date. */
@@ -68,15 +80,14 @@ const shown = computed(() => (parts.value.date
     : { date: openedAt.value.slice(0, 10), time: openedAt.value.slice(11, 16) }));
 
 /**
- * The site's timestamp shape, matching LocalTime's "D j M Y, g:ia", with the
+ * The site's timestamp shape, matching LocalTime's label, with the
  * year dropped when it is this one. The zone is its own field, so it is not
  * repeated here.
  */
 function readable({ date, time }) {
-    const day = new Date(`${date}T00:00:00`).toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' });
-    const year = date.slice(0, 4) === String(tick.value.getFullYear()) ? '' : ` ${date.slice(0, 4)}`;
+    const year = date.slice(0, 4) !== String(tick.value.getFullYear());
 
-    return `${day}${year}, ${clock(new Date(`${date}T${time}`))}`;
+    return `${formatDate(date, { year })}, ${clock(`${date}T${time}`)}`;
 }
 
 // Unset reads as the stamp it would be given, in the same shape as a set one:
@@ -160,18 +171,22 @@ function setTimePart(value) {
         <button
             :id="id"
             type="button"
+            :aria-readonly="readonly || undefined"
             :class="[
                 CONTROL,
-                'border-neutral-100 text-left hover:border-accent-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500',
-                parts.date ? 'text-neutral-900' : 'text-neutral-500',
+                'text-left',
+                readonly
+                    ? [READONLY, 'border-neutral-100']
+                    : 'border-neutral-100 hover:border-accent-500',
+                ! readonly && (parts.date ? 'text-neutral-900' : 'text-neutral-500'),
             ]"
-            @click="toggle"
+            @click="onToggle"
         >
             {{ label }}
         </button>
 
         <div
-            v-if="open"
+            v-if="open && ! readonly"
             class="absolute inset-x-0 z-30 mt-1 rounded-lg border border-neutral-100 bg-neutral-0 p-3 shadow-lg sm:right-auto sm:w-80"
         >
             <Input
@@ -185,13 +200,12 @@ function setTimePart(value) {
                 <li v-for="option in relativeOptions" :key="option.label">
                     <button
                         type="button"
-                        class="flex min-h-11 w-full items-center justify-between gap-4 rounded px-2 text-left text-meta text-neutral-900 transition-colors hover:bg-accent-50 hover:text-accent-700"
+                        class="flex min-h-11 w-full items-center justify-between gap-4 rounded px-2 text-left text-sm text-neutral-900 transition-colors hover:bg-accent-50 hover:text-accent-700"
                         @click="choose(option.date)"
                     >
                         <span>{{ option.label }}</span>
-                        <span class="text-caption text-neutral-500">
-                            {{ option.date.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }) }}
-                            {{ String(option.date.getHours()).padStart(2, '0') }}:{{ String(option.date.getMinutes()).padStart(2, '0') }}
+                        <span class="text-xs text-neutral-500">
+                            {{ formatDate(option.date, { weekday: false, year: false }) }} {{ clock(option.date) }}
                         </span>
                     </button>
                 </li>
@@ -201,19 +215,19 @@ function setTimePart(value) {
                 <li v-for="shortcut in shortcuts" :key="shortcut.label">
                     <button
                         type="button"
-                        class="flex min-h-11 w-full items-center justify-between gap-4 rounded px-2 text-left text-meta text-neutral-900 transition-colors hover:bg-accent-50 hover:text-accent-700"
+                        class="flex min-h-11 w-full items-center justify-between gap-4 rounded px-2 text-left text-sm text-neutral-900 transition-colors hover:bg-accent-50 hover:text-accent-700"
                         @click="choose(shortcut.date)"
                     >
                         <span>{{ shortcut.label }}</span>
-                        <span class="text-caption text-neutral-500">
-                            {{ shortcut.date.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' }) }}
+                        <span class="text-xs text-neutral-500">
+                            {{ formatDate(shortcut.date, { year: false }) }}
                         </span>
                     </button>
                 </li>
             </ul>
 
             <div class="grid grid-cols-1 gap-2 sm:grid-cols-5">
-                <label class="min-w-0 text-label uppercase text-neutral-500 sm:col-span-3">
+                <Eyebrow as="label" class="min-w-0 text-neutral-500 sm:col-span-3">
                     Date
                     <input
                         type="date"
@@ -221,9 +235,9 @@ function setTimePart(value) {
                         :class="[CONTROL, CONTROL_BORDER, 'mt-1 min-w-0 max-w-full appearance-none px-2 text-neutral-900']"
                         @input="setDatePart($event.target.value)"
                     >
-                </label>
+                </Eyebrow>
 
-                <label class="min-w-0 text-label uppercase text-neutral-500 sm:col-span-2">
+                <Eyebrow as="label" class="min-w-0 text-neutral-500 sm:col-span-2">
                     Time
                     <input
                         type="time"
@@ -231,14 +245,14 @@ function setTimePart(value) {
                         :class="[CONTROL, CONTROL_BORDER, 'mt-1 min-w-0 max-w-full appearance-none px-2 text-neutral-900']"
                         @input="setTimePart($event.target.value)"
                     >
-                </label>
+                </Eyebrow>
             </div>
 
             <div class="mt-2 flex gap-2">
                 <button
                     v-if="parts.date"
                     type="button"
-                    class="flex-1 rounded-md bg-neutral-25 py-2 text-caption text-neutral-700 transition-colors hover:bg-accent-50 hover:text-accent-700"
+                    class="flex-1 rounded-md bg-neutral-25 py-2 text-xs text-neutral-700 transition-colors hover:bg-accent-50 hover:text-accent-700"
                     @click="clear"
                 >
                     Clear
@@ -246,7 +260,7 @@ function setTimePart(value) {
 
                 <button
                     type="button"
-                    class="flex-1 rounded-md bg-neutral-25 py-2 text-caption text-neutral-700 transition-colors hover:bg-accent-50 hover:text-accent-700"
+                    class="flex-1 rounded-md bg-neutral-25 py-2 text-xs text-neutral-700 transition-colors hover:bg-accent-50 hover:text-accent-700"
                     @click="close"
                 >
                     Done

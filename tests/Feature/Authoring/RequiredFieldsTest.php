@@ -11,11 +11,13 @@ it('refuses a create without a newly required field', function (string $type, ar
     $this->postJson("/entries/{$type}", $payload)->assertJsonValidationErrors($missing);
 })->with([
     'event category' => ['event', ['name' => 'A gig', 'occurred_at' => '2026-08-13 19:00:00'], 'tags'],
-    'book author' => ['book', ['title' => 'A book', 'occurred_at' => '2026-08-13 19:00:00'], 'meta.author'],
+    // A book has no required author field any more; a title-only create
+    // defaults to published, so it is the publish gate that refuses it.
+    'book publish gate' => ['book', ['title' => 'A book', 'occurred_at' => '2026-08-13 19:00:00'], 'status'],
     'appearance show' => ['appearance', ['title' => 'A talk', 'occurred_at' => '2026-08-13 19:00:00', 'type' => 'podcast'], 'show_name'],
     'appearance kind' => ['appearance', ['title' => 'A talk', 'occurred_at' => '2026-08-13 19:00:00', 'show_name' => 'A show'], 'type'],
-    'project description' => ['project', ['title' => 'A project', 'status' => 'active'], 'description'],
-    'project status' => ['project', ['title' => 'A project', 'description' => 'A summary'], 'status'],
+    'project description' => ['project', ['title' => 'A project', 'stage' => 'active'], 'description'],
+    'project stage' => ['project', ['title' => 'A project', 'description' => 'A summary'], 'stage'],
     'flight airline' => ['flight', ['occurred_at' => '2026-08-13 09:00:00', 'origin_iata' => 'LHR', 'destination_iata' => 'JFK', 'flight_number' => 'BA117'], 'airline_icao'],
     'flight number' => ['flight', ['occurred_at' => '2026-08-13 09:00:00', 'origin_iata' => 'LHR', 'destination_iata' => 'JFK', 'airline_icao' => 'BAW'], 'flight_number'],
 ]);

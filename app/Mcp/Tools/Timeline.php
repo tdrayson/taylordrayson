@@ -2,9 +2,9 @@
 
 namespace App\Mcp\Tools;
 
+use App\Datasets\Datasets;
 use App\Models\TimelineEntry;
 use App\Presenters\CardPresenter;
-use App\Timeline\TypeRegistry;
 use Illuminate\Contracts\JsonSchema\JsonSchema;
 use Laravel\Mcp\Request;
 use Laravel\Mcp\Response;
@@ -31,13 +31,13 @@ class Timeline extends Tool
             ->whereBetween('occurred_at', [$input['from'].' 00:00:00', $to.' 23:59:59']);
 
         if (isset($input['type'])) {
-            $definition = TypeRegistry::find($input['type']);
+            $dataset = Datasets::for($input['type']);
 
-            if ($definition === null) {
+            if ($dataset === null) {
                 return Response::error("No type called {$input['type']}. Call data_freshness to list them.");
             }
 
-            $query->where('timelineable_type', (new $definition['model'])->getMorphClass());
+            $query->where('dataset', (new ($dataset->model()))->getMorphClass());
         }
 
         $entries = $query
@@ -46,10 +46,10 @@ class Timeline extends Tool
             ->get();
 
         $cards = $entries
-            ->filter(fn (TimelineEntry $entry): bool => $entry->timelineable !== null)
+            ->filter(fn (TimelineEntry $entry): bool => $entry->entry !== null)
             ->map(fn (TimelineEntry $entry): array => [
-                'url' => $entry->timelineable->url(),
-                ...CardPresenter::for($entry->timelineable)->toArray(),
+                'url' => $entry->entry->url(),
+                ...CardPresenter::for($entry->entry)->toArray(),
             ])
             ->values();
 
@@ -64,7 +64,7 @@ class Timeline extends Tool
         return [
             'from' => $schema->string()->description('Start date, YYYY-MM-DD.')->required(),
             'to' => $schema->string()->description('End date, YYYY-MM-DD. Omit for a single day.'),
-            'type' => $schema->string()->description('Limit to one type, e.g. sleep, activity, calorie, flight.'),
+            'type' => $schema->string()->description('Limit to one type, e.g. sleep, activity, food, flight.'),
             'limit' => $schema->integer()->description('Entries to return, default and maximum '.self::MAX.'.'),
         ];
     }

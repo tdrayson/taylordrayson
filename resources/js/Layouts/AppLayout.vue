@@ -1,4 +1,5 @@
 <script setup>
+import { computed } from 'vue';
 import { usePage } from '@inertiajs/vue3';
 import AppSidebar from '../Components/Layout/AppSidebar.vue';
 import AppTopbar from '../Components/Layout/AppTopbar.vue';
@@ -8,6 +9,7 @@ import Breadcrumb from '../Components/Layout/Breadcrumb.vue';
 import CommandPalette from '../Components/Overlays/CommandPalette.vue';
 import SettingsModal from '../Components/Layout/SettingsModal.vue';
 import FloatingActions from '../Components/Layout/FloatingActions.vue';
+import { provideInteractions } from '../lib/interactionContext.js';
 
 defineProps({
     breadcrumb: { type: Array, default: () => [] },
@@ -17,6 +19,11 @@ defineProps({
 });
 
 const page = usePage();
+
+// Provided here rather than per page: every view that draws feed cards sends
+// the same deferred `interactions` prop, and the cards are several components
+// below whichever page is in the slot.
+provideInteractions(computed(() => page.props.interactions ?? {}));
 </script>
 
 <template>
@@ -25,7 +32,7 @@ const page = usePage();
              users jump straight past the sidebar/mobile nav to the page content. -->
         <a
             href="#main-content"
-            class="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:rounded-md focus:bg-neutral-900 focus:px-4 focus:py-2 focus:text-meta focus:font-medium focus:text-neutral-0 focus:shadow-card focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500"
+            class="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:rounded-md focus:bg-neutral-900 focus:px-4 focus:py-2 focus:text-sm focus:font-medium focus:text-neutral-0 focus:shadow-card"
         >Skip to content</a>
         <AppSidebar />
         <div class="flex min-w-0 flex-1 flex-col">
@@ -38,7 +45,7 @@ const page = usePage();
                 <AppTopbar :breadcrumb="breadcrumb" :minimal="minimal" />
             </header>
             <main id="main-content" class="flex min-w-0 flex-1 flex-col">
-                <div :key="page.url" class="content-grid w-full animate-fade-in pb-28 pt-8">
+                <div :key="page.url" class="content-grid w-full animate-fade-in pb-40 pt-8">
                     <slot />
                 </div>
             </main>

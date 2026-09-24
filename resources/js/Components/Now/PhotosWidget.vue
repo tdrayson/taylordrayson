@@ -6,18 +6,8 @@ import Icon from '../Ui/Icon.vue';
 const props = defineProps({
     title: { type: String, default: 'Life lately' },
     subtitle: { type: String, default: 'Proof I leave the house' },
-    // Each photo: { src? , gradient }. Gradients act as placeholders/fallbacks.
-    photos: {
-        type: Array,
-        default: () => [
-            { gradient: 'linear-gradient(135deg, #d6c2b2, #b89a86)' },
-            { gradient: 'linear-gradient(135deg, #bcd3e6, #8fb0cf)' },
-            { gradient: 'linear-gradient(135deg, #d9c7b0, #c2a47e)' },
-            { gradient: 'linear-gradient(135deg, #cfe0cd, #9cc09a)' },
-            { gradient: 'linear-gradient(135deg, #e6cdd6, #cf9ab0)' },
-            { gradient: 'linear-gradient(135deg, #c8c4e6, #9a8fd0)' },
-        ],
-    },
+    // Each photo: { src? }. A photo without a src shows as a blank placeholder card.
+    photos: { type: Array, default: () => Array.from({ length: 6 }, () => ({})) },
     fill: { type: Boolean, default: false },
 });
 
@@ -35,7 +25,7 @@ onMounted(() => {
         return;
     }
 
-    const cards = [...deck.querySelectorAll('.photos__card')];
+    const cards = [...deck.querySelectorAll('[data-photo-card]')];
     const jit = [2, -3, 1, -2, 3, -1];
     cards.forEach((card, i) => {
         card.dataset.j = jit[i % jit.length];
@@ -45,9 +35,10 @@ onMounted(() => {
     let order = cards.slice();
     const MAXV = 3;
     const EASE = 'transform .42s cubic-bezier(.2,.8,.2,1), opacity .42s';
+    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
     function place(card, depth, anim) {
-        card.style.transition = anim ? EASE : 'none';
+        card.style.transition = anim && !reduceMotion ? EASE : 'none';
         const j = +card.dataset.j;
         if (depth === 0) {
             card.style.transform = `translate(0, 0) scale(1) rotate(${j * 0.3}deg)`;
@@ -67,7 +58,6 @@ onMounted(() => {
                 place(card, depth, anim);
             }
         });
-        order.forEach((card, i) => card.classList.toggle('photos__card--top', i === 0));
         topIndex.value = +order[0].dataset.i;
     }
 
@@ -77,6 +67,11 @@ onMounted(() => {
     let finalizeTimer = null;
     function commit(dir) {
         if (busy) {
+            return;
+        }
+        if (reduceMotion) {
+            order.push(order.shift());
+            layout(false);
             return;
         }
         busy = true;
@@ -188,174 +183,48 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-    <div class="photos rounded-3xl" :class="{ 'photos--has-aspect': !fill }">
-        <div class="photos__header">
-            <div class="photos__header-row">
+    <div class="@container relative flex flex-col overflow-hidden rounded-3xl bg-neutral-0 shadow-card" :class="{ 'aspect-square': !fill }">
+        <div class="relative z-4 flex-none bg-neutral-0 px-5 pt-5 pb-7.5 @sm:px-6.5 @sm:pt-6 @sm:pb-9.5 @md:px-8 @md:pt-7.5 @md:pb-11.5 @xl:px-11 @xl:pt-10 @xl:pb-15">
+            <div class="flex items-end justify-between gap-2 @sm:gap-2.5 @md:gap-3 @xl:gap-4">
                 <div>
-                    <h2 class="photos__title">{{ title }}</h2>
-                    <div class="photos__subtitle">{{ subtitle }}</div>
+                    <h2 class="text-lg font-extrabold tracking-tight @sm:text-2xl @md:text-3xl @xl:text-4xl">{{ title }}</h2>
+                    <div class="text-2xs font-medium text-neutral-500 @sm:text-sm @md:text-base @xl:text-xl">{{ subtitle }}</div>
                 </div>
-                <Link href="/photos" class="photos__link">
+                <Link
+                    href="/photos"
+                    class="flex items-center gap-1 rounded-xs text-2xs font-bold whitespace-nowrap text-neutral-900 @md:gap-1.5 @md:text-sm @xl:gap-2 @xl:text-lg"
+                >
                     All photos
-                    <Icon class="photos__link-icon" name="ArrowRight01Icon" :stroke-width="2.6" />
+                    <Icon class="size-3 @sm:size-3.5 @md:size-4 @xl:size-5" name="ArrowRight01Icon" :stroke-width="2.6" />
                 </Link>
             </div>
         </div>
 
         <div
             ref="deckEl"
-            class="photos__deck"
+            class="relative flex-1 touch-none focus-visible:-outline-offset-2"
             tabindex="0"
             role="group"
             aria-roledescription="photo carousel"
             aria-label="Recent photos. Use the left and right arrow keys to browse."
         >
-            <div v-for="(photo, i) in photos" :key="i" class="photos__card" :style="{ background: photo.gradient || 'var(--color-neutral-100)' }">
-                <img v-if="photo.src" :src="photo.src" alt="" @error="onImgError" />
+            <div
+                v-for="(photo, i) in photos"
+                :key="i"
+                data-photo-card
+                class="absolute inset-x-3/50 top-1 -bottom-10 cursor-grab overflow-hidden rounded-lg border-4 border-white bg-neutral-100 shadow-xl shadow-black/20 will-change-transform backface-hidden @sm:-bottom-13 @sm:rounded-2xl @md:-bottom-16 @md:border-5 @xl:-bottom-21 @xl:rounded-3xl @xl:border-7"
+                :class="i === topIndex ? 'active:cursor-grabbing' : 'pointer-events-none'"
+            >
+                <img v-if="photo.src" class="pointer-events-none block size-full object-cover select-none" :src="photo.src" alt="" draggable="false" @error="onImgError" />
             </div>
-            <div class="photos__dots">
-                <span v-for="(photo, i) in photos" :key="`dot-${i}`" class="photos__dot" :class="{ 'photos__dot--active': i === topIndex }" />
+            <div class="pointer-events-none absolute inset-x-0 bottom-2.5 z-6 flex justify-center gap-1 @sm:bottom-3 @md:bottom-4 @md:gap-1.5 @xl:bottom-5 @xl:gap-2">
+                <span
+                    v-for="(photo, i) in photos"
+                    :key="`dot-${i}`"
+                    class="h-1 rounded-full shadow-sm shadow-black/35 transition-all duration-300 @md:h-1.5 @xl:h-2"
+                    :class="i === topIndex ? 'w-3 bg-white @sm:w-3.5 @md:w-4 @xl:w-6' : 'w-1 bg-white/55 @md:w-1.5 @xl:w-2'"
+                />
             </div>
         </div>
     </div>
 </template>
-
-<style scoped>
-/* The card is the query container; inner sizing is in cqw (1cqw ≈ reference
-   px ÷ 4.52) so the 2x2 card scales with the grid cell. */
-.photos {
-    container-type: inline-size;
-    position: relative;
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-    background: var(--color-neutral-0);
-    box-shadow: var(--shadow-card);
-}
-
-.photos--has-aspect {
-    aspect-ratio: 1 / 1;
-}
-
-.photos__header {
-    flex: none;
-    position: relative;
-    z-index: 4;
-    padding: 6.2cqw 6.6cqw 9.4cqw;
-    background: var(--color-neutral-0);
-}
-
-.photos__header-row {
-    display: flex;
-    align-items: flex-end;
-    justify-content: space-between;
-    gap: 2.6cqw;
-}
-
-.photos__title {
-    font-family: var(--font-sans);
-    font-size: 5.75cqw;
-    font-weight: 800;
-    letter-spacing: -0.02em;
-}
-
-.photos__subtitle {
-    font-size: 3.3cqw;
-    font-weight: 500;
-    color: var(--color-neutral-500);
-}
-
-.photos__link {
-    display: flex;
-    align-items: center;
-    gap: 1.1cqw;
-    border: none;
-    background: none;
-    font-size: 2.9cqw;
-    font-weight: 700;
-    color: var(--color-neutral-900);
-    white-space: nowrap;
-}
-
-.photos__link:focus-visible {
-    outline: 2px solid var(--color-accent-500);
-    outline-offset: 2px;
-    border-radius: 2px;
-}
-
-.photos__link-icon {
-    width: 3.3cqw;
-    height: 3.3cqw;
-}
-
-.photos__deck {
-    flex: 1;
-    position: relative;
-    touch-action: none;
-}
-
-.photos__deck:focus-visible {
-    outline: 2px solid var(--color-accent-500);
-    outline-offset: -2px;
-}
-
-.photos__card {
-    position: absolute;
-    left: 5.75cqw;
-    right: 5.75cqw;
-    top: 0.9cqw;
-    bottom: -12.8cqw;
-    overflow: hidden;
-    border: 1.1cqw solid #fff;
-    border-radius: 4cqw;
-    box-shadow: 0 2.2cqw 5.7cqw rgba(20, 22, 30, 0.22);
-    cursor: grab;
-    will-change: transform, opacity;
-    backface-visibility: hidden;
-}
-
-.photos__card--top:active {
-    cursor: grabbing;
-}
-
-.photos__card:not(.photos__card--top) {
-    pointer-events: none;
-}
-
-.photos__card img {
-    display: block;
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    pointer-events: none;
-    user-select: none;
-    -webkit-user-drag: none;
-}
-
-.photos__dots {
-    position: absolute;
-    left: 0;
-    right: 0;
-    bottom: 3.1cqw;
-    z-index: 6;
-    display: flex;
-    justify-content: center;
-    gap: 1.3cqw;
-    pointer-events: none;
-}
-
-.photos__dot {
-    width: 1.3cqw;
-    height: 1.3cqw;
-    border-radius: 50%;
-    background: rgba(255, 255, 255, 0.55);
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.35);
-    transition: width 0.3s, background 0.3s, border-radius 0.3s;
-}
-
-.photos__dot--active {
-    width: 3.5cqw;
-    border-radius: 0.9cqw;
-    background: #fff;
-}
-</style>

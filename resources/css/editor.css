@@ -24,11 +24,11 @@
     margin-top: 2rem;
 }
 
-.ProseMirror h2 { font-size: 1.875rem; font-weight: 700; }
-.ProseMirror h3 { font-size: 1.5rem; font-weight: 600; }
-.ProseMirror h4 { font-size: 1.25rem; font-weight: 600; }
-.ProseMirror h5 { font-size: 1.125rem; font-weight: 600; }
-.ProseMirror h6 { font-size: 1rem; font-weight: 600; }
+.ProseMirror h2 { font-size: var(--text-3xl); font-weight: 700; }
+.ProseMirror h3 { font-size: var(--text-2xl); font-weight: 600; }
+.ProseMirror h4 { font-size: var(--text-xl); font-weight: 600; }
+.ProseMirror h5 { font-size: var(--text-lg); font-weight: 600; }
+.ProseMirror h6 { font-size: var(--text-base); font-weight: 600; }
 
 .ProseMirror blockquote {
     border-left: 2px solid var(--color-accent-500);
@@ -139,11 +139,16 @@
 /* A link while writing. Not an anchor: see the Link override in profiles.js.
    The favicon is set as a background image from Google's icon service so
    it appears the moment a URL is typed, where the published page serves the
-   copy stored at save time. */
+   copy stored at save time. Neutral fill: the published chip colours an entry's
+   glyph by type, and an accent fill would clash with that hue. */
 .ProseMirror .editor-link {
-    color: var(--color-accent-500);
-    text-decoration: underline;
-    text-underline-offset: 2px;
+    background: var(--color-neutral-25);
+    color: var(--color-neutral-900);
+    border-radius: 0.25rem;
+    padding: 0.1em 0.3em;
+    text-decoration: none;
+    font-weight: 500;
+    box-decoration-break: clone;
     cursor: pointer;
 }
 
@@ -175,18 +180,6 @@
     --editor-link-glyph: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M10 13a5 5 0 0 0 7 0l3-3a5 5 0 0 0-7-7l-1 1'/%3E%3Cpath d='M14 11a5 5 0 0 0-7 0l-3 3a5 5 0 0 0 7 7l1-1'/%3E%3C/svg%3E");
 }
 
-/* Neutral ground and neutral text: the published chip colours its glyph by
-   entry type, and an accent fill would clash with whichever hue that is. */
-.ProseMirror .editor-link[data-internal] {
-    background: var(--color-neutral-25);
-    color: var(--color-neutral-900);
-    border-radius: 0.25rem;
-    padding: 0.1em 0.3em;
-    text-decoration: none;
-    font-weight: 500;
-    box-decoration-break: clone;
-}
-
 /* Says the destination leaves the site, matching the toolbar's own toggle. */
 .ProseMirror .editor-link[data-target="_blank"]::after {
     content: '↗';
@@ -203,12 +196,8 @@
     background: transparent;
 }
 
-
 /* Code token colours, shared by CodeBlock.vue and the editor's code block,
-   so a block is highlighted the same while it is written as once published.
-   Built from the design tokens rather than a stock hljs stylesheet. */
-/* Restrained light theme built from the design tokens rather than a stock
-   hljs stylesheet, so code blocks read as part of the site. */
+   so a block is highlighted the same while it is written as once published. */
 .code-highlight .hljs-comment,
 .code-highlight .hljs-quote {
     color: var(--color-neutral-400);
@@ -261,22 +250,4 @@
 .dark .code-highlight .hljs-template-variable,
 .dark .code-highlight .hljs-subst {
     color: hsl(340 60% 68%);
-}
-
-/* Contain the numbers below: markers run to 900 and the controls to 901, which
-   without a stacking context here are measured against the page and paint over
-   a lightbox opened on top of them. */
-.maplibregl-map {
-    isolation: isolate;
-}
-
-/* Above every marker, raised or not. MapLibre numbers its markers itself and
-   ships the controls at 2, so a raised marker would sit over the zoom buttons.
-   Qualified by the map class to beat MapLibre's own rule, whose stylesheet is
-   imported dynamically and so cannot be ordered against. */
-.maplibregl-map .maplibregl-ctrl-top-left,
-.maplibregl-map .maplibregl-ctrl-top-right,
-.maplibregl-map .maplibregl-ctrl-bottom-left,
-.maplibregl-map .maplibregl-ctrl-bottom-right {
-    z-index: 901;
 }

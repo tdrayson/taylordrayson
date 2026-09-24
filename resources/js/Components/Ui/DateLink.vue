@@ -24,6 +24,6 @@ const href = computed(() =>
 <template>
     <Link
         :href="href"
-        class="underline decoration-neutral-300 decoration-1 underline-offset-2 transition-colors hover:text-neutral-900 hover:decoration-neutral-500 focus-visible:text-neutral-900 focus-visible:outline-none"
+        class="underline decoration-neutral-300 decoration-1 underline-offset-2 transition-colors hover:text-neutral-900 hover:decoration-neutral-500 focus-visible:text-neutral-900"
     >{{ label }}</Link>
 </template>

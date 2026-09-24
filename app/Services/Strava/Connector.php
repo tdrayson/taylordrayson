@@ -29,9 +29,7 @@ class Connector extends ApiConnector
 
     public function boot(PendingRequest $pendingRequest): void
     {
-        // The token request authenticates itself with the client secret, and
-        // authenticating it here would recurse.
-        if ($pendingRequest->getRequest() instanceof TokenRequest) {
+        if ($pendingRequest->getRequest() instanceof UsesClientCredentials) {
             return;
         }
 
@@ -70,15 +68,21 @@ class Connector extends ApiConnector
         return $data['access_token'];
     }
 
+    protected function canAuthenticate(): bool
+    {
+        return $this->token() !== null;
+    }
+
     /**
      * A 401 means the cached token died early, so drop it and let the retry
      * re-authenticate through boot(). Everything else follows the base policy.
      */
     public function handleRetry(FatalRequestException|RequestException $exception, Request $request): bool
     {
-        // Not for the token request itself: refreshing in response to its own
-        // failure would call it again, and again.
-        if ($request instanceof TokenRequest) {
+        // Not for a request that carries the client secret itself: refreshing
+        // in response to the token request's own failure would call it again,
+        // and again, and a subscription call has no token to refresh.
+        if ($request instanceof UsesClientCredentials) {
             return parent::handleRetry($exception, $request);
         }
 

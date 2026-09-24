@@ -3,11 +3,10 @@
 namespace App\Actions\Fuel;
 
 use App\Models\Fuel;
-use App\Support\EntryInstant;
 
 class CreateFuel
 {
-    public function __construct(private DeriveFuelFigures $derive) {}
+    public function __construct(private DeriveFuelFigures $derive, private QueueMissingBrandLogo $queueBrandLogo) {}
 
     /**
      * Litres and price per litre derive from each other and the cost.
@@ -18,13 +17,17 @@ class CreateFuel
     {
         $attributes = ($this->derive)($attributes);
 
-        return Fuel::create([
+        $fuel = Fuel::create([
             ...$attributes,
-            'occurred_at' => $attributes['occurred_at'] ?? EntryInstant::nowLocal(),
+            'occurred_at' => $attributes['occurred_at'] ?? null,
             'vehicle_id' => $attributes['vehicle_id'] ?? self::defaultVehicleId(),
             // NOT NULL, and nothing is derivable from a zero cost and price.
             'litres' => $attributes['litres'] ?? 0.0,
         ]);
+
+        ($this->queueBrandLogo)($fuel);
+
+        return $fuel;
     }
 
     /**

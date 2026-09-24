@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Enums\CabinClass;
 use App\Enums\FlightReason;
 use App\Models\Concerns\HasAttachments;
+use App\Models\Concerns\HasStatus;
 use App\Models\Concerns\HasSubjects;
 use App\Models\Concerns\HasTimelineEntry;
 use App\Models\Concerns\Timelineable;
@@ -33,11 +34,14 @@ use Spatie\MediaLibrary\HasMedia;
     'cabin_class',
     'reason',
     'meta',
+    'status',
+    'password',
 ])]
 class Flight extends Model implements HasMedia, Timelineable
 {
     use HasAttachments;
     use HasFactory;
+    use HasStatus;
     use HasSubjects;
     use HasTimelineEntry;
 

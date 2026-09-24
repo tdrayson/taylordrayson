@@ -7,7 +7,7 @@ import { useTheme } from '../../useTheme.js';
 const props = defineProps({
     // [{ lat, lng, label }]
     places: { type: Array, required: true },
-    color: { type: String, default: 'var(--color-checkin)' },
+    color: { type: String, default: 'var(--color-place)' },
     // Break out full-bleed (true) or sit within the content column (false).
     bleed: { type: Boolean, default: true },
 });
@@ -195,7 +195,7 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-    <div class="places-map relative overflow-hidden border-neutral-50" :class="layoutClass">
+    <div class="relative h-map overflow-hidden border-neutral-50" :class="layoutClass">
         <div ref="container" class="size-full" />
         <div class="absolute left-2.5 top-2.5 z-10">
             <button
@@ -210,9 +210,3 @@ onBeforeUnmount(() => {
         </div>
     </div>
 </template>
-
-<style scoped>
-.places-map {
-    height: clamp(20rem, 48vh, 32rem);
-}
-</style>

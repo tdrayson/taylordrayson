@@ -1,0 +1,43 @@
+<?php
+
+namespace App\Data;
+
+use App\Enums\WebmentionKind;
+use Carbon\CarbonInterface;
+
+/**
+ * What a source page turned out to be saying about one of our URLs, after its
+ * microformats have been read.
+ */
+final readonly class MentionData
+{
+    public function __construct(
+        public WebmentionKind $kind,
+        /** The name of the post the mention came from, never its content. */
+        public ?string $title,
+        public ?string $authorName,
+        public ?string $authorUrl,
+        public ?string $authorPhoto,
+        /** @var array<int, array<string, mixed>>|null Portable Text. */
+        public ?array $content,
+        public ?CarbonInterface $publishedAt,
+        /** The offset dt-published carried, captured before parsing discards it; null when it gave none. */
+        public ?string $publishedTimezone = null,
+        /**
+         * Set when the reply is a reacji: an in-reply-to whose whole content is
+         * one emoji. IndieWeb has no property for it, so it is detected here.
+         */
+        public ?string $emoji = null,
+    ) {}
+
+    /** A bare link with nothing readable behind it, which is still worth showing. */
+    public static function bare(): self
+    {
+        return new self(WebmentionKind::Mention, null, null, null, null, null, null);
+    }
+
+    public function isReacji(): bool
+    {
+        return $this->emoji !== null;
+    }
+}

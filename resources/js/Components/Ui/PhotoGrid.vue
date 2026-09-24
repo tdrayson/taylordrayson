@@ -125,12 +125,12 @@ function rowSpan(photo) {
             :key="index"
             :data-index="index"
             :style="{ gridRowEnd: `span ${rowSpan(photo)}`, transitionDelay: `${delays[index] ?? 0}ms` }"
-            class="tile group/photo relative overflow-hidden rounded-lg border border-neutral-50 bg-neutral-25 focus-within:ring-2 focus-within:ring-accent-500"
+            class="tile focus-frame group/photo relative overflow-hidden rounded-lg border border-neutral-50 bg-neutral-25"
             :class="{ 'is-revealed': revealed.has(index) }"
         >
             <button
                 type="button"
-                class="block size-full cursor-zoom-in focus:outline-none"
+                class="focus-frame-target block size-full cursor-zoom-in"
                 :aria-label="`View photo from ${photo.caption}, ${photo.date}`"
                 @click="emit('open', index)"
             >
@@ -157,13 +157,13 @@ function rowSpan(photo) {
                 >
                 <!-- Fixed black, not the neutral ramp: an intentional dark surface in both themes. -->
                 <div class="pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/75 to-transparent p-3 pt-8 opacity-0 transition-opacity group-hover/photo:opacity-100 group-focus-within/photo:opacity-100">
-                    <p class="truncate text-meta font-medium text-white">{{ photo.caption }}</p>
-                    <p class="text-caption text-white/80">{{ photo.date }}</p>
+                    <p class="truncate text-sm font-medium text-white">{{ photo.caption }}</p>
+                    <p class="text-xs text-white/80">{{ photo.date }}</p>
                 </div>
             </button>
             <Link
                 :href="photo.url"
-                class="absolute right-2 top-2 flex size-8 items-center justify-center rounded-md bg-black/55 text-white opacity-0 transition-opacity hover:bg-black/75 focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white group-hover/photo:opacity-100 group-focus-within/photo:opacity-100"
+                class="absolute right-2 top-2 flex size-8 items-center justify-center rounded-md bg-black/55 text-white opacity-0 transition-opacity hover:bg-black/75 focus-visible:opacity-100 focus-visible:outline-white group-hover/photo:opacity-100 group-focus-within/photo:opacity-100"
                 :aria-label="`Go to ${photo.caption}`"
             >
                 <Icon name="ArrowUpRight01Icon" class="size-4" />

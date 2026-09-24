@@ -1,0 +1,100 @@
+<?php
+
+namespace App\Datasets;
+
+use App\Enums\DatasetKind;
+use App\Enums\SpanAnchor;
+use App\Enums\TimelineType;
+use App\Models\Book;
+use App\Presenters\Cards\BookCard;
+use App\Presenters\Exports\BookExport;
+
+/**
+ * Books logged as read, entered by hand.
+ */
+final class BookDataset extends BaseDataset
+{
+    public function type(): TimelineType
+    {
+        return TimelineType::Book;
+    }
+
+    public function model(): string
+    {
+        return Book::class;
+    }
+
+    public function kind(): DatasetKind
+    {
+        return DatasetKind::Watching;
+    }
+
+    public function icon(): string
+    {
+        return 'BookOpen01Icon';
+    }
+
+    public function label(): string
+    {
+        return 'Book';
+    }
+
+    public function plural(): string
+    {
+        return 'Books';
+    }
+
+    public function slug(): string
+    {
+        return 'books';
+    }
+
+    public function keywords(): string
+    {
+        return 'read book reading media';
+    }
+
+    public function card(): BookCard
+    {
+        return new BookCard;
+    }
+
+    public function export(): object
+    {
+        return new BookExport;
+    }
+
+    /**
+     * @return array<string, array<string, mixed>>
+     */
+    public function searchFields(): array
+    {
+        return [
+            'title' => ['label' => 'Title', 'dataType' => 'text', 'column' => 'title', 'category' => 'Book'],
+            'rating' => ['label' => 'Rating', 'dataType' => 'number', 'column' => 'rating', 'category' => 'Book'],
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public function textColumns(): array
+    {
+        return ['title'];
+    }
+
+    public function draftable(): bool
+    {
+        return true;
+    }
+
+    public function spanAnchor(): SpanAnchor
+    {
+        return SpanAnchor::End;
+    }
+
+    public function synced(): bool
+    {
+        return true;
+    }
+}

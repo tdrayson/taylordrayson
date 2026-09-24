@@ -33,12 +33,15 @@ export function defaultValueFor(field) {
         case 'prose':
         case 'tags':
         case 'image':
+        case 'book-cover':
         case 'gallery':
         case 'facts':
             return [];
         case 'boolean':
-        case 'published':
             return false;
+        // The first option is the type's default, so an article starts as a draft and a note as published.
+        case 'status':
+            return field.options?.[0]?.value ?? 'published';
         // Unset, not the first option: a required choice must be made, not
         // silently made for you. The input renders a placeholder row for this.
         case 'select':
@@ -116,7 +119,70 @@ const NOTE_SLUG_WORDS = 6;
 export function noteSlug(document, fallback = 'note') {
     const words = plainTextOf(document).trim().split(/\s+/).filter(Boolean);
 
-    return slugify(words.slice(0, NOTE_SLUG_WORDS).join(' ')) || fallback;
+    return slugWords(words.join(' ')) || fallback;
+}
+
+/** A name cut to the words a note slug uses, slugged. */
+function slugWords(text) {
+    return slugify(String(text ?? '').trim().split(/\s+/).slice(0, NOTE_SLUG_WORDS).join(' '));
+}
+
+/** A URL's host without www., slugged, or '' when it does not parse yet. */
+function domainSlug(url) {
+    try {
+        return slugify(new URL(url).hostname.toLowerCase().replace(/^www\./, '').replaceAll('.', ' '));
+    } catch {
+        return '';
+    }
+}
+
+/** The last segment of one of my own entries' URLs, which is its slug, cut to the note word cap. */
+function ownSlug(url) {
+    try {
+        return slugWords(new URL(url).pathname.replace(/\/+$/, '').split('/').pop().replaceAll('-', ' '));
+    } catch {
+        return '';
+    }
+}
+
+/** What a response slug says I did. Mirrors NameResponseSlug::prefix(). */
+const RESPONSE_PREFIXES = {
+    reply: 'replied-to',
+    like: 'liked',
+    repost: 'reposted',
+    rsvp: 'rsvp-to',
+};
+
+/**
+ * The slug a response note is stored with when none is written, e.g.
+ * `replied-to-sending-your-first-webmention`, or `liked-back-under-the-bar` for
+ * one of my own entries. Mirrors NameResponseSlug.
+ *
+ * @param {{kind: string, url: string, rsvp?: string, preview?: object|null}} response The
+ *        response fields, plus the context CitationField fetched for the URL, if any.
+ * @returns {string|null} Null for a plain note, or while nothing names the target.
+ */
+export function responseSlug({ kind, url, rsvp = null, preview = null }) {
+    // An RSVP with no answer is not one, the same as PostType::of() on the server.
+    if (! kind || ! url || (kind === 'rsvp' && ! rsvp)) {
+        return null;
+    }
+
+    // A preview still describing the previous URL would name the wrong post.
+    const context = preview?.url === url ? preview : null;
+    const cited = context?.cited ?? null;
+
+    const candidates = kind === 'reply' ? [cited?.title, cited?.authorName] : [cited?.title];
+
+    const name = context?.internal
+        ? ownSlug(url)
+        : candidates.map(slugWords).find(Boolean) ?? domainSlug(url);
+
+    if (! name) {
+        return null;
+    }
+
+    return `${RESPONSE_PREFIXES[kind] ?? kind}-${name}`;
 }
 
 /**

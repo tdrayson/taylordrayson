@@ -42,7 +42,7 @@ return [
         '£:cost lighter at the pump',
     ],
 
-    'podcast' => [
+    'this-week-with' => [
         'Season :season, Episode :episode',
     ],
 
@@ -50,13 +50,15 @@ return [
     'archive' => [
         'activity' => ["Every move I've made", 'All my questionable cardio', 'Proof that I exercise'],
         'sleep' => ["Every night's sleep", "How I've been sleeping", 'All my nights, logged'],
-        'calorie' => ["Everything I've eaten", 'Every calorie, counted', 'A running tally of my snacking'],
-        'media' => ["Everything I've watched and read", 'My watch and read history', 'Where my evenings went'],
+        'food' => ["Everything I've eaten", 'Every calorie, counted', 'A running tally of my snacking'],
+        'film' => ["Every film I've watched", 'My cinema history, minus the cinema', 'What I put on instead of doing something useful'],
+        'tv-episode' => ["Every episode I've watched", 'Where my evenings actually went', 'The full binge history'],
+        'book' => ["Everything I've read", 'My reading list, after the fact', "Books I've actually finished"],
         'event' => ["Events I've turned up to", "Everywhere I've shown my face", 'Times I left the house'],
         'appearance' => ['Talks and appearances', 'Times they let me on stage', "Where I've been let loose"],
-        'podcast' => ['Every episode so far', 'The whole back catalogue', 'Every week, archived'],
+        'this-week-with' => ['Every episode so far', 'The whole back catalogue', 'Every week, archived'],
         'flight' => ["Everywhere I've flown", 'My carbon footprint, mapped', "Every flight I've taken"],
-        'checkin' => ["Everywhere I've been", "Places I've shown up", 'My questionable travel choices'],
+        'place' => ["Everywhere I've been", "Places I've shown up", 'My questionable travel choices'],
         'fuel' => ['Every fill-up', "Money I've burned on fuel", 'Every trip to the pump'],
         'project' => ["Things I've built", "Stuff I've made", 'My pile of side projects'],
         'article' => ["Things I've written", 'My collected ramblings', "Words I've put online"],

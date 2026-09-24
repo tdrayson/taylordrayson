@@ -10,6 +10,7 @@ import RouteHeatmap from '../Components/Stats/RouteHeatmap.vue';
 import TypeBreakdown from '../Components/Stats/TypeBreakdown.vue';
 import MiniBars from '../Components/Stats/MiniBars.vue';
 import Chart from '../Components/Ui/Chart.vue';
+import Heading from '../Components/Ui/Heading.vue';
 import { PALETTE, baseOptions } from '../lib/chart.js';
 import { useFormat } from '../composables/useFormat';
 
@@ -112,7 +113,7 @@ setLayoutProps({
         <!-- Plain title (no eyebrow) with the range picker alongside; deltas below
              each metric are measured against the previous period. -->
         <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-            <h1 class="font-display text-display">{{ og.heading }}</h1>
+            <Heading as="h1" size="display">{{ og.heading }}</Heading>
             <div class="flex flex-wrap items-center gap-3">
                 <ComparisonSelect :mode="compare.mode" @change="onCompare" />
                 <DateRangePicker :label="range.label" @change="onRange" />
@@ -137,10 +138,10 @@ setLayoutProps({
 
         <div class="grid grid-cols-1 gap-5 lg:grid-cols-12">
             <!-- Route map: solid routes in the type colour. -->
-            <section class="flex h-[440px] flex-col lg:col-span-8" :class="CARD">
+            <section class="flex h-110 flex-col lg:col-span-8" :class="CARD">
                 <header class="mb-4 flex items-baseline justify-between gap-3">
-                    <h2 class="font-display text-item-title">Routes</h2>
-                    <span class="text-meta text-neutral-500">{{ routes.length }} routes</span>
+                    <Heading size="title">Routes</Heading>
+                    <span class="text-sm text-neutral-500">{{ routes.length }} routes</span>
                 </header>
                 <div class="min-h-0 flex-1">
                     <RouteHeatmap :polylines="routes" :color="accent" />
@@ -151,22 +152,22 @@ setLayoutProps({
             <div class="flex flex-col gap-5 lg:col-span-4">
                 <!-- An average week over the range: honest averages, no goals. -->
                 <section :class="CARD">
-                    <h2 class="mb-4 font-display text-item-title">{{ averageLabel }}</h2>
+                    <Heading size="title" class="mb-4">{{ averageLabel }}</Heading>
                     <dl class="flex flex-col gap-4">
                         <div v-for="item in perWeek" :key="item.label" class="flex items-baseline justify-between gap-3">
-                            <dt class="text-meta text-neutral-500">{{ item.label }}</dt>
-                            <dd class="font-display text-item-title tnum text-neutral-900">{{ item.distanceM != null ? distance(item.distanceM, item.precision) : item.display }}</dd>
+                            <dt class="text-sm text-neutral-500">{{ item.label }}</dt>
+                            <Heading as="dd" size="title" class="tabular-nums text-neutral-900">{{ item.distanceM != null ? distance(item.distanceM, item.precision) : item.display }}</Heading>
                         </div>
                     </dl>
                 </section>
 
                 <!-- Records / PRs. -->
                 <section class="flex flex-1 flex-col" :class="CARD">
-                    <h2 class="mb-4 font-display text-item-title">Records</h2>
+                    <Heading size="title" class="mb-4">Records</Heading>
                     <dl class="flex flex-col gap-4">
                         <div v-for="record in records" :key="record.label" class="flex items-baseline justify-between gap-3">
-                            <dt class="text-meta text-neutral-500">{{ record.label }}</dt>
-                            <dd class="font-display text-item-title tnum text-neutral-900">{{ record.distanceM != null ? distance(record.distanceM, record.precision) : record.value }}</dd>
+                            <dt class="text-sm text-neutral-500">{{ record.label }}</dt>
+                            <Heading as="dd" size="title" class="tabular-nums text-neutral-900">{{ record.distanceM != null ? distance(record.distanceM, record.precision) : record.value }}</Heading>
                         </div>
                     </dl>
                 </section>
@@ -175,13 +176,13 @@ setLayoutProps({
             <!-- Duration trend, bucketed by the granularity that fits the range. -->
             <section class="lg:col-span-12" :class="CARD">
                 <header class="mb-2 flex flex-wrap items-center justify-between gap-3">
-                    <h2 class="font-display text-item-title">{{ trend.metric }} per {{ activeBucket.toLowerCase() }}</h2>
+                    <Heading size="title">{{ trend.metric }} per {{ activeBucket.toLowerCase() }}</Heading>
                     <div class="inline-flex rounded-lg border border-neutral-50 p-1 text-sm">
                         <button
                             v-for="bucket in trendBuckets"
                             :key="bucket.label"
                             type="button"
-                            class="rounded-md px-3 py-1 font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500"
+                            class="rounded-md px-3 py-1 font-medium transition-colors"
                             :class="bucket.label === activeBucket ? 'bg-neutral-25 text-neutral-900' : 'text-neutral-500 hover:text-neutral-900'"
                             @click="activeBucket = bucket.label"
                         >{{ bucket.label }}</button>
@@ -192,17 +193,17 @@ setLayoutProps({
 
             <!-- Three even boxes: what, which day, what time. -->
             <section class="lg:col-span-4" :class="CARD">
-                <h2 class="mb-4 font-display text-item-title">By type</h2>
+                <Heading size="title" class="mb-4">By type</Heading>
                 <TypeBreakdown :items="byType" :accent="accent" />
             </section>
 
             <section class="lg:col-span-4" :class="CARD">
-                <h2 class="mb-4 font-display text-item-title">By day of week</h2>
+                <Heading size="title" class="mb-4">By day of week</Heading>
                 <TypeBreakdown :items="byDay" :accent="accent" />
             </section>
 
             <section class="lg:col-span-4" :class="CARD">
-                <h2 class="mb-6 font-display text-item-title">By time of day</h2>
+                <Heading size="title" class="mb-6">By time of day</Heading>
                 <MiniBars :items="byHour" :accent="accent" />
             </section>
         </div>

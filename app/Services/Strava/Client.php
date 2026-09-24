@@ -2,8 +2,7 @@
 
 namespace App\Services\Strava;
 
-use App\Services\GetRequest;
-use Saloon\Http\Request;
+use App\Data\StravaSubscriptionResult;
 
 /**
  * Client for the Strava API. The OAuth refresh-token flow, token caching and
@@ -12,6 +11,9 @@ use Saloon\Http\Request;
  */
 class Client
 {
+    /** Strava's own ceiling for a page of kudos or comments. */
+    public const RESPONSES_PER_PAGE = 200;
+
     public function __construct(private readonly Connector $connector) {}
 
     /**
@@ -32,7 +34,11 @@ class Client
      */
     public function activitiesPage(int $page, int $perPage, ?int $after = null): ?array
     {
-        return $this->json(new ActivitiesRequest($page, $perPage, $after));
+        return $this->connector->json('/api/v3/athlete/activities', array_filter([
+            'after' => $after,
+            'per_page' => $perPage,
+            'page' => $page,
+        ], fn (mixed $value): bool => $value !== null));
     }
 
     /**
@@ -42,7 +48,7 @@ class Client
      */
     public function activity(int|string $id): ?array
     {
-        return $this->json(new GetRequest("/api/v3/activities/{$id}"));
+        return $this->connector->json("/api/v3/activities/{$id}");
     }
 
     /**
@@ -52,7 +58,29 @@ class Client
      */
     public function activityPhotos(int|string $id, int $size = 2048): ?array
     {
-        return $this->json(new ActivityPhotosRequest($id, $size));
+        return $this->connector->json("/api/v3/activities/{$id}/photos", ['size' => $size]);
+    }
+
+    /**
+     * The athletes who gave an activity kudos, one page of them.
+     *
+     * @param  int  $perPage  Strava sends 30 without it, silently truncating a popular activity.
+     * @return array<int, array<string, mixed>>|null Null on a request failure.
+     */
+    public function kudos(int|string $id, int $perPage = self::RESPONSES_PER_PAGE): ?array
+    {
+        return $this->connector->json("/api/v3/activities/{$id}/kudos", ['per_page' => $perPage]);
+    }
+
+    /**
+     * The comments left on an activity, one page of them.
+     *
+     * @param  int  $perPage  Strava sends 30 without it, silently truncating a popular activity.
+     * @return array<int, array<string, mixed>>|null Null on a request failure.
+     */
+    public function comments(int|string $id, int $perPage = self::RESPONSES_PER_PAGE): ?array
+    {
+        return $this->connector->json("/api/v3/activities/{$id}/comments", ['per_page' => $perPage]);
     }
 
     /**
@@ -63,25 +91,76 @@ class Client
      */
     public function activityStreams(int|string $id, array $keys = ['time', 'latlng']): ?array
     {
-        return $this->json(new ActivityStreamsRequest($id, $keys));
+        return $this->connector->json("/api/v3/activities/{$id}/streams", [
+            'keys' => implode(',', $keys),
+            'key_by_type' => 'true',
+        ]);
     }
 
     /**
-     * Send a request and decode it, treating any failure as no data.
-     *
-     * @return array<array-key, mixed>|null
+     * The application's push subscription, or a result carrying Strava's own
+     * refusal. Strava allows exactly one per client id, so this is a list of
+     * zero or one.
      */
-    private function json(Request $request): ?array
+    public function subscription(): StravaSubscriptionResult
     {
-        // Checked here rather than left to the connector: with no token there is
-        // nothing to authenticate with, and an unauthenticated call to Strava is
-        // just a slower way of getting null.
-        if ($this->connector->token() === null) {
-            return null;
+        $response = $this->connector->send(new PushSubscriptionsRequest);
+
+        if ($response->failed()) {
+            return new StravaSubscriptionResult(false, error: $this->errorFrom($response->json(), $response->status()));
         }
 
-        $response = $this->connector->send($request);
+        $subscription = $response->json()[0] ?? null;
 
-        return $response->failed() ? null : $response->json();
+        return new StravaSubscriptionResult(
+            true,
+            isset($subscription['id']) ? (int) $subscription['id'] : null,
+            $subscription['callback_url'] ?? null,
+        );
+    }
+
+    /**
+     * Subscribe to push events. Strava verifies the callback before accepting,
+     * so a failure here is usually the endpoint rather than the credentials,
+     * and its message says which.
+     */
+    public function createSubscription(string $callbackUrl, string $verifyToken): StravaSubscriptionResult
+    {
+        $response = $this->connector->send(new CreatePushSubscriptionRequest($callbackUrl, $verifyToken));
+
+        if ($response->failed()) {
+            return new StravaSubscriptionResult(false, error: $this->errorFrom($response->json(), $response->status()));
+        }
+
+        return new StravaSubscriptionResult(true, (int) $response->json('id'), $callbackUrl);
+    }
+
+    public function deleteSubscription(int $id): StravaSubscriptionResult
+    {
+        $response = $this->connector->send(new DeletePushSubscriptionRequest($id));
+
+        return $response->failed()
+            ? new StravaSubscriptionResult(false, $id, error: $this->errorFrom($response->json(), $response->status()))
+            : new StravaSubscriptionResult(true, $id);
+    }
+
+    /**
+     * Strava's refusals arrive as `errors: [{resource, field, code}]` with a
+     * `message` above them. Both matter: the message names the problem and the
+     * codes say which field caused it.
+     *
+     * @param  array<array-key, mixed>|null  $body
+     */
+    private function errorFrom(?array $body, int $status): string
+    {
+        $message = is_string($body['message'] ?? null) ? $body['message'] : "HTTP {$status}";
+
+        $fields = collect($body['errors'] ?? [])
+            ->filter(fn (mixed $error): bool => is_array($error))
+            ->map(fn (array $error): string => trim(($error['field'] ?? '').' '.($error['code'] ?? '')))
+            ->filter()
+            ->implode(', ');
+
+        return $fields === '' ? $message : "{$message} ({$fields})";
     }
 }

@@ -2,20 +2,17 @@
 
 namespace App\Console\Commands\Sync;
 
-use App\Actions\StoreActivityStreams;
-use App\Actions\SyncStravaPhotos;
-use App\Actions\Workouts\RecordSetgraphWorkout;
+use App\Actions\Strava\StoreStravaActivity;
+use App\Data\StoredStravaActivity;
 use App\Enums\Source;
-use App\Jobs\GenerateEntryMap;
 use App\Models\Activity;
 use App\Services\Strava\Client;
-use App\Support\EntryInstant;
+use App\Support\StravaActivityType;
 use Carbon\Carbon;
 use Illuminate\Console\Attributes\Description;
 use Illuminate\Console\Attributes\Signature;
 use Illuminate\Console\Command;
 use Illuminate\Support\Collection;
-use Illuminate\Support\Str;
 
 #[Signature('strava:sync {--days=7 : How many days back to check for new activities} {--refresh : Re-fetch every activity in the window, not only those whose summary changed}')]
 #[Description('Sync new Client activities to the database, and pick up edits to the ones already stored')]
@@ -28,39 +25,9 @@ class StravaSync extends Command
      */
     private const MAX_CATCHUP_DAYS = 90;
 
-    /** @var array<string, string> */
-    private const TYPE_MAP = [
-        'Run' => 'run',
-        'TrailRun' => 'run',
-        'VirtualRun' => 'run',
-        'Walk' => 'walk',
-        'Hike' => 'walk',
-        'Ride' => 'ride',
-        'VirtualRide' => 'ride',
-        'GravelRide' => 'ride',
-        'MountainBikeRide' => 'ride',
-        'EBikeRide' => 'e-bike-ride',
-        'EMountainBikeRide' => 'e-bike-ride',
-        'Swim' => 'swim',
-        'Workout' => 'workout',
-        'WeightTraining' => 'weight-training',
-        'Yoga' => 'yoga',
-        'IceSkate' => 'ice-skate',
-        'Squash' => 'workout',
-        'Tennis' => 'workout',
-        'Badminton' => 'workout',
-        'Racquetball' => 'workout',
-        'Pickleball' => 'workout',
-        'Soccer' => 'workout',
-        'Crossfit' => 'workout',
-        'HighIntensityIntervalTraining' => 'workout',
-        'Elliptical' => 'workout',
-        'StairStepper' => 'workout',
-        'Rowing' => 'workout',
-        'Pilates' => 'workout',
-    ];
+    private const PER_PAGE = 200;
 
-    public function handle(Client $strava): int
+    public function handle(Client $strava, StoreStravaActivity $store): int
     {
         if (! $strava->token()) {
             $this->error('Could not obtain a Strava access token.');
@@ -87,26 +54,30 @@ class StravaSync extends Command
 
         $this->info("Found {$newActivities->count()} new activities to sync.");
 
-        $created = [];
+        $created = 0;
 
         foreach ($newActivities as $stravaActivity) {
             $detail = $strava->activity($stravaActivity['id']);
+
             if (! $detail) {
+                $this->warn("Failed to fetch activity {$stravaActivity['id']}");
+
                 continue;
             }
 
-            $activity = $this->createActivity($detail);
-            $this->downloadPhotos($strava, $detail, $activity);
-            GenerateEntryMap::dispatch($activity);
-            app(StoreActivityStreams::class)($activity, $strava);
+            $result = $store($detail);
+            $created++;
 
-            $created[] = $activity;
-            $this->info('['.count($created).'] '.$activity->name);
+            if ($result->adopted) {
+                $this->line('  → Adopted the Setgraph workout logged at '.$result->activity->getOriginal('occurred_at'));
+            }
+
+            $this->info("[{$created}] ".$result->activity->name.$this->photoSuffix($result));
         }
 
-        $refreshed = $this->refreshExisting($strava, $this->withinWindow($existing->all()), $stored);
+        $refreshed = $this->refreshExisting($strava, $store, $this->withinWindow($existing->all()), $stored);
 
-        $this->info('Done. Synced '.count($created).' activities, refreshed '.$refreshed.'.');
+        $this->info('Done. Synced '.$created.' activities, refreshed '.$refreshed.'.');
 
         return self::SUCCESS;
     }
@@ -115,17 +86,19 @@ class StravaSync extends Command
      * Pick up the edits made after Strava auto-published an activity: a better
      * title, a description written later, photos added from the phone.
      *
-     * The summary already in hand is compared against the stored row first, so
-     * a run where nothing changed still costs the one page it always did. Only
-     * an activity that differs is worth the detail request, which is also what
-     * carries the description, since the summary omits it. A description edited
-     * on its own is invisible here, and is what `--refresh` is for.
+     * Webhook events cover most of this now, so a cron run is a safety net for
+     * what a missed event dropped. The summary already in hand is compared
+     * against the stored row first, so a run where nothing changed still costs
+     * the one page it always did. Only an activity that differs is worth the
+     * detail request, which is also what carries the description, since the
+     * summary omits it. A description edited on its own is invisible here, and
+     * is what `--refresh` is for.
      *
      * @param  array<int, array<string, mixed>>  $summaries  Summaries whose activity is already stored.
      * @param  Collection<string, Activity>  $stored  Those activities, keyed by source id.
      * @return int The number re-fetched.
      */
-    private function refreshExisting(Client $strava, array $summaries, Collection $stored): int
+    private function refreshExisting(Client $strava, StoreStravaActivity $store, array $summaries, Collection $stored): int
     {
         $force = (bool) $this->option('refresh');
         $refreshed = 0;
@@ -145,27 +118,19 @@ class StravaSync extends Command
                 continue;
             }
 
-            $polylineBefore = $activity->meta['polyline'] ?? null;
-
-            $activity->fill($this->attributesFor($detail));
-            $activity->meta = $this->mergedMeta($this->metaFor($detail), $activity);
-
-            $changed = array_keys($activity->getDirty());
-            $activity->save();
-
-            $this->downloadPhotos($strava, $detail, $activity);
-
-            // The route drives the stored map image, so a corrected GPS trace
-            // has to redraw it rather than keep the one it came in with.
-            if (($activity->meta['polyline'] ?? null) !== $polylineBefore) {
-                GenerateEntryMap::dispatch($activity);
-            }
-
+            $result = $store($detail);
             $refreshed++;
-            $this->info('  ↻ '.$activity->name.($changed === [] ? '' : ' ('.implode(', ', $changed).')'));
+
+            $fields = $result->changed === [] ? '' : ' ('.implode(', ', $result->changed).')';
+            $this->info('  ↻ '.$result->activity->name.$fields.$this->photoSuffix($result));
         }
 
         return $refreshed;
+    }
+
+    private function photoSuffix(StoredStravaActivity $result): string
+    {
+        return $result->photos > 0 ? " [{$result->photos} photo(s)]" : '';
     }
 
     /**
@@ -203,7 +168,7 @@ class StravaSync extends Command
         $photos = $activity->getMedia('cover')->count() + $activity->getMedia('photos')->count();
 
         return $activity->name !== ($summary['name'] ?? null)
-            || $activity->type !== $this->typeFor($summary)
+            || $activity->type !== StravaActivityType::for($summary)
             || (int) $activity->duration !== (int) ($summary['moving_time'] ?? 0)
             || $activity->distance !== $distance
             || ($summary['total_photo_count'] ?? 0) > $photos;
@@ -241,15 +206,20 @@ class StravaSync extends Command
     }
 
     /**
+     * Every summary after the given timestamp.
+     *
+     * A short page is the last page. Waiting for an empty one instead spent a
+     * second request on every run, which against a 1000-read daily budget was
+     * the single largest line on the schedule.
+     *
      * @return array<int, array<string, mixed>>|null
      */
     private function fetchActivities(Client $strava, int $after): ?array
     {
         $activities = [];
-        $page = 1;
 
-        while (true) {
-            $batch = $strava->activitiesPage($page, 200, $after);
+        for ($page = 1; ; $page++) {
+            $batch = $strava->activitiesPage($page, self::PER_PAGE, $after);
 
             if ($batch === null) {
                 $this->error('Failed to fetch activities from Strava.');
@@ -257,196 +227,11 @@ class StravaSync extends Command
                 return null;
             }
 
-            if ($batch === []) {
-                break;
-            }
-
             $activities = array_merge($activities, $batch);
-            $page++;
+
+            if (count($batch) < self::PER_PAGE) {
+                return $activities;
+            }
         }
-
-        return $activities;
-    }
-
-    /**
-     * @param  array<string, mixed>  $data
-     */
-    private function createActivity(array $data): Activity
-    {
-        $attributes = $this->attributesFor($data);
-        $meta = $this->metaFor($data);
-
-        $activity = $this->unclaimedSetgraphActivity(Carbon::parse($attributes['occurred_at'], 'UTC'));
-
-        if ($activity === null) {
-            return Activity::create([...$attributes, 'meta' => $meta ?: null]);
-        }
-
-        // Setgraph logged this session before Strava had it. Take the row over
-        // rather than creating a second one, keeping the sets it recorded.
-        $activity->fill($attributes);
-        $activity->meta = $this->mergedMeta($meta, $activity);
-        $activity->save();
-
-        $this->line('  → Adopted the Setgraph workout logged at '.$activity->getOriginal('occurred_at'));
-
-        return $activity;
-    }
-
-    /**
-     * Our column values for a Strava payload. `description` and `calories` are
-     * detail-only, so a summary maps to null for both rather than to nothing.
-     *
-     * @param  array<string, mixed>  $data
-     * @return array<string, mixed>
-     */
-    private function attributesFor(array $data): array
-    {
-        // Strava's start_date_local carries a Z; parse as UTC so the wall-clock digits are kept verbatim.
-        $occurredAt = Carbon::parse($data['start_date_local'] ?? $data['start_date'], 'UTC');
-
-        return [
-            'occurred_at' => $occurredAt->format('Y-m-d H:i:s'),
-            'type' => $this->typeFor($data),
-            'name' => $data['name'],
-            'description' => trim((string) ($data['description'] ?? '')) ?: null,
-            'duration' => $data['moving_time'],
-            'calories' => ($data['calories'] ?? null) ?: null,
-            'distance' => $data['distance'] ? (int) round($data['distance']) : null,
-            'average_heart_rate' => $data['average_heartrate'] ?? null,
-            'max_heart_rate' => $data['max_heartrate'] ?? null,
-            'source' => Source::Strava->value,
-            'source_id' => (string) $data['id'],
-            'timezone' => $this->timezoneFor($data),
-        ];
-    }
-
-    /**
-     * @param  array<string, mixed>  $data
-     * @return array<string, mixed>
-     */
-    private function metaFor(array $data): array
-    {
-        $meta = array_filter([
-            'elapsed_time' => $data['elapsed_time'] ?? null,
-            'total_elevation_gain' => $data['total_elevation_gain'] ?? null,
-            'elev_high' => $data['elev_high'] ?? null,
-            'elev_low' => $data['elev_low'] ?? null,
-            'max_speed' => $data['max_speed'] ?? null,
-            'average_speed' => $data['average_speed'] ?? null,
-            'average_cadence' => $data['average_cadence'] ?? null,
-            'sport_type' => $data['sport_type'] ?? $data['type'] ?? 'Workout',
-        ], fn ($v) => $v !== null && $v !== 0 && $v !== 0.0);
-
-        if ($polyline = $data['map']['polyline'] ?? null) {
-            $meta['polyline'] = $polyline;
-        }
-
-        return $meta;
-    }
-
-    /**
-     * Strava's meta over the row's, keeping the keys Strava knows nothing about.
-     * `sets` is Setgraph's, and a re-sync must not drop it.
-     *
-     * @param  array<string, mixed>  $meta
-     * @return array<string, mixed>
-     */
-    private function mergedMeta(array $meta, Activity $activity): array
-    {
-        return [...$meta, ...array_filter(
-            $activity->meta ?? [],
-            fn (string $key): bool => $key === 'sets',
-            ARRAY_FILTER_USE_KEY,
-        )];
-    }
-
-    /**
-     * @param  array<string, mixed>  $data
-     */
-    private function typeFor(array $data): string
-    {
-        $sportType = $data['sport_type'] ?? $data['type'] ?? 'Workout';
-
-        return self::TYPE_MAP[$sportType] ?? Str::kebab($sportType);
-    }
-
-    /**
-     * A strength activity Setgraph created that no Strava activity has claimed
-     * yet, within {@see RecordSetgraphWorkout::MATCH_WINDOW_MINUTES} of this one.
-     */
-    private function unclaimedSetgraphActivity(Carbon $occurredAt): ?Activity
-    {
-        $window = RecordSetgraphWorkout::MATCH_WINDOW_MINUTES;
-
-        return Activity::query()
-            ->where('source', Source::Setgraph->value)
-            ->whereNull('source_id')
-            ->whereBetween('occurred_at', [
-                $occurredAt->copy()->subMinutes($window)->format('Y-m-d H:i:s'),
-                $occurredAt->copy()->addMinutes($window)->format('Y-m-d H:i:s'),
-            ])
-            ->get()
-            ->sortBy(fn (Activity $activity): int => abs($activity->occurred_at->diffInSeconds($occurredAt)))
-            ->first();
-    }
-
-    /**
-     * @param  array<string, mixed>  $data
-     */
-    private function downloadPhotos(Client $strava, array $data, Activity $activity): void
-    {
-        if (($data['total_photo_count'] ?? 0) === 0) {
-            return;
-        }
-
-        $photos = $strava->activityPhotos($data['id']);
-
-        if ($photos === null) {
-            $this->warn("Failed to fetch photos for {$data['id']}");
-
-            return;
-        }
-
-        $stored = app(SyncStravaPhotos::class)($activity, $photos);
-
-        if ($stored > 0) {
-            $this->info("  → Downloaded {$stored} photo(s)");
-        }
-    }
-
-    /**
-     * The zone the activity happened in, or null where Strava is guessing.
-     *
-     * Without GPS, Strava names the first IANA zone matching the device's UTC
-     * offset, so an indoor workout comes back as Africa/Algiers for BST or
-     * Africa/Abidjan for GMT. The offset is right and the place is fiction, and
-     * a zone that names the wrong continent cannot be reasoned about or
-     * corrected: #284's backfill only overrides a zone that is empty or home.
-     * Null instead, which already means home, and let a flight prove otherwise.
-     *
-     * @param  array<string, mixed>  $data
-     */
-    private function timezoneFor(array $data): ?string
-    {
-        $timezone = $this->ianaTimezone($data['timezone'] ?? null);
-
-        if ($timezone === null || $timezone === EntryInstant::HOME) {
-            return $timezone;
-        }
-
-        return blank($data['map']['polyline'] ?? null) ? null : $timezone;
-    }
-
-    /**
-     * Extract the IANA timezone name from Strava's "(GMT+00:00) Europe/London" format.
-     */
-    private function ianaTimezone(?string $stravaTimezone): ?string
-    {
-        if (! $stravaTimezone) {
-            return null;
-        }
-
-        return Str::afterLast($stravaTimezone, ' ') ?: null;
     }
 }

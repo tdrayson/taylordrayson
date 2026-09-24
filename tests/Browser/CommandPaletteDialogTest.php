@@ -1,5 +1,7 @@
 <?php
 
+use App\Models\User;
+
 // Exercises CommandPalette.vue, which adopts useDialog for body scroll-lock and
 // focus save/restore only (closeOnEsc: false, trapFocus: false) while keeping
 // its own bespoke ⌘K / Escape / arrow-key keyboard model. This covers the parts
@@ -46,7 +48,7 @@ it('offers authoring commands only once signed in', function () {
     $page->click('[aria-label="Open search"]')
         ->assertScript("document.querySelector('[role=\"dialog\"]').textContent.includes('Create')", false);
 
-    $this->actingAs(App\Models\User::factory()->create());
+    $this->actingAs(User::factory()->create());
 
     $page = visit('/')->resize(1280, 800);
 
@@ -63,13 +65,13 @@ it('offers authoring commands only once signed in', function () {
 it('signs out from the palette', function () {
     // The iOS home-screen app has no address bar, so the palette is the only
     // way back out of a session. Only a whole-query match offers it.
-    $this->actingAs(App\Models\User::factory()->create());
+    $this->actingAs(User::factory()->create());
 
     visit('/')->resize(1280, 900)
         ->click('[aria-label="Open search"]')
         ->type('[role="dialog"] input', 'sign out')
         ->keys('[role="dialog"] input', 'Enter')
-        // The signed-in quick-add button is gone, so the session really ended.
-        ->assertScript("document.querySelector('[aria-label=\"Add an entry\"]') === null", true)
+        // The signed-in owner menu is gone, so the session really ended.
+        ->assertScript("document.querySelector('[aria-haspopup=\"menu\"][aria-label^=\"Menu\"]') === null", true)
         ->assertNoJavascriptErrors();
 });

@@ -125,6 +125,7 @@ const mention = suggestionExtension('entryLinks').configure({
                 menu.active = 0;
                 menu.rect = p.clientRect?.() ?? null;
                 menu.getRect = p.clientRect ?? null;
+                menu.open = true;
             },
             onKeyDown: ({ event }) => mentionKeys(event),
             onExit() {
@@ -178,6 +179,7 @@ const slash = suggestionExtension('blockMenu').configure({
                 blockMenu.active = 0;
                 blockMenu.rect = p.clientRect?.() ?? null;
                 blockMenu.getRect = p.clientRect ?? null;
+                blockMenu.open = true;
             },
             onKeyDown: ({ event }) => blockKeys(event),
             onExit() {
@@ -263,6 +265,11 @@ const editor = useEditor({
 
             return false;
         },
+    },
+    // Focus leaving the editor takes an open menu with it; typing again reopens it.
+    onBlur: () => {
+        menu.open = false;
+        blockMenu.open = false;
     },
     onUpdate: ({ editor: instance }) => {
         const document = fromProseMirror(instance.getJSON());

@@ -1,6 +1,8 @@
 <script setup>
 import { computed } from 'vue';
 import { Head, usePage } from '@inertiajs/vue3';
+import { ogMeta } from '../lib/og.js';
+import { useOgCard } from '../composables/useOgCard.js';
 
 /**
  * Per-view document head: title plus description, canonical, Open Graph, and
@@ -11,31 +13,23 @@ import { Head, usePage } from '@inertiajs/vue3';
  */
 const props = defineProps({
     og: { type: Object, default: () => ({}) },
+    // [{ extension, type, label, url }] for the resource this view
+    // shows, built server-side from Formats::for() so the head only ever
+    // advertises a format the resource can actually be rendered as.
+    formats: { type: Array, default: () => [] },
 });
-
-const SITE_NAME = 'Taylor Drayson';
-const DEFAULT_DESCRIPTION =
-    'I build things on the internet, track everything, and drink too much coffee. A living archive of what I make, watch, read, and get up to.';
 
 const page = usePage();
 
-// The view's metadata, with defaults applied so a partial `og` still renders.
-const meta = computed(() => ({
-    title: null,
-    description: DEFAULT_DESCRIPTION,
-    heading: null,
-    eyebrow: null,
-    accent: null,
-    image: null,
-    variant: null,
-    type: 'website',
-    noindex: false,
-    ...props.og,
-}));
+// The one site-identity name, shared from config/identity.php.
+const SITE_NAME = computed(() => page.props.identity.name);
 
-// Absolute base URL, sourced from the server-shared appUrl so og:url/og:image
-// resolve correctly during SSR (where window is undefined), with a browser
-// fallback for safety.
+const meta = computed(() => ogMeta(props.og, page.props.identity.bio));
+
+const imageUrl = useOgCard(() => props.og);
+
+// Absolute base URL, sourced from the server-shared appUrl so og:url resolves
+// correctly during SSR (where window is undefined), with a browser fallback.
 const origin = computed(() => {
     const shared = page.props.appUrl;
 
@@ -46,52 +40,36 @@ const origin = computed(() => {
     return typeof window === 'undefined' ? '' : window.location.origin;
 });
 
-// The card design token, appended to every generated card URL so a template
-// change moves the URL. Cards are served immutable, so the URL moving is the
-// only thing that makes a scraper fetch the new design.
-const ogVersion = computed(() => page.props.ogVersion);
+// Feed links narrowed to the current view's timeline type, built server-side by
+// App\Support\FeedDiscovery and empty on any view that isn't type-scoped.
+const contextualFeeds = computed(() => page.props.contextualFeeds ?? []);
 
 const canonical = computed(() => `${origin.value}${page.url}`);
-const fullTitle = computed(() => (meta.value.title ? `${meta.value.title} | ${SITE_NAME}` : SITE_NAME));
-
-// An explicit image wins; otherwise build the generated OG card URL from the
-// card heading (falling back to the title), eyebrow, accent, and variant.
-const imageUrl = computed(() => {
-    if (meta.value.image) {
-        return meta.value.image.startsWith('http') ? meta.value.image : `${origin.value}${meta.value.image}`;
-    }
-
-    const params = new URLSearchParams({ title: meta.value.heading ?? meta.value.title ?? SITE_NAME });
-
-    if (meta.value.eyebrow) {
-        params.set('eyebrow', meta.value.eyebrow);
-    }
-
-    if (meta.value.accent) {
-        params.set('accent', meta.value.accent);
-    }
-
-    if (meta.value.variant) {
-        params.set('variant', meta.value.variant);
-
-        // The home card has room for a standfirst, and the page's own
-        // description is what belongs there: a second hardcoded line on the
-        // renderer could drift from the one the page publishes.
-        params.set('description', meta.value.description);
-    }
-
-    if (ogVersion.value) {
-        params.set('v', ogVersion.value);
-    }
-
-    return `${origin.value}/og.png?${params.toString()}`;
-});
+const fullTitle = computed(() => (meta.value.title ? `${meta.value.title} | ${SITE_NAME.value}` : SITE_NAME.value));
 </script>
 
 <template>
     <Head :title="meta.title">
         <meta head-key="description" name="description" :content="meta.description" />
         <link head-key="canonical" rel="canonical" :href="canonical" />
+        <link
+            v-for="feed in contextualFeeds"
+            :key="feed.type"
+            :head-key="`feed:${feed.type}`"
+            rel="alternate"
+            :type="feed.type"
+            :title="feed.title"
+            :href="feed.href"
+        />
+        <link
+            v-for="format in formats"
+            :key="format.extension"
+            :head-key="`format:${format.extension}`"
+            rel="alternate"
+            :type="format.type"
+            :title="`${meta.title ?? SITE_NAME} (${format.label})`"
+            :href="format.url"
+        />
         <meta v-if="meta.noindex" head-key="robots" name="robots" content="noindex, nofollow" />
 
         <meta head-key="og:type" property="og:type" :content="meta.type" />
@@ -99,11 +77,11 @@ const imageUrl = computed(() => {
         <meta head-key="og:title" property="og:title" :content="fullTitle" />
         <meta head-key="og:description" property="og:description" :content="meta.description" />
         <meta head-key="og:url" property="og:url" :content="canonical" />
-        <meta head-key="og:image" property="og:image" :content="imageUrl" />
+        <meta v-if="imageUrl" head-key="og:image" property="og:image" :content="imageUrl" />
 
         <meta head-key="twitter:card" name="twitter:card" content="summary_large_image" />
         <meta head-key="twitter:title" name="twitter:title" :content="fullTitle" />
         <meta head-key="twitter:description" name="twitter:description" :content="meta.description" />
-        <meta head-key="twitter:image" name="twitter:image" :content="imageUrl" />
+        <meta v-if="imageUrl" head-key="twitter:image" name="twitter:image" :content="imageUrl" />
     </Head>
 </template>

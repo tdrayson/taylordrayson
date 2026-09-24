@@ -1,12 +1,12 @@
 <?php
 
 use App\Models\Activity;
-use App\Models\Calorie;
-use App\Models\Checkin;
 use App\Models\Event;
+use App\Models\Film;
 use App\Models\Flight;
+use App\Models\Food;
 use App\Models\Fuel;
-use App\Models\Media;
+use App\Models\Place;
 use App\Models\Sleep;
 use App\Presenters\CardPresenter;
 
@@ -115,28 +115,28 @@ it('drops the price sentence when there is no price per litre', function () {
         ->and($subtitle)->not->toContain('p/L');
 });
 
-it('uses the checkin note as its subtitle when present', function () {
-    $checkin = Checkin::factory()->create([
+it('uses the place note as its subtitle when present', function () {
+    $place = Place::factory()->create([
         'description' => 'Great coffee here',
-        'category' => 'Coffee Shop',
+        'type' => 'Coffee Shop',
         'city' => 'London',
     ]);
 
-    expect(CardPresenter::for($checkin)->toArray()['subtitle'])->toBe('Great coffee here');
+    expect(CardPresenter::for($place)->toArray()['subtitle'])->toBe('Great coffee here');
 });
 
 // Foursquare's vocabulary includes Road, Platform and Town, so the category is
 // shown as its own label rather than written into a sentence about the place.
-it('leaves a checkin with no note unsubtitled, carrying its category as data', function () {
-    $checkin = Checkin::factory()->create([
+it('leaves a place with no note unsubtitled, carrying its category as data', function () {
+    $place = Place::factory()->create([
         'description' => null,
         'venue_name' => 'Blue Bottle',
-        'category' => 'Coffee Shop',
+        'type' => 'Coffee Shop',
         'city' => 'London',
         'address' => 'High Street',
     ]);
 
-    $card = CardPresenter::for($checkin)->toArray();
+    $card = CardPresenter::for($place)->toArray();
 
     expect($card['title'])->toBe('at Blue Bottle')
         ->and($card['subtitle'])->toBeNull()
@@ -153,23 +153,22 @@ it('writes an event subtitle as a sentence naming venue and city', function () {
     expect(CardPresenter::for($event)->toArray()['subtitle'])->toBe('I went to The Roundhouse in London.');
 });
 
-it('keeps the calorie subtitle comma-joined with no connectives', function () {
-    $calorie = Calorie::factory()->create([
+it('keeps the food subtitle comma-joined with no connectives', function () {
+    $food = Food::factory()->create([
         'occurred_at' => '2026-07-19 12:00:00',
         'protein' => 30,
         'carbs' => 40,
         'fat' => 10,
     ]);
 
-    $subtitle = CardPresenter::for($calorie)->toArray()['subtitle'];
+    $subtitle = CardPresenter::for($food)->toArray()['subtitle'];
 
     expect($subtitle)->toContain(',')
         ->and($subtitle)->not->toContain(' in ');
 });
 
 it('names a film by its leading genre and how long it ran', function () {
-    $media = Media::factory()->create([
-        'type' => 'film',
+    $film = Film::factory()->create([
         'title' => 'Exit 8',
         'rating' => null,
         'meta' => [
@@ -180,19 +179,18 @@ it('names a film by its leading genre and how long it ran', function () {
         ],
     ]);
 
-    expect(CardPresenter::for($media)->toArray()['subtitle'])
+    expect(CardPresenter::for($film)->toArray()['subtitle'])
         ->toBe('I watched this 2026 horror film. It was 95 minutes long.');
 });
 
 it('falls back to "film" when TMDB gave no genre', function () {
-    $media = Media::factory()->create([
-        'type' => 'film',
+    $film = Film::factory()->create([
         'title' => 'Unknown',
         'rating' => null,
         'meta' => ['year' => 2026],
     ]);
 
-    expect(CardPresenter::for($media)->toArray()['subtitle'])->toBe('I watched this 2026 film.');
+    expect(CardPresenter::for($film)->toArray()['subtitle'])->toBe('I watched this 2026 film.');
 });
 
 // "9h 21m" is read out a letter at a time, so the link's accessible name spells
@@ -200,8 +198,8 @@ it('falls back to "film" when TMDB gave no genre', function () {
 it('spells the duration in the sleep card\'s accessible name', function () {
     $sleep = Sleep::factory()->create([
         'duration' => 33660, // 9h 21m
-        'bedtime' => '2026-08-24 23:30:00',
-        'wake_time' => '2026-08-25 08:51:00',
+        'occurred_at' => '2026-08-25 08:51:00',
+        'started_at' => '2026-08-24 23:30:00',
         'score' => 80,
     ]);
 

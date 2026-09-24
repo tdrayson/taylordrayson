@@ -3,7 +3,7 @@
 namespace App\Queries;
 
 use App\Models\Activity;
-use App\Models\Calorie;
+use App\Models\Food;
 use App\Models\Sleep;
 use App\Models\TimelineEntry;
 use Illuminate\Support\Carbon;
@@ -20,7 +20,7 @@ final class DayStats
      */
     public function __invoke(Collection $entries, Carbon $date): array
     {
-        $models = $entries->map->timelineable;
+        $models = $entries->map->entry;
         $sleep = $models->first(fn ($model): bool => $model instanceof Sleep);
         $activities = $models->filter(fn ($model): bool => $model instanceof Activity);
 
@@ -42,7 +42,7 @@ final class DayStats
 
         // Calories are stored one row per food item, so total the whole day directly
         // rather than the single representative row carried on the timeline entry.
-        $calories = (int) Calorie::query()->whereDate('occurred_at', $date->toDateString())->sum('calories');
+        $calories = (int) Food::query()->listed()->whereDate('occurred_at', $date->toDateString())->sum('calories');
 
         if ($calories > 0) {
             $stats[] = ['label' => 'Food', 'value' => number_format($calories), 'unit' => 'kcal'];

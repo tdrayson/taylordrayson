@@ -29,7 +29,7 @@ function paletteHrefs(string $export): array
 
 it('offers no page destination that 404s', function () {
     // The one hand-authored page the palette names; the rest are real routes.
-    Page::factory()->create(['slug' => 'about', 'published' => true]);
+    Page::factory()->create(['slug' => 'about', 'status' => 'published']);
 
     $hrefs = paletteHrefs('pageCommands');
 

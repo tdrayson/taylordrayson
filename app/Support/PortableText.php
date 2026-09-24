@@ -33,6 +33,98 @@ class PortableText
     }
 
     /**
+     * The first $max characters of readable text, cut at a block boundary where
+     * one falls close enough and mid-span otherwise.
+     *
+     * Measured on the words rather than the encoded document, so marking a
+     * phrase as a link cannot change where the cut lands.
+     *
+     * @param  array<int, array<string, mixed>>  $document
+     * @return array<int, array<string, mixed>>
+     */
+    public static function truncate(array $document, int $max, string $ellipsis = '…'): array
+    {
+        if (mb_strlen(self::plainText($document)) <= $max) {
+            return $document;
+        }
+
+        $kept = [];
+        $used = 0;
+
+        foreach ($document as $block) {
+            $length = mb_strlen(self::plainText([$block]));
+
+            if ($used + $length <= $max) {
+                $kept[] = $block;
+                // plainText joins blocks with a space, so the budget loses one.
+                $used += $length + 1;
+
+                continue;
+            }
+
+            $remaining = $max - $used;
+
+            if ($remaining > 0) {
+                $kept[] = self::trimBlock($block, $remaining, $ellipsis);
+            } elseif ($kept !== []) {
+                $last = array_key_last($kept);
+                $kept[$last] = self::trimBlock($kept[$last], PHP_INT_MAX, $ellipsis);
+            }
+
+            break;
+        }
+
+        return array_values($kept);
+    }
+
+    /**
+     * One block cut to $max characters of its own text, keeping the spans that
+     * fit whole and cutting the one that straddles the limit.
+     *
+     * @param  array<string, mixed>  $block
+     * @return array<string, mixed>
+     */
+    private static function trimBlock(array $block, int $max, string $ellipsis): array
+    {
+        $children = [];
+        $used = 0;
+
+        foreach ($block['children'] ?? [] as $span) {
+            $text = $span['text'] ?? '';
+            $length = mb_strlen($text);
+
+            if ($used + $length <= $max) {
+                $children[] = $span;
+                $used += $length;
+
+                continue;
+            }
+
+            $remaining = $max - $used;
+
+            if ($remaining > 0) {
+                // Cut on the last space inside the budget, so the excerpt does
+                // not end halfway through a word.
+                $cut = mb_substr($text, 0, $remaining);
+                $space = mb_strrpos($cut, ' ');
+                $span['text'] = rtrim($space === false ? $cut : mb_substr($cut, 0, $space));
+                $children[] = $span;
+            }
+
+            break;
+        }
+
+        if ($children !== []) {
+            $last = array_key_last($children);
+            $children[$last]['text'] = rtrim($children[$last]['text'], ' .,;:').$ellipsis;
+        }
+
+        $block['children'] = array_values($children);
+
+        return $block;
+    }
+
+    /**
      * The document's text with its paragraph breaks intact, unlike
      * {@see plainText()} which collapses all whitespace.
      *
@@ -70,6 +162,157 @@ class PortableText
         }
 
         return is_array($document) && array_is_list($document) ? $document : [];
+    }
+
+    /**
+     * The document as markdown: headings, lists, links, emphasis, images and
+     * fenced code. Covers exactly the node types the body components render.
+     *
+     * @param  array<int, array<string, mixed>>|string|null  $document
+     */
+    public static function markdown(array|string|null $document): string
+    {
+        $out = [];
+
+        foreach (self::nodes($document) as $node) {
+            $out[] = match ($node['_type'] ?? null) {
+                'block' => self::markdownBlock($node),
+                'image' => '!['.($node['alt'] ?? '').']('.($node['url'] ?? '').')',
+                'video' => '['.($node['title'] ?? 'Video').']('.($node['url'] ?? '').')',
+                'code' => "```\n".($node['code'] ?? '')."\n```",
+                'divider' => '---',
+                default => null,
+            };
+        }
+
+        return trim(implode("\n\n", array_filter($out, fn (?string $part): bool => $part !== null && $part !== '')));
+    }
+
+    /**
+     * The document as HTML, for the e-content a microformats parser reads.
+     *
+     * @param  array<int, array<string, mixed>>|string|null  $document
+     */
+    public static function html(array|string|null $document): string
+    {
+        $out = [];
+        $openList = null;
+
+        foreach (self::nodes($document) as $node) {
+            $listItem = ($node['_type'] ?? null) === 'block' ? ($node['listItem'] ?? null) : null;
+
+            // Consecutive items of one kind are one list; anything else closes it.
+            if ($openList !== null && $listItem !== $openList) {
+                $out[] = $openList === 'number' ? '</ol>' : '</ul>';
+                $openList = null;
+            }
+
+            if ($listItem !== null && $openList === null) {
+                $out[] = $listItem === 'number' ? '<ol>' : '<ul>';
+                $openList = $listItem;
+            }
+
+            $out[] = match ($node['_type'] ?? null) {
+                'block' => self::htmlBlock($node),
+                'image' => '<img src="'.e($node['url'] ?? '').'" alt="'.e($node['alt'] ?? '').'">',
+                'video' => '<a href="'.e($node['url'] ?? '').'">'.e($node['title'] ?? 'Video').'</a>',
+                'code' => '<pre><code>'.e($node['code'] ?? '').'</code></pre>',
+                'divider' => '<hr>',
+                default => null,
+            };
+        }
+
+        if ($openList !== null) {
+            $out[] = $openList === 'number' ? '</ol>' : '</ul>';
+        }
+
+        return implode('', array_filter($out, fn (?string $part): bool => $part !== null && $part !== ''));
+    }
+
+    /**
+     * @param  array<string, mixed>  $node
+     */
+    private static function markdownBlock(array $node): string
+    {
+        $text = self::inline($node, markdown: true);
+
+        if (($node['listItem'] ?? null) !== null) {
+            $indent = str_repeat('  ', max(0, (int) ($node['level'] ?? 1) - 1));
+
+            return $indent.($node['listItem'] === 'number' ? '1. ' : '- ').$text;
+        }
+
+        return match ($node['style'] ?? 'normal') {
+            'h2' => "## {$text}",
+            'h3' => "### {$text}",
+            'h4' => "#### {$text}",
+            'blockquote' => "> {$text}",
+            default => $text,
+        };
+    }
+
+    /**
+     * @param  array<string, mixed>  $node
+     */
+    private static function htmlBlock(array $node): string
+    {
+        $text = self::inline($node, markdown: false);
+
+        if (($node['listItem'] ?? null) !== null) {
+            return "<li>{$text}</li>";
+        }
+
+        return match ($node['style'] ?? 'normal') {
+            'h2' => "<h2>{$text}</h2>",
+            'h3' => "<h3>{$text}</h3>",
+            'h4' => "<h4>{$text}</h4>",
+            'blockquote' => "<blockquote>{$text}</blockquote>",
+            default => "<p>{$text}</p>",
+        };
+    }
+
+    /**
+     * A block's spans with their marks applied. A mark that is not `strong` or
+     * `em` is a markDef key, which is how Portable Text carries a link.
+     *
+     * @param  array<string, mixed>  $node
+     */
+    private static function inline(array $node, bool $markdown): string
+    {
+        $hrefs = [];
+
+        foreach ($node['markDefs'] ?? [] as $def) {
+            if (($def['_type'] ?? null) === 'link') {
+                $hrefs[$def['_key']] = $def['href'] ?? '';
+            }
+        }
+
+        $out = '';
+
+        foreach ($node['children'] ?? [] as $child) {
+            $text = $markdown ? ($child['text'] ?? '') : e($child['text'] ?? '');
+            $marks = $child['marks'] ?? [];
+
+            if (in_array('strong', $marks, true)) {
+                $text = $markdown ? "**{$text}**" : "<strong>{$text}</strong>";
+            }
+
+            if (in_array('em', $marks, true)) {
+                $text = $markdown ? "_{$text}_" : "<em>{$text}</em>";
+            }
+
+            foreach ($marks as $mark) {
+                if (isset($hrefs[$mark])) {
+                    $text = $markdown
+                        ? "[{$text}]({$hrefs[$mark]})"
+                        : '<a href="'.e($hrefs[$mark]).'">'.$text.'</a>';
+                }
+            }
+
+            $out .= $text;
+        }
+
+        return $out;
     }
 
     /**

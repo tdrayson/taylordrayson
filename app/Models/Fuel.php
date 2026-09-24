@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Models\Concerns\HasAttachments;
+use App\Models\Concerns\HasStatus;
 use App\Models\Concerns\HasSubjects;
 use App\Models\Concerns\HasTimelineEntry;
 use App\Models\Concerns\Timelineable;
@@ -34,11 +35,14 @@ use Spatie\MediaLibrary\HasMedia;
     'fuel_card_cost',
     'price_per_litre',
     'odometer',
+    'status',
+    'password',
 ])]
 class Fuel extends Model implements HasMedia, Timelineable
 {
     use HasAttachments;
     use HasFactory;
+    use HasStatus;
     use HasSubjects;
     use HasTimelineEntry;
 

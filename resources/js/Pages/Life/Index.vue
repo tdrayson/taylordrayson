@@ -44,8 +44,8 @@ const BLURBS = {
         </span>
 
         <div>
-            <h1 class="max-w-2xl font-display text-display">Life</h1>
-            <p class="mt-3 max-w-lg text-body text-neutral-500">
+            <h1 class="max-w-2xl font-display text-5xl font-extrabold tracking-tight">Life</h1>
+            <p class="mt-3 max-w-lg text-base text-neutral-500">
                 The people, pets, spots and things that show up across this site: pulled out of the timeline
                 and given pages of their own, wherever a photograph or an entry is tagged with them.
             </p>
@@ -59,14 +59,14 @@ const BLURBS = {
             </span>
 
             <div class="min-w-0">
-                <h2 class="font-display text-name">
+                <h2 class="font-display text-2xl font-extrabold leading-tight tracking-tight">
                     <Link :href="`/life/${kind.segment}`" class="text-neutral-900 underline decoration-neutral-100 underline-offset-4 transition-colors hover:text-accent-500 focus-visible:text-accent-500">{{ kind.label }}</Link>
                 </h2>
 
-                <p class="mt-2 max-w-xl text-lead text-neutral-500">{{ BLURBS[kind.segment] }}</p>
+                <p class="mt-2 max-w-xl text-lg leading-relaxed text-neutral-500">{{ BLURBS[kind.segment] }}</p>
 
-                <Link :href="`/life/${kind.segment}`" class="mt-3 inline-block text-meta text-neutral-400 transition-colors hover:text-accent-500 focus-visible:text-accent-500">
-                    <span class="tnum">{{ number(kind.count) }}</span> {{ kind.label.toLowerCase() }}
+                <Link :href="`/life/${kind.segment}`" class="mt-3 inline-block text-sm text-neutral-400 transition-colors hover:text-accent-500 focus-visible:text-accent-500">
+                    <span class="tabular-nums">{{ number(kind.count) }}</span> {{ kind.label.toLowerCase() }}
                 </Link>
             </div>
         </div>

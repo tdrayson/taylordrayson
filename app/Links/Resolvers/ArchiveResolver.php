@@ -22,7 +22,7 @@ class ArchiveResolver implements LinkResolver
 
         foreach (TypeRegistry::all() as $type => $definition) {
             if ($definition['slug'] === $slug) {
-                $count = TimelineEntry::query()->where('timelineable_type', $definition['model'])->count();
+                $count = TimelineEntry::query()->where('dataset', (new $definition['model'])->getMorphClass())->count();
 
                 return $this->preview($path, $definition['label'], $type, $definition['noun'], $count);
             }
@@ -65,6 +65,7 @@ class ArchiveResolver implements LinkResolver
         $model = $definition['model'];
 
         $count = $model::query()
+            ->listed()
             ->tap(fn ($query) => ($taxonomy['filter'])($query, $value))
             ->count();
 

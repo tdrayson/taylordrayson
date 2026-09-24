@@ -1,6 +1,7 @@
 <script setup>
 import { ref, computed } from 'vue';
 import BlockContent from '../Ui/BlockContent.vue';
+import ReplyContext from './ReplyContext.vue';
 import ZoomButton from '../Ui/ZoomButton.vue';
 import Lightbox from '../Overlays/Lightbox.vue';
 
@@ -17,6 +18,10 @@ const lightboxIndex = ref(null);
 
 <template>
     <div class="max-w-prose space-y-4">
+        <!-- Above the words, so the post reads as an answer to the thing named
+             here rather than the thing being a footnote to it. -->
+        <ReplyContext v-if="entry.response" :response="entry.response" class="mb-6" />
+
         <!-- Notes have no headline, so the content is the page's primary text. -->
         <BlockContent :document="entry.content" class="e-content text-lg leading-relaxed" />
 
@@ -25,7 +30,7 @@ const lightboxIndex = ref(null);
                 <button
                     type="button"
                     :aria-label="`View photo ${index + 1}`"
-                    class="group/zoom relative block w-full cursor-zoom-in overflow-hidden rounded-lg border border-neutral-50 bg-neutral-25 transition-opacity hover:opacity-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500"
+                    class="group/zoom relative block w-full cursor-zoom-in overflow-hidden rounded-lg border border-neutral-50 bg-neutral-25 transition-opacity hover:opacity-95"
                     :class="photos.length > 1 ? 'aspect-square' : ''"
                     @click="lightboxIndex = index"
                 >

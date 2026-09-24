@@ -1,0 +1,156 @@
+<?php
+
+use App\Enums\CommentStatus;
+use App\Enums\ReactionType;
+use App\Models\Note;
+use App\Support\PortableText;
+
+/**
+ * The reaction discs, as they actually paint.
+ *
+ * Two properties neither a unit test nor the microformats tests can see: that
+ * every glyph name resolves to a real icon, and that the glyph stays legible on
+ * the disc behind it.
+ */
+function noteWithEveryReaction(): Note
+{
+    $note = Note::factory()->create([
+        'occurred_at' => '2024-03-06 09:00:00',
+        'content' => PortableText::fromPlainText('Something worth reacting to.'),
+    ]);
+
+    foreach (ReactionType::cases() as $index => $type) {
+        $note->reactions()->create([
+            'type' => $type,
+            'identity_key' => hash('sha256', 'glyph-test-'.$index),
+        ]);
+    }
+
+    return $note;
+}
+
+it('resolves an icon for every reaction, so no disc paints empty', function () {
+    // Icon.vue renders nothing at all when a name is missing from the registry,
+    // and a production build prints no warning about it.
+    visit(noteWithEveryReaction()->url())
+        ->assertPresent('.reaction-pip')
+        ->assertScript('document.querySelectorAll(".reaction-pip svg").length', count(ReactionType::cases()));
+});
+
+it('keeps every disc dark enough to carry its glyph', function () {
+    // Wow and haha were yellow, where white read at 2.10:1 and 2.03:1 against
+    // the 3:1 WCAG asks of a graphical object. Measured on the painted pixels
+    // rather than the tokens, so a later theme edit cannot quietly undo it.
+    $failing = <<<'JS'
+    (() => {
+        const channel = (v) => (v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4));
+        const luminance = (s) => {
+            const [r, g, b] = s.match(/[\d.]+/g).slice(0, 3).map((n) => channel(n / 255));
+            return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+        };
+        return [...document.querySelectorAll('.reaction-pip')].filter((el) => {
+            const style = getComputedStyle(el);
+            const a = luminance(style.backgroundColor);
+            const b = luminance(style.color);
+            return (Math.max(a, b) + 0.05) / (Math.min(a, b) + 0.05) < 3;
+        }).length;
+    })()
+    JS;
+
+    visit(noteWithEveryReaction()->url())
+        ->assertPresent('.reaction-pip')
+        ->assertScript($failing, 0);
+});
+
+it('counts reposts and bookmarks only once somebody has done one', function () {
+    $note = Note::factory()->create([
+        'occurred_at' => '2024-03-09 09:00:00',
+        'content' => PortableText::fromPlainText('Something worth keeping.'),
+    ]);
+
+    // A permanent pair of zeroes would be furniture on every entry. Reactions
+    // and the written-response count keep showing at zero; these do not.
+    $labelled = "[...document.querySelectorAll('[aria-label]')]"
+        .".map((el) => el.getAttribute('aria-label')).filter((l) => /repost|bookmark/.test(l))";
+
+    // Waited for: script() reads the DOM the moment it is called, so asserting
+    // without one races Vue and passes against an empty shell.
+    visit($note->url())
+        ->assertPresent('[data-testid="reaction-bar"]')
+        ->assertScript("{$labelled}.length", 0);
+
+    foreach (['repost', 'bookmark'] as $index => $kind) {
+        $note->webmentions()->create([
+            'source_url' => "https://jan.example/{$kind}",
+            'target_url' => config('app.url').$note->url(),
+            'kind' => $kind,
+            'author_name' => 'Jan',
+            'status' => CommentStatus::Approved,
+            'verified_at' => now(),
+            'published_at' => now()->subMinutes($index),
+        ]);
+    }
+
+    visit($note->url())
+        ->assertPresent('[data-testid="reaction-bar"]')
+        ->assertScript("{$labelled}.sort().join('|')", '1 bookmark|1 repost');
+});
+
+it('sets every number on the row at one size, so they sit on one line', function () {
+    // The per-reaction counts were text-caption while the reply, repost and
+    // bookmark counts beside them were text-body, so no two lined up.
+    $note = noteWithEveryReaction();
+
+    $note->webmentions()->create([
+        'source_url' => 'https://jan.example/repost',
+        'target_url' => config('app.url').$note->url(),
+        'kind' => 'repost',
+        'author_name' => 'Jan',
+        'status' => CommentStatus::Approved,
+        'verified_at' => now(),
+        'published_at' => now(),
+    ]);
+
+    $sizes = "new Set([...document.querySelectorAll('[data-testid=\"reaction-bar\"] .tabular-nums')]"
+        .'.map((el) => getComputedStyle(el).fontSize)).size';
+
+    visit($note->url())
+        ->assertPresent('[data-testid="reaction-bar"] .tabular-nums')
+        ->assertScript($sizes, 1);
+});
+
+it('keeps the reaction count the colour of its kind, whichever reaction you chose', function () {
+    // Tinting the count to the reaction you picked fails text contrast on four of
+    // the six, so it keeps its kind's colour whether or not you are in it.
+    $reacted = noteWithEveryReaction();
+    $untouched = noteWithEveryReaction();
+
+    $reacted->reactions()->create(['type' => ReactionType::Love, 'identity_key' => hash('sha256', 'mine')]);
+
+    $colour = "getComputedStyle(document.querySelector('[data-testid=\"reaction-bar\"] button .tabular-nums')).color";
+
+    $theirs = visit($untouched->url())->assertPresent('[data-testid="reaction-bar"] .tabular-nums')->script($colour);
+
+    // Seeded rather than clicked: clicking leaves the control hovered, which is a
+    // colour of its own. Which reaction is yours lives in the browser.
+    $page = visit($reacted->url())->assertPresent('[data-testid="reaction-bar"]');
+    $page->script("localStorage.setItem('reactor', JSON.stringify({ token: 'x', picks: { 'note:{$reacted->id}': 'love' } }))");
+
+    $page->refresh()
+        ->assertScript("document.querySelector('[data-testid=\"reaction-bar\"] button').getAttribute('aria-pressed')", 'true')
+        ->assertScript($colour, $theirs);
+});
+
+it('bolds the total when you are one of the people in it', function () {
+    $note = noteWithEveryReaction();
+
+    // Nobody has reacted from this browser, so the total reads like the rest.
+    $weight = "getComputedStyle(document.querySelector('[data-testid=\"reaction-bar\"] button .tabular-nums')).fontWeight";
+
+    $page = visit($note->url())->assertPresent('[data-testid="reaction-bar"]');
+    $page->assertScript($weight, '500');
+
+    // Reacting is the only thing that changes: the count keeps its colour and size.
+    $page->click('[aria-label^="React to this"]')
+        ->assertScript($weight, '700');
+});

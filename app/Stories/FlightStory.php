@@ -66,7 +66,7 @@ class FlightStory implements Story
      */
     public function build(): array
     {
-        $flights = Flight::query()->orderBy('occurred_at')->get();
+        $flights = Flight::query()->listed()->orderBy('occurred_at')->get();
 
         if ($flights->isEmpty()) {
             return ['hasData' => false];

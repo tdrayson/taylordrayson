@@ -1,4 +1,4 @@
-import { h } from 'vue';
+import { h, isVNode } from 'vue';
 import { usePage } from '@inertiajs/vue3';
 import CodeBlock from './CodeBlock.vue';
 import HeadingAnchor from './HeadingAnchor.vue';
@@ -6,6 +6,7 @@ import Icon from './Icon.vue';
 import ZoomButton from './ZoomButton.vue';
 import { entryType } from '../../entryTypes';
 import { CALLOUT_VARIANTS } from '../../lib/editor/callouts';
+import { isBareUrl } from '../../lib/portable-text/links';
 import VideoEmbed from './VideoEmbed.vue';
 
 
@@ -61,12 +62,32 @@ function hostOf(href) {
     }
 }
 
-// True when the link text is just the address, i.e. a pasted URL rather than
-// words the author chose. Only then may the label be replaced.
-function isBareUrl(text, href) {
-    const strip = (value) => value.replace(/\/$/, '').replace(/^https?:\/\//, '');
+// True when a URL points somewhere below its site's root (a path, query or hash).
+function hasPath(href) {
+    try {
+        const url = new URL(href);
 
-    return typeof text === 'string' && strip(text.trim()) === strip(href);
+        return url.pathname !== '/' || url.search !== '' || url.hash !== '';
+    } catch {
+        return false;
+    }
+}
+
+/**
+ * The label a pasted URL collapses to: its host, trailed by an ellipsis when the
+ * link goes deeper than the root, so a deep link doesn't pass for a homepage.
+ *
+ * @param {string} host The display host.
+ * @param {string} href The link's address.
+ * @returns {string|object} The host, or a vnode when it carries the ellipsis.
+ */
+function collapsedUrl(host, href) {
+    if (!hasPath(href)) {
+        return host;
+    }
+
+    // Hidden from screen readers, which would announce "slash ellipsis".
+    return h('span', [host, h('span', { 'aria-hidden': 'true' }, '/…')]);
 }
 
 /**
@@ -94,30 +115,67 @@ function isExternalHref(href) {
  *
  * @param {object} mark The icon vnode.
  * @param {string|object} label The link text, or a vnode when a mark (bold,
- *   code) already wrapped it, which cannot be split and so rides with the icon.
+ *   code) already wrapped it.
  * @returns {Array} The anchor's children.
  */
 function iconWithLabel(mark, label) {
-    const nowrap = (children) => h('span', { class: 'whitespace-nowrap' }, children);
+    const [head, tail] = splitFirstWord(label);
 
-    if (typeof label !== 'string') {
-        return [nowrap([mark, label])];
-    }
-
-    const space = label.indexOf(' ');
-
-    if (space === -1) {
-        return [nowrap([mark, label])];
-    }
-
-    return [nowrap([mark, label.slice(0, space)]), label.slice(space)];
+    return [h('span', { class: 'whitespace-nowrap' }, [mark, head]), tail];
 }
+
+/**
+ * Split text at its first space, rebuilding any decorator tags (strong, em)
+ * around both halves so only the first word is held to the icon.
+ *
+ * @param {string|object} node The text, or a decorator vnode wrapping it.
+ * @returns {Array} The first word and the rest, which is null when there is no rest.
+ */
+function splitFirstWord(node) {
+    if (typeof node === 'string') {
+        const space = node.indexOf(' ');
+
+        return space === -1 ? [node, null] : [node.slice(0, space), node.slice(space)];
+    }
+
+    const inner = Array.isArray(node.children) && node.children.length === 1 ? node.children[0] : node.children;
+
+    if (typeof inner !== 'string' && ! isVNode(inner)) {
+        return [node, null];
+    }
+
+    const [head, tail] = splitFirstWord(inner);
+
+    return [h(node.type, head), tail === null ? null : h(node.type, tail)];
+}
+
+/**
+ * A pasted URL shown whole, minus its protocol and www: the icon rides with the
+ * host, and the path breaks wherever the line ends.
+ *
+ * @param {object} mark The icon vnode.
+ * @param {string} text The link text, which is the address.
+ * @returns {Array} The anchor's children.
+ */
+function iconWithAddress(mark, text) {
+    const address = text.trim().replace(/^https?:\/\//, '').replace(/^www\./, '').replace(/\/$/, '');
+    const slash = address.indexOf('/');
+    const host = slash === -1 ? address : address.slice(0, slash);
+
+    return [
+        h('span', { class: 'whitespace-nowrap' }, [mark, host]),
+        slash === -1 ? null : h('span', { class: 'break-all' }, address.slice(slash)),
+    ];
+}
+
+/** Every link is a chip; its icon, not its shape, says where it goes. */
+const CHIP = 'link-chip box-decoration-clone rounded bg-neutral-25 px-1 py-0.5 font-medium text-neutral-900 no-underline';
 
 /**
  * An external link: the site's favicon, then the author's own words. The text is
  * never swapped for a fetched title, or anchor text like "click here" would turn
- * into nonsense. A pasted URL is the one exception, collapsing to the domain
- * rather than sitting in the sentence as a raw address.
+ * into nonsense. A pasted URL is the exception, showing the domain (plus "/…"
+ * for a deep link), or the whole address when the author expanded it.
  */
 function renderExternalLink(def, label, text, favicons) {
     const host = hostOf(def.href);
@@ -139,23 +197,39 @@ function renderExternalLink(def, label, text, favicons) {
     // The author's choice wins where they made one; otherwise an external
     // destination opens away, which is the expected default.
     const away = def.blank ?? true;
+    const pasted = Boolean(host) && isBareUrl(text, def.href);
 
+    const children = ! pasted
+        ? iconWithLabel(mark, label)
+        : (def.expanded ? iconWithAddress(mark, text) : iconWithLabel(mark, collapsedUrl(host, def.href)));
+
+    // What the link says out loud: the author's words, or the address a pasted
+    // URL stands for. A collapsed one speaks its host, since the "/…" it shows
+    // is hidden from screen readers already.
+    const spoken = pasted && ! def.expanded ? host : text;
+
+    // No nofollow, deliberately: everything this renderer draws was written by
+    // the site's author, and disavowing your own outbound links is wrong.
+    // Contributed content (comments, mentions) must NOT be routed through here
+    // for that reason, and because this renderer draws images, callouts and
+    // embeds that a stranger's document has no business containing.
+    // "opens in a new tab" is said with aria-label rather than a hidden span,
+    // because this anchor sits inside e-content: a webmention receiver reading
+    // our content back as plain text would print the hidden words as if we had
+    // written them. An attribute is not text and never travels.
     return h('a', {
         href: def.href,
         rel: away ? 'noopener noreferrer' : null,
         target: away ? '_blank' : null,
+        'aria-label': away ? `${spoken}, opens in a new tab` : null,
+        class: CHIP,
         'data-external': '',
-    }, [
-        ...iconWithLabel(mark, isBareUrl(text, def.href) && host ? host : label),
-        away ? h('span', { class: 'sr-only' }, ', opens in a new tab') : null,
-    ]);
+    }, children);
 }
 
 /**
- * An internal link that resolves to an entry: a chip carrying that entry type's
- * glyph, so a reference that keeps you on the site reads differently from one
- * that leaves it. A link with no entry behind it (an archive page, an
- * unpublished target) stays an ordinary link.
+ * An internal link: the entry type's glyph when it resolves to an entry, or a
+ * plain link glyph for anything else (an archive page, an unpublished target).
  *
  * The glyph takes the type's hue and nothing else does. Tinting the fill per
  * type would put a dozen colours through a paragraph and move the text contrast
@@ -166,7 +240,10 @@ function renderInternalLink(def, label, text, previews) {
     const preview = previews[def.href];
 
     if (! preview) {
-        return h('a', { href: def.href }, label);
+        return h('a', { href: def.href, class: CHIP }, iconWithLabel(
+            h(Icon, { icon: 'Link02Icon', class: 'mb-0.5 mr-1 inline size-3.5 align-middle text-neutral-400' }),
+            label,
+        ));
     }
 
     // A pasted address is not anchor text anyone chose, so the entry names
@@ -176,7 +253,7 @@ function renderInternalLink(def, label, text, previews) {
 
     return h('a', {
         href: def.href,
-        class: 'entry-chip box-decoration-clone rounded bg-neutral-25 px-1 py-0.5 font-medium text-neutral-900 no-underline',
+        class: CHIP,
     }, iconWithLabel(
         h(Icon, {
             icon: entryType(preview.type).icon,
@@ -278,8 +355,8 @@ function renderListRun(run, favicons, previews) {
     return vnodes;
 }
 
-// Type scale per heading level: a clean 30/24/20/18/16px ladder so every
-// level sits clearly above body text (15px).
+// Type scale per heading level: a clean 30/24/20/18/16px ladder. h6 meets body
+// text at 16px, so weight alone separates it.
 const HEADING_CLASSES = {
     h2: 'text-3xl font-bold',
     h3: 'text-2xl font-semibold',
@@ -336,7 +413,7 @@ function renderImage(node, onImageClick) {
             // img margins must not apply inside the zoom button wrapper. For
             // portraits the button shrink-wraps so the zoom overlay anchors to
             // the image corner, not the column edge.
-            class: `group/zoom not-prose relative block cursor-zoom-in rounded-lg transition-opacity hover:opacity-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500 focus-visible:ring-offset-2 ${portrait ? '' : 'w-full'}`,
+            class: `group/zoom not-prose relative block cursor-zoom-in rounded-lg transition-opacity hover:opacity-95 ${portrait ? '' : 'w-full'}`,
             onClick: () => onImageClick(node.url),
         }, [
             h('img', {
@@ -355,7 +432,7 @@ function renderImage(node, onImageClick) {
             }, [h(ZoomButton)]),
         ]),
         node.caption
-            ? h('figcaption', { class: 'mt-2 text-left text-meta text-neutral-500' }, node.caption)
+            ? h('figcaption', { class: 'mt-2 text-left text-sm text-neutral-500' }, node.caption)
             : null,
     ]);
 }
@@ -384,7 +461,7 @@ function renderCallout(node, favicons, previews) {
             h('span', {
                 class: `absolute -top-3 left-6 inline-block -rotate-2 rounded-md px-3 py-1 font-display text-xs font-bold uppercase tracking-widest shadow-card ${variant.chip}`,
             }, variant.label),
-            h('p', { class: 'text-body leading-relaxed text-neutral-800' }, renderChildren(node, favicons, previews)),
+            h('p', { class: 'text-base leading-relaxed text-neutral-800' }, renderChildren(node, favicons, previews)),
         ]),
     ]);
 }

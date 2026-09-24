@@ -125,7 +125,7 @@ function onLeave(event) {
             <div class="pointer-events-none absolute size-2.5 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-neutral-0" :style="{ left: `${hovered.left}%`, top: `${hovered.top}%`, background: color }" />
             <!-- Intentional dark chip in both themes (same pattern as Tooltip.vue / HeartRateChart). -->
             <div
-                class="pointer-events-none absolute top-0 z-10 -translate-x-1/2 whitespace-nowrap rounded-md bg-black px-2 py-1 text-xs font-medium text-white shadow-card tnum"
+                class="pointer-events-none absolute top-0 z-10 -translate-x-1/2 whitespace-nowrap rounded-md bg-black px-2 py-1 text-xs font-medium text-white shadow-card tabular-nums"
                 :style="{ left: `${Math.min(90, Math.max(10, hovered.left))}%` }"
             >
                 {{ Math.round(hovered.value) }} {{ unit }}<template v-if="hovered.time">, {{ hovered.time }}</template>

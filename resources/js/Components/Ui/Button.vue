@@ -25,20 +25,21 @@ const VARIANTS = {
     link: 'text-accent-500 underline underline-offset-2 not-disabled:hover:text-accent-700',
 };
 
+// md and lg share the form-control height (CONTROL) so a button lines up beside an input or select.
 const SIZES = {
     // For a link that sits in running text or on its own: no box, so it lines
     // up with the paragraph beside it. A link in a row of padded buttons wants
     // a real size instead, or it floats out of the row.
-    inline: 'gap-1.5 text-label',
-    sm: 'gap-1.5 px-3 py-1.5 text-label',
-    md: 'gap-1.5 px-4 py-2 text-meta',
-    lg: 'gap-2 px-5 py-2.5 text-meta',
+    inline: 'gap-1.5 text-2xs',
+    sm: 'gap-1.5 px-3 py-1.5 text-2xs',
+    md: 'min-h-11 gap-1.5 px-4 py-2 text-sm',
+    lg: 'min-h-11 gap-2 px-5 py-2.5 text-sm',
     icon: 'p-2',
 };
 
 const classes = computed(() =>
     cn(
-        'inline-flex items-center justify-center font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500 focus-visible:ring-offset-2 disabled:opacity-40',
+        'inline-flex items-center justify-center font-semibold transition-colors disabled:opacity-40',
         props.pill ? 'rounded-full' : 'rounded-md',
         VARIANTS[props.variant] ?? VARIANTS.secondary,
         SIZES[props.size] ?? SIZES.md,

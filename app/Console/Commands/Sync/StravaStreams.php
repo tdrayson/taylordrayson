@@ -2,7 +2,7 @@
 
 namespace App\Console\Commands\Sync;
 
-use App\Actions\StoreActivityStreams;
+use App\Actions\Strava\StoreActivityStreams;
 use App\Enums\Source;
 use App\Models\Activity;
 use App\Services\Strava\Client;

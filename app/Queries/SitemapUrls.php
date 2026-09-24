@@ -4,11 +4,11 @@ namespace App\Queries;
 
 use App\Enums\SubjectKind;
 use App\Models\Page;
-use App\Models\Series;
 use App\Models\Subject;
 use App\Models\Tag;
 use App\Models\TimelineEntry;
 use App\Models\Trip;
+use App\Models\TvShow;
 use App\Stories\StoryRegistry;
 use App\Support\SqlDate;
 use App\Timeline\TypeRegistry;
@@ -145,7 +145,7 @@ final class SitemapUrls
         // logged; the rest are structural and carry no lastmod of their own.
         $moving = ['/', '/now', '/on-this-day', '/photos'];
         $static = [
-            '/more', '/feeds', '/tags', '/trips', '/media/tv', '/flights/map', '/leaderboard',
+            '/more', '/feeds', '/tags', '/trips', '/tv-shows', '/flights/map', '/leaderboard',
             '/life', ...array_map(fn (SubjectKind $kind): string => '/life/'.$kind->segment(), SubjectKind::cases()),
         ];
 
@@ -198,7 +198,7 @@ final class SitemapUrls
     }
 
     /**
-     * Tags, trips, shows and published CMS pages.
+     * Tags, trips, shows and listed pages.
      *
      * @return list<SitemapUrl>
      */
@@ -210,10 +210,10 @@ final class SitemapUrls
         $trips = Trip::query()->orderBy('slug')->get(['slug'])
             ->map(fn (Trip $trip): array => ['loc' => $trip->url(), 'lastmod' => null]);
 
-        $series = Series::query()->orderBy('slug')->get(['slug'])
-            ->map(fn (Series $show): array => ['loc' => $show->url(), 'lastmod' => null]);
+        $tvShows = TvShow::query()->orderBy('slug')->get(['slug'])
+            ->map(fn (TvShow $show): array => ['loc' => $show->url(), 'lastmod' => null]);
 
-        $pages = Page::query()->where('published', true)->orderBy('slug')
+        $pages = Page::query()->listed()->orderBy('slug')
             ->get(['slug', 'updated_at'])
             ->map(fn (Page $page): array => [
                 'loc' => $page->url(),
@@ -229,6 +229,6 @@ final class SitemapUrls
                 'lastmod' => $subject->updated_at?->toAtomString(),
             ]);
 
-        return [...$tags, ...$trips, ...$series, ...$pages, ...$subjects];
+        return [...$tags, ...$trips, ...$tvShows, ...$pages, ...$subjects];
     }
 }

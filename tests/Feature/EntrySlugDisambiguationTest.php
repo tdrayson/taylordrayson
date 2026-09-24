@@ -66,8 +66,8 @@ it('suffixes two notes that open with the same words on one day', function () {
 });
 
 it('suffixes a same-day same-slug article collision too', function () {
-    $first = Article::factory()->create(['slug' => 'launch-day', 'published' => true, 'occurred_at' => '2026-03-15 09:00:00']);
-    $second = Article::factory()->create(['slug' => 'launch-day', 'published' => true, 'occurred_at' => '2026-03-15 15:00:00']);
+    $first = Article::factory()->create(['slug' => 'launch-day', 'status' => 'published', 'occurred_at' => '2026-03-15 09:00:00']);
+    $second = Article::factory()->create(['slug' => 'launch-day', 'status' => 'published', 'occurred_at' => '2026-03-15 15:00:00']);
 
     expect($first->url())->toBe('/2026/03/15/launch-day')
         ->and($second->url())->toBe('/2026/03/15/launch-day-2');

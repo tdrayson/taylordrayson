@@ -1,8 +1,10 @@
 <script setup>
 import { useId } from 'vue';
+import Heading from './Heading.vue';
 import Icon from './Icon.vue';
 import { useDialog } from '../../composables/useDialog';
 import { useMounted } from '../../composables/useMounted';
+import { cn } from '../../lib/cn.js';
 
 const mounted = useMounted();
 
@@ -47,23 +49,23 @@ const titleId = useId();
                     :aria-label="title ? null : ariaLabel"
                     :aria-labelledby="title ? titleId : null"
                     tabindex="-1"
-                    :class="['relative z-10 w-full max-w-md rounded-lg border border-neutral-50 bg-neutral-0 shadow-card focus:outline-none', panelClass]"
+                    :class="cn('relative z-10 flex max-h-full w-full max-w-md flex-col overflow-hidden rounded-lg border border-neutral-50 bg-neutral-0 shadow-card focus:outline-none', panelClass)"
                 >
-                    <div v-if="title || $slots.header" class="flex items-center justify-between border-b border-neutral-50 px-5 py-4">
+                    <div v-if="title || $slots.header" class="flex shrink-0 items-center justify-between border-b border-neutral-50 px-5 py-4">
                         <slot name="header">
-                            <h2 :id="titleId" class="font-display text-section">{{ title }}</h2>
+                            <Heading :id="titleId" size="section">{{ title }}</Heading>
                         </slot>
                         <button
                             type="button"
                             :aria-label="closeLabel"
-                            class="rounded-md p-1 text-neutral-500 transition-colors hover:text-neutral-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500"
+                            class="rounded-md p-1 text-neutral-500 transition-colors hover:text-neutral-900"
                             @click="close"
                         >
                             <Icon name="Cancel01Icon" class="size-5" />
                         </button>
                     </div>
 
-                    <div class="p-5">
+                    <div class="min-h-0 overflow-y-auto p-5">
                         <slot />
                     </div>
                 </div>
@@ -71,22 +73,3 @@ const titleId = useId();
         </Transition>
     </Teleport>
 </template>
-
-<style scoped>
-.fade-enter-active,
-.fade-leave-active {
-    transition: opacity 0.15s ease;
-}
-
-.fade-enter-from,
-.fade-leave-to {
-    opacity: 0;
-}
-
-@media (prefers-reduced-motion: reduce) {
-    .fade-enter-active,
-    .fade-leave-active {
-        transition: none;
-    }
-}
-</style>

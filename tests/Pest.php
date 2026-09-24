@@ -1,9 +1,13 @@
 <?php
 
 use App\Models\Activity;
+use App\Models\Airline;
+use App\Models\Airport;
+use App\Models\Flight;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Sleep;
+use Laravel\Mcp\Request;
 use MensBeam\Microformats;
 use Saloon\Config as SaloonConfig;
 use Saloon\Http\Faking\MockClient;
@@ -38,8 +42,8 @@ uses()->beforeEach(function (): void {
 })->in('Feature', 'Unit', 'Browser');
 
 // The same guard for the plain client, which the jobs use. The queue runs sync
-// under test, so storing an entry draws its map there and then: without this a
-// test spends real Mapbox credit on the live token.
+// under test, so storing an entry draws its map and sends its webmentions there
+// and then: without this a test spends Mapbox credit or posts a real webmention.
 // Unit tests are left out because they run without the framework booted.
 uses()->beforeEach(function (): void {
     Http::preventStrayRequests();
@@ -74,6 +78,22 @@ expect()->extend('toBeOne', function () {
 function something()
 {
     // ..
+}
+
+/**
+ * Invoke an MCP tool directly, bypassing the transport. Lives here rather than
+ * in one test file so every test file can call it: paratest runs each test
+ * file in its own process, and a function declared inside a test file is
+ * invisible to any other file when the suite runs in parallel.
+ *
+ * @return array{error: bool, data: mixed, text: string}
+ */
+function callTool(string $tool, array $arguments = []): array
+{
+    $response = app($tool)->handle(new Request($arguments));
+    $text = $response->content()->toArray()['text'];
+
+    return ['error' => $response->isError(), 'data' => json_decode($text, true), 'text' => $text];
 }
 
 /**
@@ -114,6 +134,22 @@ function microformatItem(array $parsed, string $type): ?array
     }
 
     return null;
+}
+
+/**
+ * The page's rendered DOM, parsed as microformats.
+ *
+ * Waits on the root element first: script() reads the DOM immediately, so
+ * capturing without waiting races Vue and parses an empty shell.
+ */
+function microformatsOf(string $path, string $root = '.h-entry'): array
+{
+    $page = visit($path)->assertPresent($root);
+
+    return parseMicroformats(
+        $page->script('document.documentElement.outerHTML'),
+        config('app.url').$path,
+    );
 }
 
 /**
@@ -188,6 +224,35 @@ function noisyJpeg(int $width = 2400, int $height = 1600): string
     return $bytes;
 }
 
+/** A published KRK-LGW flight, with its airline and both airports loaded, for the export tests. */
+function krkToLgw(): Flight
+{
+    Airline::factory()->create(['icao_code' => 'EZY', 'iata_code' => 'U2', 'name' => 'easyJet UK']);
+    Airport::factory()->create([
+        'iata_code' => 'KRK', 'icao_code' => 'EPKK', 'name' => 'Kraków John Paul II International Airport',
+        'city' => 'Kraków', 'latitude' => 50.077702, 'longitude' => 19.7848,
+    ]);
+    Airport::factory()->create([
+        'iata_code' => 'LGW', 'icao_code' => 'EGKK', 'name' => 'London Gatwick Airport',
+        'city' => 'London', 'latitude' => 51.148771, 'longitude' => -0.192089,
+    ]);
+
+    return Flight::factory()->create([
+        'occurred_at' => '2026-06-08 22:15:00',
+        'flight_number' => '8824',
+        'airline_icao' => 'EZY',
+        'origin_iata' => 'KRK',
+        'destination_iata' => 'LGW',
+        'distance' => 1409785,
+        'duration' => 8820,
+        'departure_timezone' => 'Europe/Warsaw',
+        'arrival_timezone' => 'Europe/London',
+        'cabin_class' => 'economy',
+        'reason' => 'business',
+        'status' => 'published',
+    ])->load('airline', 'origin', 'destination');
+}
+
 /** An activity carrying one photo, for the conversion and prune tests. */
 function activityWithPhoto(string $bytes, string $name = 'photo.jpg'): Activity
 {
@@ -240,4 +305,36 @@ function mockSequence(array $responses): Closure
 
         return $responses[$sent++];
     };
+}
+
+/**
+ * A ticket's label/value rows, read back off the rendered stub as
+ * [label, value, label column, value end column].
+ *
+ * The columns are what the tickets are judged on: every row must start and
+ * end in the same one, which the alternating tear edge makes easy to get
+ * wrong by one.
+ *
+ * @return list<array{0: string, 1: string, 2: int, 3: int}>
+ */
+function ticketRows(string $txt): array
+{
+    $rows = [];
+
+    foreach (explode("\n", trim($txt)) as $line) {
+        if (! preg_match('/^(?<lead>[( ]\)? +)(?<label>[A-Z][A-Z0-9. ]*[A-Z0-9.]|[A-Z])(?<gap> {2,})(?<value>\S.*?) *\)?\(*$/u', $line, $m)) {
+            continue;
+        }
+
+        $labelColumn = mb_strwidth($m['lead']);
+
+        $rows[] = [
+            $m['label'],
+            $m['value'],
+            $labelColumn,
+            $labelColumn + mb_strwidth($m['label'].$m['gap'].$m['value']),
+        ];
+    }
+
+    return $rows;
 }

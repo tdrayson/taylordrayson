@@ -2,6 +2,7 @@
 import { computed } from 'vue';
 import { Link } from '@inertiajs/vue3';
 import Tooltip from '../Ui/Tooltip.vue';
+import { formatDate } from '../../lib/dateFormat.js';
 
 const props = defineProps({
     // Entries-per-day keyed yyyy-mm-dd.
@@ -58,7 +59,7 @@ const yearCells = computed(() => {
         cells.push({
             key,
             href: `/${props.year}/${pad(date.getMonth() + 1)}/${pad(date.getDate())}`,
-            title: `${date.getDate()} ${date.toLocaleDateString('en-GB', { month: 'short' })}, ${count} ${count === 1 ? 'entry' : 'entries'}`,
+            title: `${formatDate(key, { weekday: false, year: false })}, ${count} ${count === 1 ? 'entry' : 'entries'}`,
             level: bucket(count),
         });
         date.setDate(date.getDate() + 1);
@@ -91,9 +92,9 @@ function color(level) {
 <template>
     <div>
         <!-- Month labels + cell grid scroll together as one unit (GitHub-style) so
-             labels stay aligned over their weeks; the min-width floor lives in <style>. -->
-        <div class="heatmap-wrap">
-            <div class="heatmap-scroll">
+             labels stay aligned over their weeks. -->
+        <div class="max-md:overflow-x-auto">
+            <div class="max-md:min-w-160">
                 <!-- Month labels double as year → month navigation. -->
                 <div class="heatmap-months mb-1 text-xs text-neutral-500">
                     <Link
@@ -101,11 +102,11 @@ function color(level) {
                         :key="month.href"
                         :href="month.href"
                         :style="{ gridColumnStart: month.column }"
-                        class="rounded-sm underline-offset-2 transition-colors hover:text-accent-500 hover:underline focus-visible:text-accent-500 focus-visible:underline focus-visible:outline-none"
+                        class="rounded-sm underline-offset-2 transition-colors hover:text-accent-500 hover:underline focus-visible:text-accent-500 focus-visible:underline"
                     >{{ month.label }}</Link>
                 </div>
 
-                <div class="heatmap-grid">
+                <div class="heatmap-grid *:aspect-square">
                     <template v-for="(cell, index) in yearCells" :key="cell ? cell.key : `pad-${index}`">
                         <Tooltip v-if="cell" :label="cell.title" placement="top" class="heatmap-cell-wrap">
                             <Link :href="cell.href" :aria-label="cell.title" class="heatmap-cell rounded" :style="{ background: color(cell.level) }" />
@@ -125,36 +126,14 @@ function color(level) {
 </template>
 
 <style scoped>
-/* Desktop: the grid renders fluid, fit-to-width, with no scroll behaviour at all
-   (overflow: visible avoids clipping tooltips against this wrapper). Only below the
-   app's md breakpoint (48rem) does the wrapper become a horizontal scroll container,
-   with the inner grid floored at 40rem so cells stay legible instead of shrinking. */
-.heatmap-wrap {
-    overflow: visible;
-}
-
-@media (max-width: 48rem) {
-    .heatmap-wrap {
-        overflow-x: auto;
-    }
-
-    .heatmap-scroll {
-        min-width: 40rem;
-    }
-}
-
 /* Cells flow column-major into 7 weekday rows → ~53 week columns.
-   1fr columns stretch the grid to the container width; aspect-ratio keeps cells square. */
+   1fr columns stretch the grid to the container width. */
 .heatmap-grid {
     display: grid;
     grid-auto-flow: column;
     grid-template-rows: repeat(7, 1fr);
     grid-auto-columns: 1fr;
     gap: 2px;
-}
-
-.heatmap-grid > * {
-    aspect-ratio: 1;
 }
 
 /* Same column geometry as the grid so labels sit over their month's first week. */
@@ -185,8 +164,6 @@ function color(level) {
 }
 
 .heatmap-cell:focus-visible {
-    outline: 2px solid var(--color-accent-500);
-    outline-offset: 2px;
     z-index: 1;
 }
 </style>

@@ -1,35 +1,54 @@
 <?php
 
+use App\Enums\ExportFormat;
 use App\Http\Controllers\AttachmentController;
 use App\Http\Controllers\AuthoringController;
+use App\Http\Controllers\CaloriesRedirectController;
+use App\Http\Controllers\CitationPreviewController;
+use App\Http\Controllers\ClearFailedJobsController;
+use App\Http\Controllers\CommentController;
 use App\Http\Controllers\DesignSystemController;
 use App\Http\Controllers\EntryController;
+use App\Http\Controllers\EntryExportController;
 use App\Http\Controllers\EntrySubjectController;
 use App\Http\Controllers\FeedsController;
 use App\Http\Controllers\FlightMapController;
 use App\Http\Controllers\GalleryController;
+use App\Http\Controllers\HubController;
 use App\Http\Controllers\LeaderboardController;
 use App\Http\Controllers\LifeController;
 use App\Http\Controllers\LookupController;
+use App\Http\Controllers\ManifestController;
+use App\Http\Controllers\MarkResponseMineController;
 use App\Http\Controllers\MediaUploadController;
 use App\Http\Controllers\MentionSearchController;
+use App\Http\Controllers\ModerationController;
 use App\Http\Controllers\MoreController;
 use App\Http\Controllers\NowController;
+use App\Http\Controllers\NowExportController;
 use App\Http\Controllers\OgImageController;
 use App\Http\Controllers\PageController;
+use App\Http\Controllers\PageExportController;
 use App\Http\Controllers\PhotoReviewController;
 use App\Http\Controllers\PhotoSubjectController;
 use App\Http\Controllers\RandomEntryController;
+use App\Http\Controllers\ReactionController;
+use App\Http\Controllers\RetryFailedJobsController;
 use App\Http\Controllers\SearchController;
-use App\Http\Controllers\SeriesController;
 use App\Http\Controllers\SitemapController;
 use App\Http\Controllers\SnakeScoreController;
 use App\Http\Controllers\StatsController;
 use App\Http\Controllers\StoryController;
 use App\Http\Controllers\SubjectController;
+use App\Http\Controllers\SyncDatasetController;
 use App\Http\Controllers\TagController;
 use App\Http\Controllers\TimelineController;
 use App\Http\Controllers\TripController;
+use App\Http\Controllers\TvShowController;
+use App\Http\Controllers\UnlockEntryController;
+use App\Http\Controllers\UnsubscribeController;
+use App\Http\Controllers\UpdateEntryStatusController;
+use App\Http\Controllers\WebmentionController;
 use Illuminate\Support\Facades\Route;
 
 // Sign-in, required first: the /{slug} page catch-all at the bottom matches
@@ -37,10 +56,19 @@ use Illuminate\Support\Facades\Route;
 // content page shadow the login form.
 require __DIR__.'/auth.php';
 
+// Body media is stored root-relative, so locally a file nginx cannot find
+// falls through to wherever MEDIA_URL points.
+if (app()->isLocal() && str_starts_with(config('filesystems.disks.public.url'), 'http')) {
+    Route::redirect('/storage/{path}', config('filesystems.disks.public.url').'/{path}')->where('path', '.*');
+}
+
 // Authoring, session-guarded: the only caller is the editor in a signed-in
 // browser. Above the /{slug} catch-all for the same reason as /login.
 Route::middleware('auth')->group(function (): void {
     Route::get('/mentions/search', MentionSearchController::class)->name('mentions.search');
+    Route::post('/citations/preview', CitationPreviewController::class)
+        ->middleware('throttle:30,1')
+        ->name('citations.preview');
 
     // Quick-add hub, then one form per type. Both above the /{slug} catch-all.
     Route::get('/new', [AuthoringController::class, 'new'])->name('new');
@@ -54,6 +82,10 @@ Route::middleware('auth')->group(function (): void {
     Route::post('/entries/{type}/{id}/subjects', EntrySubjectController::class)
         ->where('id', '[0-9]+')->name('entries.subjects');
 
+    // Owner-only status change, valid for every dataset with HasStatus (synced types included).
+    Route::patch('/entries/{dataset}/{id}/status', UpdateEntryStatusController::class)
+        ->where(['dataset' => '[a-z-]+', 'id' => '[0-9]+'])->name('entries.status');
+
     // Autocomplete for the fields that cannot be a plain text box.
     // Hyphens included: `fuel-brand` is a source name and 404s without them.
     Route::get('/lookup/{source}', LookupController::class)
@@ -62,6 +94,29 @@ Route::middleware('auth')->group(function (): void {
 
     // Drafts have no timeline entry, so they appear in no listing without this.
     Route::get('/drafts', [AuthoringController::class, 'drafts'])->name('drafts');
+    Route::get('/drafts/{dataset}/{id}', [EntryController::class, 'draft'])
+        ->where(['dataset' => '[a-z-]+', 'id' => '[0-9]+'])->name('drafts.show');
+
+    // The back-of-house overview: what needs a decision, who has responded, and
+    // whether the syncs are still arriving. A lowercase word, so it has to sit
+    // above the /{slug} catch-all or a content page could shadow it.
+    Route::get('/hq', HubController::class)->name('hq');
+    Route::post('/hq/failed-jobs/retry', RetryFailedJobsController::class)
+        ->middleware('throttle:10,1')->name('hq.failed-jobs.retry');
+    Route::post('/hq/failed-jobs/clear', ClearFailedJobsController::class)
+        ->middleware('throttle:10,1')->name('hq.failed-jobs.clear');
+    Route::post('/hq/sync/{dataset}', SyncDatasetController::class)
+        ->where('dataset', '[a-z-]+')->middleware('throttle:10,1')->name('hq.sync');
+
+    // A Strava or Swarm reply of mine, marked by hand where the source cannot say.
+    Route::patch('/responses/syndicated/{response}/mine', MarkResponseMineController::class)
+        ->whereNumber('response')->name('responses.mine');
+
+    // The queue for held comments and mentions, for now still its own page.
+    Route::get('/moderation', [ModerationController::class, 'index'])->name('moderation');
+    Route::post('/moderation/{kind}/{id}/{action}', [ModerationController::class, 'update'])
+        ->where(['kind' => 'comment|mention', 'id' => '[0-9]+', 'action' => 'approve|spam|delete'])
+        ->name('moderation.update');
 
     Route::post('/media/pending', [MediaUploadController::class, 'store'])->name('media.pending.store');
     Route::get('/media/pending/{token}', [MediaUploadController::class, 'show'])->name('media.pending.show');
@@ -93,6 +148,11 @@ Route::get('/robots.txt', fn () => response()
     ->view('robots')
     ->header('Content-Type', 'text/plain'))->name('robots');
 
+// The PWA manifest, a route rather than a file in public/ so its icon URLs can
+// carry a content hash. public/manifest.webmanifest has to stay deleted: the
+// server serves an existing file before it falls through to the app.
+Route::get('/manifest.webmanifest', ManifestController::class)->name('manifest');
+
 Route::get('/sitemap.xml', [SitemapController::class, 'index'])->name('sitemap');
 Route::get('/sitemap/pages.xml', [SitemapController::class, 'pages'])->name('sitemap.pages');
 Route::get('/sitemap/{year}.xml', [SitemapController::class, 'year'])
@@ -108,12 +168,16 @@ Route::get('/og/entry/{entry}.png', [OgImageController::class, 'entry'])
 // TEMP: per-type OG card preview gallery.
 Route::get('/og-gallery', [OgImageController::class, 'gallery']);
 Route::get('/og/preview/{type}.png', [OgImageController::class, 'preview'])
-    ->where('type', '[a-z]+')->middleware('throttle:120,1');
+    ->where('type', '[a-z-]+')->middleware('throttle:120,1');
 
 // Search
 Route::get('/search', [SearchController::class, 'index'])->name('search');
 Route::post('/search', [SearchController::class, 'index']);
 Route::get('/search/suggest', [SearchController::class, 'suggest'])->name('search.suggest');
+
+// Unlocking a private entry or page. Tight throttle: this is a password guess.
+Route::post('/unlock/{dataset}/{id}', UnlockEntryController::class)
+    ->where(['dataset' => '[a-z-]+', 'id' => '[0-9]+'])->middleware('throttle:5,1')->name('unlock');
 
 // Photos
 Route::get('/photos', [GalleryController::class, 'index'])->name('photos');
@@ -125,9 +189,38 @@ Route::get('/stories/{story}', [StoryController::class, 'show'])->name('stories.
 // Now
 Route::get('/now', [NowController::class, 'index'])->name('now');
 
+// /now's export, registered directly above it and above the page catch-all:
+// a content page slugged "now" would otherwise shadow this route.
+Route::get('/now.{format}', NowExportController::class)
+    ->where('format', ExportFormat::pattern())->name('now.export');
+
 // Standalone Inertia pages
 Route::get('/design-system', DesignSystemController::class)->name('design-system');
 Route::get('/leaderboard', LeaderboardController::class)->name('leaderboard');
+
+// Reached only from a link in a reply notification, so it is signed rather
+// than guarded: the signature is the proof, and there is no account to log in to.
+Route::get('/unsubscribe/{comment}', UnsubscribeController::class)
+    ->where('comment', '[0-9]+')->middleware('signed')->name('unsubscribe');
+
+// The public webmention endpoint. Discovery points here from every page, so
+// the URL is part of the site's contract and must not move.
+Route::post('/webmention', WebmentionController::class)
+    ->middleware('throttle:60,1')->name('webmention');
+
+// Comments: a token when the form is first touched, then the comment itself.
+Route::post('/comments/token', [CommentController::class, 'token'])
+    ->middleware('throttle:20,1')->name('comments.token');
+Route::post('/comments/{type}/{id}', [CommentController::class, 'store'])
+    ->where(['type' => '[a-z][a-z0-9-]*', 'id' => '[0-9]+'])
+    ->middleware('throttle:5,10')->name('comments.store');
+
+// Reactions. The type/id pair is resolved against an allowlist, so this is not
+// a handle on every model in the app. The browser picks its own identity, so
+// the hourly throttle is the only brake on stuffing a count.
+Route::post('/reactions/{type}/{id}', [ReactionController::class, 'store'])
+    ->where(['type' => '[a-z][a-z0-9-]*', 'id' => '[0-9]+'])
+    ->middleware('throttle:30,60')->name('reactions.store');
 
 // 404 snake leaderboard: a fresh single-use token per game, then the score post.
 Route::post('/snake/token', [SnakeScoreController::class, 'token'])
@@ -137,10 +230,13 @@ Route::post('/snake/score', [SnakeScoreController::class, 'store'])
 Route::post('/snake/rename', [SnakeScoreController::class, 'rename'])
     ->middleware('throttle:10,1')->name('snake.rename');
 
-// TV show pages, registered above the generic archive/taxonomy loop so
-// /media/tv wins over the /media/{value} taxonomy route for the 'tv' value.
-Route::get('/media/tv', [SeriesController::class, 'index'])->name('series.index');
-Route::get('/media/tv/{series:slug}', [SeriesController::class, 'show'])->name('series.show');
+// TV show pages, registered above the generic archive loop for the same
+// reason as /flights/map below: a literal segment above the taxonomy routes.
+Route::get('/tv-shows', [TvShowController::class, 'index'])->name('tv-shows.index');
+Route::get('/tv-shows/{tvShow:slug}', [TvShowController::class, 'show'])->name('tv-shows.show');
+
+// Old show urls, a pattern redirect config/redirects.php cannot express.
+Route::redirect('/media/tv/{slug}', '/tv-shows/{slug}', 301);
 
 // Literal segment must beat the archive taxonomy route (/flights/{value}).
 Route::get('/flights/map', FlightMapController::class)->name('flights.map');
@@ -166,6 +262,19 @@ Route::get('/{year}/{month}', [TimelineController::class, 'month'])
     ->where(['year' => '\d{4}', 'month' => '\d{2}'])->name('month');
 Route::get('/{year}/{month}/{day}', [TimelineController::class, 'day'])
     ->where(['year' => '\d{4}', 'month' => '\d{2}', 'day' => '\d{2}'])->name('day');
+
+// Old food day slug, a literal segment above the entry route below so it
+// never shadows another dated entry.
+Route::get('/{year}/{month}/{day}/calories', CaloriesRedirectController::class)
+    ->where(['year' => '\d{4}', 'month' => '\d{2}', 'day' => '\d{2}'])->name('calories.redirect');
+
+// Entry exports. Above the entry route, whose unconstrained {slug} would
+// otherwise swallow "krk-lgw.json" whole and 404 on it.
+Route::get('/{year}/{month}/{day}/{slug}.{format}', EntryExportController::class)
+    ->where([
+        'year' => '\d{4}', 'month' => '\d{2}', 'day' => '\d{2}',
+        'format' => ExportFormat::pattern(),
+    ])->name('entry.export');
 Route::get('/{year}/{month}/{day}/{slug}', [EntryController::class, 'show'])
     ->where(['year' => '\d{4}', 'month' => '\d{2}', 'day' => '\d{2}'])->name('entry');
 
@@ -192,6 +301,11 @@ Route::get('/life/{kind}/{slug}', [SubjectController::class, 'show'])
 foreach (config('redirects') as $from => $to) {
     Route::redirect("/{$from}", "/{$to}", 301);
 }
+
+// Page exports, above the page catch-all for the same reason the entry export
+// sits above the entry route.
+Route::get('/{slug}.{format}', PageExportController::class)
+    ->where(['slug' => '[a-z][a-z0-9-]*', 'format' => ExportFormat::pattern()])->name('page.export');
 
 // Content pages, matched last so every real route wins. Letter-first so the
 // digit-constrained /{year} routes are never shadowed.

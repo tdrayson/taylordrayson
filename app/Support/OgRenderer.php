@@ -2,6 +2,9 @@
 
 namespace App\Support;
 
+use Closure;
+use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\View\View;
 use Spatie\Browsershot\Browsershot;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
@@ -44,6 +47,31 @@ final class OgRenderer
         return $generation ??= substr(md5(
             config('og.version').'|'.md5_file(resource_path('views/og/card.blade.php')),
         ), 0, 12);
+    }
+
+    /**
+     * The absolute path of an owner's current card, rendered on a miss, after
+     * which the owner's superseded versions are deleted so each keeps one card.
+     *
+     * @param  string  $family  The card family under the generation, e.g. "entry" or "page".
+     * @param  string  $owner  What the card belongs to, free of "-" and glob characters.
+     * @param  string  $version  Changes whenever the card's content does.
+     * @param  Closure(): View  $view  Builds the card, only called on a miss.
+     */
+    public function card(string $family, string $owner, string $version, Closure $view): string
+    {
+        $disk = Storage::disk('local');
+        $prefix = 'og/'.self::generation()."/{$family}/{$owner}-";
+        $path = $disk->path("{$prefix}{$version}.png");
+
+        if (! is_file($path)) {
+            File::ensureDirectoryExists(dirname($path));
+            $this->screenshot($view(), $path);
+
+            File::delete(array_diff(glob($disk->path($prefix).'*.png') ?: [], [$path]));
+        }
+
+        return $path;
     }
 
     public function serve(string $path, string $cacheControl): BinaryFileResponse

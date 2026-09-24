@@ -57,10 +57,12 @@ final class OgGalleryUrls
         $samples = [
             'activity' => ['layout' => 'media', 'title' => 'Morning Walk', 'date' => 'Mon 9 Oct 2023, 9:08am', 'meta' => '3.2 mi, 42 min', 'image' => $this->sampleMap('activity')],
             'flight' => ['layout' => 'media', 'title' => 'London to New York', 'date' => 'Wed 14 Aug 2024', 'meta' => 'BA117, LHR to JFK', 'image' => $this->sampleMap('flight')],
-            'checkin' => ['layout' => 'media', 'title' => 'Sanderstead Recreation Ground', 'date' => 'Sun 12 May 2024', 'meta' => null, 'image' => StaticMap::marker(-0.0726, 51.337, TypeColors::hex('checkin'))],
-            'media' => ['layout' => 'text', 'eyebrow' => 'Books', 'title' => 'I read Atomic Habits', 'date' => 'Fri 3 Jan 2025', 'meta' => 'James Clear'],
+            'place' => ['layout' => 'media', 'title' => 'Sanderstead Recreation Ground', 'date' => 'Sun 12 May 2024', 'meta' => null, 'image' => StaticMap::marker(-0.0726, 51.337, TypeColors::hex('place'))],
+            'film' => ['layout' => 'text', 'title' => 'I watched Dune', 'date' => 'Fri 3 Jan 2025', 'meta' => 'this 2021 sci-fi film'],
+            'tv-episode' => ['layout' => 'text', 'title' => 'I watched season 1 episode 3 of Severance', 'date' => 'Sat 4 Jan 2025', 'meta' => null],
+            'book' => ['layout' => 'text', 'title' => 'I read Atomic Habits', 'date' => 'Sun 5 Jan 2025', 'meta' => 'James Clear'],
             'appearance' => ['layout' => 'text', 'title' => 'Building a Lifelog in Laravel', 'date' => 'Thu 6 Feb 2026', 'meta' => 'Laracon EU'],
-            'podcast' => ['layout' => 'text', 'title' => 'Season 7, Episode 249', 'date' => 'Thu 19 Jun 2026', 'meta' => '21 min, Taylor & Gordon'],
+            'this-week-with' => ['layout' => 'text', 'title' => 'Season 7, Episode 249', 'date' => 'Thu 19 Jun 2026', 'meta' => '21 min, Taylor & Gordon'],
             'article' => ['layout' => 'text', 'title' => 'Why I track absolutely everything', 'date' => 'Mon 12 May 2025', 'meta' => '6 min read'],
             'note' => ['layout' => 'text', 'title' => 'A quick thought on building in public', 'date' => 'Tue 24 Jun 2026', 'meta' => null],
             'project' => ['layout' => 'text', 'title' => 'taylordrayson.com', 'date' => null, 'meta' => 'Laravel, Inertia, Vue'],
@@ -71,7 +73,7 @@ final class OgGalleryUrls
                 new SegmentData('Light', 'light', 13320),
                 new SegmentData('Deep', 'deep', 5700),
             ])],
-            'calorie' => ['layout' => 'text', 'title' => 'I ate 2,140 kcal', 'date' => 'Sun 22 Jun 2026', 'meta' => null],
+            'food' => ['layout' => 'text', 'title' => 'I ate 2,140 kcal', 'date' => 'Sun 22 Jun 2026', 'meta' => null],
             'fuel' => ['layout' => 'text', 'title' => 'I put £62.40 of fuel in', 'date' => 'Sat 14 Jun 2026', 'meta' => null],
         ];
 
@@ -83,7 +85,6 @@ final class OgGalleryUrls
             $cards[$key] = [
                 ...$sample,
                 'accent' => TypeColors::hex($type->accent()),
-                // The media sample is a book, so it keeps its own eyebrow.
                 'eyebrow' => $sample['eyebrow'] ?? TypeCatalogue::forType($type)->eyebrow(),
             ];
         }
@@ -120,19 +121,19 @@ final class OgGalleryUrls
     private function pageCardUrls(): array
     {
         $pages = [
-            ['label' => 'Home (/)', 'og' => OgMeta::timeline()],
-            ['label' => 'Now (/now)', 'og' => OgMeta::now()],
-            ['label' => 'Search (/search)', 'og' => OgMeta::search()],
-            ['label' => 'Feeds (/feeds)', 'og' => OgMeta::feeds()],
-            ['label' => 'Leaderboard (/leaderboard)', 'og' => OgMeta::leaderboard()],
-            ['label' => 'Year (/2026)', 'og' => OgMeta::year(2026)],
-            ['label' => 'Month (/2026/06)', 'og' => OgMeta::month(2026, 6)],
-            ['label' => 'Day (/2026/06/26)', 'og' => OgMeta::day(Carbon::create(2026, 6, 26))],
+            ['label' => 'Home', 'path' => '/', 'og' => OgMeta::timeline()],
+            ['label' => 'Now', 'path' => '/now', 'og' => OgMeta::now()],
+            ['label' => 'Search', 'path' => '/search', 'og' => OgMeta::search()],
+            ['label' => 'Feeds', 'path' => '/feeds', 'og' => OgMeta::feeds()],
+            ['label' => 'Leaderboard', 'path' => '/leaderboard', 'og' => OgMeta::leaderboard()],
+            ['label' => 'Year', 'path' => '/2026', 'og' => OgMeta::year(2026)],
+            ['label' => 'Month', 'path' => '/2026/06', 'og' => OgMeta::month(2026, 6)],
+            ['label' => 'Day', 'path' => '/2026/06/26', 'og' => OgMeta::day(Carbon::create(2026, 6, 26))],
         ];
 
         return array_map(fn (array $page): array => [
-            'label' => $page['label'],
-            'url' => $this->ogUrl($page['og']),
+            'label' => "{$page['label']} ({$page['path']})",
+            'url' => OgMeta::cardUrl($page['og'], $page['path']),
         ], $pages);
     }
 
@@ -150,31 +151,11 @@ final class OgGalleryUrls
 
             $cards[] = [
                 'label' => $label,
-                'url' => $this->ogUrl(OgMeta::archive($type->value, $label, $label, $type->accent(), false, Str::lower(Str::singular($label)), 0)),
+                'url' => OgMeta::cardUrl(OgMeta::archive($type->value, $label, $label, $type->accent(), false, Str::lower(Str::singular($label)), 0), "gallery-{$type->value}"),
             ];
         }
 
         return $cards;
-    }
-
-    /**
-     * Build the /og.png URL that renders a given OgMeta payload's card.
-     *
-     * Carries the same design token the real pages emit, so opening a gallery
-     * URL after a redesign is not answered from the browser's copy of the card
-     * it replaced.
-     *
-     * @param  array<string, mixed>  $og
-     */
-    private function ogUrl(array $og): string
-    {
-        return route('og').'?'.http_build_query(array_filter([
-            'variant' => $og['variant'] ?? null,
-            'eyebrow' => $og['eyebrow'] ?? null,
-            'title' => $og['heading'] ?? $og['title'] ?? null,
-            'accent' => $og['accent'] ?? null,
-            'v' => OgRenderer::generation(),
-        ]));
     }
 
     /**
@@ -218,7 +199,7 @@ final class OgGalleryUrls
             }
 
             $entry = TimelineEntry::query()
-                ->where('timelineable_type', $model)
+                ->where('dataset', $type->value)
                 ->latest('occurred_at')
                 ->first();
 

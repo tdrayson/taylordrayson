@@ -1,0 +1,509 @@
+<script setup>
+import { Link, usePage } from '@inertiajs/vue3';
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue';
+import { cn } from '../../lib/cn.js';
+import { csrf } from '../../lib/csrf.js';
+import { pickOn, reactorToken, rememberPick } from '../../lib/reactor.js';
+import CountGroup from '../Ui/CountGroup.vue';
+import CountSegment from '../Ui/CountSegment.vue';
+import Icon from '../Ui/Icon.vue';
+import Tooltip from '../Ui/Tooltip.vue';
+
+/**
+ * The summary line under an entry: one total for the positive gestures, one for
+ * the responses that carry prose, and the emoji actually chosen shown as a
+ * stack beside them.
+ *
+ * A like and a reacji are different things and are stored apart: a like is
+ * binary and arrives from a webmention or a syndicated copy, a reacji is
+ * somebody picking an emoji here. They are summed only for this figure, because
+ * to a reader they are all "somebody liked this".
+ */
+const props = defineProps({
+    // [{ key, emoji, label, count }] — every offered emoji, plus any that
+    // arrived by webmention and matches none of them.
+    reactions: { type: Array, default: () => [] },
+    // Gestures with no emoji to show: webmention likes, and later kudos.
+    likeCount: { type: Number, default: 0 },
+    // Responses carrying prose, for the count beside the speech bubble.
+    replyCount: { type: Number, default: 0 },
+    // Shown only when somebody actually did one, so the row grows to fit the
+    // entry rather than carrying two permanent zeroes. Replies are deliberately
+    // not here: they already count in the speech bubble, and a number that is a
+    // subset of another number is what needed explaining last time.
+    repostCount: { type: Number, default: 0 },
+    bookmarkCount: { type: Number, default: 0 },
+    rsvpCount: { type: Number, default: 0 },
+    mentionCount: { type: Number, default: 0 },
+    type: { type: String, required: true },
+    id: { type: Number, required: true },
+    // 'compact' is the timeline feed: fifty full-size bars down a page is a lot
+    // of furniture, and hover-to-spread fights a page being scrolled.
+    variant: { type: String, default: 'full' },
+    // The entry's own URL. Only the compact bar needs it, for the jump link.
+    url: { type: String, default: null },
+});
+
+// The server's answer to a click, handed up so whatever counts the bar sits
+// under can move with it rather than waiting for a reload.
+const emit = defineEmits(['reacted']);
+
+const compact = computed(() => props.variant === 'compact');
+
+/**
+ * Signed in is me, and reacting to my own entry is not a gesture worth
+ * recording. Only the picker goes: the count stays and comments are untouched.
+ */
+const canReact = computed(() => usePage().props.signedIn !== true);
+
+/** One place for every size that differs, rather than a ternary per element. */
+const sizes = computed(() => (compact.value
+    ? { row: 'gap-3', text: 'text-sm', icon: 'size-4', pip: 'size-5', pipIcon: 'size-3.5', group: 'sm', gap: 'gap-1', segment: 'gap-1 px-2 py-0.5' }
+    : { row: 'gap-4', text: 'text-sm', icon: 'size-4', pip: 'size-5', pipIcon: 'size-3.5', group: 'md', gap: 'gap-1.5', segment: 'gap-1.5 px-2.5 py-1' }));
+
+/**
+ * A white glyph on a coloured disc rather than an emoji glyph: an emoji is drawn
+ * by whatever font the reader's platform ships, so it cannot be coloured, sized
+ * or trusted to look the same twice.
+ *
+ * `one` and `many` are the noun a count takes: the label from the server is the
+ * verb you press ("Love"), which does not survive being counted.
+ *
+ * Keyed by our own reaction types. A key that is itself an emoji arrived by
+ * webmention from somebody else's vocabulary, so that glyph is shown as sent.
+ */
+const GLYPHS = {
+    like: { icon: 'ThumbsUpIcon', colour: 'var(--color-reaction-like)', one: 'like', many: 'likes' },
+    love: { icon: 'HeartIcon', colour: 'var(--color-reaction-love)', one: 'heart', many: 'hearts' },
+    celebrate: { icon: 'PartyIcon', colour: 'var(--color-reaction-celebrate)', one: 'celebration', many: 'celebrations' },
+    wow: { icon: 'SurpriseIcon', colour: 'var(--color-reaction-wow)', one: 'wow', many: 'wows' },
+    haha: { icon: 'HappyIcon', colour: 'var(--color-reaction-haha)', one: 'laugh', many: 'laughs' },
+    sad: { icon: 'Sad01Icon', colour: 'var(--color-reaction-sad)', one: 'sad face', many: 'sad faces' },
+};
+
+const glyph = (bucket) => GLYPHS[bucket.key] ?? null;
+
+/**
+ * One bucket said out loud: "2 hearts". An emoji from somebody else's
+ * vocabulary has no name here but the one it was sent under.
+ */
+const tallyOf = (bucket) => {
+    const named = glyph(bucket);
+
+    return `${bucket.count} ${named ? (bucket.count === 1 ? named.one : named.many) : bucket.label}`;
+};
+
+/** A disc's fill. Every one is dark enough to carry the one glyph colour. */
+const discOf = (g) => ({ background: g.colour, color: 'var(--color-reaction-glyph)' });
+
+const buckets = ref([...props.reactions]);
+
+// Follows the prop when the page refreshes its counts, so a bar that has been
+// clicked still ends up on what the server last said.
+watch(() => props.reactions, (value) => {
+    buckets.value = [...value];
+});
+
+// Which emoji this browser picked. Only it knows, so it is read after mount
+// rather than rendered on the server.
+const target = computed(() => `${props.type}:${props.id}`);
+const pick = ref(null);
+
+onMounted(() => {
+    pick.value = pickOn(target.value);
+});
+
+const busy = ref(null);
+const failed = ref(false);
+const picking = ref(false);
+const group = ref(null);
+const control = ref(null);
+
+/**
+ * A touch device has no hover, so there is nothing to reveal the picker with.
+ * There, tapping the control opens it and a second tap chooses; with a pointer,
+ * tapping reacts straight away and hovering reveals the rest.
+ */
+const canHover = typeof window !== 'undefined' && window.matchMedia?.('(hover: hover)').matches;
+
+/**
+ * Close only when the pointer or focus has left the control and the picker
+ * together. relatedTarget is where it went: still inside means it moved between
+ * the two, which is the whole gesture rather than the end of it.
+ */
+function leave(event) {
+    if (! group.value?.contains(event.relatedTarget)) {
+        picking.value = false;
+    }
+}
+
+/** A tap outside closes it, which is the only way out on a touch device. */
+function closeOnOutside(event) {
+    if (picking.value && ! group.value?.contains(event.target)) {
+        picking.value = false;
+    }
+}
+
+onMounted(() => document.addEventListener('pointerdown', closeOnOutside));
+onBeforeUnmount(() => document.removeEventListener('pointerdown', closeOnOutside));
+
+/** Escape closes and hands focus back, so a keyboard is never left inside. */
+function dismiss() {
+    picking.value = false;
+    control.value?.focus();
+}
+
+// Buckets whose key is a word are ours to toggle; an emoji key came in by
+// webmention and belongs to whoever sent it.
+const isOurs = (bucket) => /^[a-z]+$/.test(bucket.key);
+
+const chosen = computed(() => buckets.value.filter((bucket) => bucket.count > 0));
+const total = computed(() => chosen.value.reduce((sum, bucket) => sum + bucket.count, 0) + props.likeCount);
+const mine = computed(() => buckets.value.find((bucket) => bucket.key === pick.value) ?? null);
+
+/**
+ * Spelled out for the tooltip and the screen reader alike: the heading above
+ * counts everything that arrived, this counts the ones that carry words, and
+ * the two disagreeing without explanation is what made them confusing.
+ */
+const responsesLabel = computed(() => {
+    if (! props.replyCount) {
+        return 'No replies yet';
+    }
+
+    return `${props.replyCount} ${props.replyCount === 1 ? 'reply' : 'replies'}`;
+});
+
+/** The optional gesture counts, each one only there when it happened. */
+const gestures = computed(() => [
+    { key: 'repost', icon: 'ArrowReloadHorizontalIcon', count: props.repostCount, one: 'repost', many: 'reposts' },
+    { key: 'bookmark', icon: 'Bookmark01Icon', count: props.bookmarkCount, one: 'bookmark', many: 'bookmarks' },
+    { key: 'rsvp', icon: 'Calendar01Icon', count: props.rsvpCount, one: 'RSVP', many: 'RSVPs' },
+    { key: 'mention', icon: 'Link02Icon', count: props.mentionCount, one: 'mention', many: 'mentions' },
+].filter((gesture) => gesture.count > 0));
+
+const gestureLabel = (gesture) => `${gesture.count} ${gesture.count === 1 ? gesture.one : gesture.many}`;
+
+/** What the summary reads out, since a row of emoji says nothing on its own. */
+const summaryLabel = computed(() => {
+    const parts = chosen.value.map(tallyOf);
+
+    if (props.likeCount) {
+        parts.push(`${props.likeCount} liked from elsewhere`);
+    }
+
+    return parts.length ? parts.join(', ') : 'No reactions yet';
+});
+
+/**
+ * The figure, named when nothing else names it: the pile beside it is only
+ * drawn for a mix, so a count that is all one kind would otherwise be a number
+ * with nothing to say which kind it was.
+ */
+const reactionsLabel = computed(() => {
+    if (! total.value) {
+        return 'No reactions yet';
+    }
+
+    // Likes from elsewhere are folded into the figure but not into the pile, so
+    // one bucket plus those is a mix the bar cannot name.
+    if (chosen.value.length === 1 && ! props.likeCount) {
+        return tallyOf(chosen.value[0]);
+    }
+
+    return `${total.value} ${total.value === 1 ? 'reaction' : 'reactions'}`;
+});
+
+/** The control's name: what pressing it does, and what the figure on it counts. */
+const controlLabel = computed(() => {
+    const action = mine.value ? `You reacted ${mine.value.label}` : 'React to this';
+
+    return total.value ? `${action}, ${reactionsLabel.value}` : action;
+});
+
+/**
+ * Toggle a reaction, replacing the whole bar with the server's answer so a
+ * click that raced somebody else's still lands on the true counts.
+ */
+async function toggle(bucket) {
+    if (! isOurs(bucket) || busy.value) {
+        return;
+    }
+
+    // The pressed button is disabled and then hidden, so focus goes back to the control.
+    const refocus = group.value?.contains(document.activeElement);
+
+    busy.value = bucket.key;
+    failed.value = false;
+
+    try {
+        const response = await fetch(`/reactions/${props.type}/${props.id}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', Accept: 'application/json', 'X-XSRF-TOKEN': csrf() },
+            credentials: 'same-origin',
+            body: JSON.stringify({ type: bucket.key, reactor: reactorToken() }),
+        });
+
+        if (! response.ok) {
+            throw new Error(response.status);
+        }
+
+        const answer = await response.json();
+
+        buckets.value = answer.reactions;
+        pick.value = answer.on ? bucket.key : null;
+        rememberPick(target.value, pick.value);
+        emit('reacted', buckets.value);
+    } catch {
+        failed.value = true;
+    } finally {
+        busy.value = null;
+        picking.value = false;
+
+        if (refocus) {
+            nextTick(() => control.value?.focus());
+        }
+    }
+}
+
+/**
+ * Clicking the control repeats your reaction, or gives the first one. Without
+ * hover, or from Enter or Space, it opens the picker instead.
+ * @param {MouseEvent} event
+ */
+function press(event) {
+    // A click the keyboard synthesised carries no click count.
+    const fromKeyboard = event.detail === 0;
+
+    if ((! canHover || fromKeyboard) && ! picking.value) {
+        picking.value = true;
+
+        if (fromKeyboard) {
+            nextTick(() => group.value?.querySelector('[data-picker] button')?.focus());
+        }
+
+        return;
+    }
+
+    if (fromKeyboard) {
+        picking.value = false;
+
+        return;
+    }
+
+    toggle(mine.value ?? buckets.value.find(isOurs));
+}
+</script>
+
+<template>
+    <div data-testid="reaction-bar">
+        <div :class="['flex items-center', sizes.row]">
+            <!-- One joined grey box for the counts, answered or not, so the row keeps
+                 its shape when the first response arrives. -->
+            <CountGroup :size="sizes.group">
+            <CountSegment v-if="canReact" :padded="false">
+            <!-- The picker opens on hover for a mouse and on Enter or Space
+                 for a keyboard; a click still reacts straight away. -->
+            <div
+                ref="group"
+                class="relative flex"
+                @mouseenter="picking = true"
+                @mouseleave="leave"
+                @focusout="leave"
+                @keydown.escape="dismiss"
+            >
+                <button
+                    ref="control"
+                    type="button"
+                    :disabled="busy !== null"
+                    :aria-pressed="mine !== null"
+                    :aria-label="controlLabel"
+                    aria-haspopup="true"
+                    :aria-expanded="picking"
+                    :class="cn(
+                        'inline-flex items-center',
+                        sizes.segment,
+                        sizes.text,
+                        busy !== null && 'opacity-50',
+                    )"
+                    @click="press"
+                >
+                    <!-- Your own reaction's glyph in its colour, at the same size as
+                         the icons beside it: a disc crammed into the box outweighed
+                         them. Every reaction hue clears the 3:1 an icon needs on both
+                         themes; the count stays grey, since text is where they fail. -->
+                    <Icon
+                        :name="mine && glyph(mine) ? glyph(mine).icon : 'ThumbsUpIcon'"
+                        :class="sizes.icon"
+                        :style="mine && glyph(mine) ? { color: glyph(mine).colour } : null"
+                    />
+                    <!-- Zero is shown too. A count that appears only once it
+                         is non-zero makes the line a different shape on every
+                         entry, and a lone number reads as a stray mark.
+                         Weight, not colour, says you are in this count: the row
+                         stays one colour and the disc keeps whichever it has. -->
+                    <span class="tabular-nums" :class="mine ? 'font-bold' : 'font-medium'">{{ total }}</span>
+                </button>
+
+                <Transition name="pop">
+                <div v-show="picking" data-picker class="picker-origin absolute bottom-full left-0 z-20 pb-1">
+                    <ul class="flex gap-1 rounded-full border border-neutral-50 bg-neutral-0 px-2 py-1.5 shadow-lg">
+                        <li v-for="bucket in buckets.filter(isOurs)" :key="bucket.key">
+                            <Tooltip :label="bucket.label" placement="top">
+                                <button
+                                type="button"
+                                :disabled="busy === bucket.key"
+                                :aria-pressed="bucket.key === pick"
+                                :aria-label="bucket.label"
+                                class="inline-flex items-center justify-center rounded-full transition-transform hover:scale-125 focus-visible:scale-125"
+                                @click="toggle(bucket)"
+                            >
+                                <span
+                                    v-if="glyph(bucket)"
+                                    class="flex size-8 items-center justify-center rounded-full"
+                                    :style="discOf(glyph(bucket))"
+                                    aria-hidden="true"
+                                >
+                                    <Icon :name="glyph(bucket).icon" class="size-5" />
+                                </span>
+                                <span v-else v-twemoji class="flex size-8 items-center justify-center text-lg" aria-hidden="true">{{ bucket.emoji }}</span>
+                                </button>
+                            </Tooltip>
+                        </li>
+                    </ul>
+                </div>
+                </Transition>
+            </div>
+            </CountSegment>
+
+            <!-- Signed in, the same figure reads as a count rather than a
+                 control, alongside the gesture segments it now matches. -->
+            <CountSegment v-else :aria-label="reactionsLabel" :class="sizes.text">
+                <Tooltip :label="reactionsLabel" placement="top" :class="['items-center', sizes.gap]">
+                    <Icon name="ThumbsUpIcon" :class="sizes.icon" />
+                    <span class="tabular-nums">{{ total }}</span>
+                </Tooltip>
+            </CountSegment>
+
+            <!-- On the feed this jumps to the entry's responses; on the entry
+                 the heading it would jump to already sits above the line. -->
+            <CountSegment
+                :as="compact && url ? Link : 'span'"
+                :href="compact && url ? `${url}#responses` : undefined"
+                :aria-label="responsesLabel"
+                :class="sizes.text"
+            >
+                <Tooltip :label="responsesLabel" placement="top" :class="['items-center', sizes.gap]">
+                    <Icon name="Comment01Icon" :class="sizes.icon" />
+                    <span class="tabular-nums">{{ replyCount }}</span>
+                </Tooltip>
+            </CountSegment>
+
+            <CountSegment
+                v-for="gesture in gestures"
+                :key="gesture.key"
+                :aria-label="gestureLabel(gesture)"
+                :class="sizes.text"
+            >
+                <Tooltip :label="gestureLabel(gesture)" placement="top" :class="['items-center', sizes.gap]">
+                    <Icon :name="gesture.icon" :class="sizes.icon" />
+                    <span class="tabular-nums">{{ gesture.count }}</span>
+                </Tooltip>
+            </CountSegment>
+            </CountGroup>
+
+            <!-- Which reactions people actually picked. Overlapped so the row
+                 stays short, and spread on hover so each can be pointed at for
+                 its own count.
+
+                 Only worth drawing once there is a mix: a single kind is
+                 already named by the button on the left, so the pile would be
+                 the same glyph and the same number said twice. -->
+            <ul
+                v-if="chosen.length > 1"
+                :class="['reaction-pile flex items-center rounded-full', compact && 'is-static']"
+                :tabindex="compact ? -1 : 0"
+                :aria-label="summaryLabel"
+            >
+                <li
+                    v-for="bucket in chosen"
+                    :key="bucket.key"
+                    class="reaction-item flex items-center"
+                >
+                    <Tooltip :label="tallyOf(bucket)" placement="top">
+                    <span
+                        :class="['reaction-pip flex items-center justify-center rounded-full ring-2 ring-neutral-0', sizes.pip]"
+                        :style="glyph(bucket) ? discOf(glyph(bucket)) : { background: 'var(--color-neutral-25)' }"
+                    >
+                        <Icon v-if="glyph(bucket)" :name="glyph(bucket).icon" :class="sizes.pipIcon" />
+                        <span v-else v-twemoji class="text-xs text-neutral-900" aria-hidden="true">{{ bucket.emoji }}</span>
+                    </span>
+
+                    <!-- Its own count, revealed with the spread so each disc can
+                         be read rather than guessed at. -->
+                    <span :class="['reaction-count tabular-nums font-medium text-neutral-500', sizes.text]" aria-hidden="true">{{ bucket.count }}</span>
+                    </Tooltip>
+                </li>
+            </ul>
+        </div>
+
+        <p v-if="failed" class="mt-2 text-xs text-red-600">
+            That did not save. Try again in a moment.
+        </p>
+    </div>
+</template>
+
+<style scoped>
+/* Anchored to the button it springs from. The motion itself is the shared
+   `pop` family; only where it grows from is local to this picker. */
+.picker-origin {
+    transform-origin: bottom left;
+}
+
+/* Overlapped at rest so a handful of kinds stay one short mark, and spread on
+   hover so each is a target of its own and its count can be read. */
+.reaction-item {
+    margin-left: -0.375rem;
+    transition: margin-left 150ms ease;
+}
+
+.reaction-item:first-child {
+    margin-left: 0;
+}
+
+.reaction-pile:not(.is-static):hover .reaction-item,
+.reaction-pile:not(.is-static):focus-within .reaction-item,
+.reaction-pile:not(.is-static):focus .reaction-item {
+    margin-left: 0.375rem;
+}
+
+.reaction-pile:not(.is-static):hover .reaction-item:first-child,
+.reaction-pile:not(.is-static):focus-within .reaction-item:first-child,
+.reaction-pile:not(.is-static):focus .reaction-item:first-child {
+    margin-left: 0;
+}
+
+/* Hidden by width rather than display, so the reveal can be animated and the
+   discs slide apart instead of jumping. */
+.reaction-count {
+    max-width: 0;
+    overflow: hidden;
+    opacity: 0;
+    transition: max-width 150ms ease, opacity 150ms ease, margin-left 150ms ease;
+}
+
+.reaction-pile:not(.is-static):hover .reaction-count,
+.reaction-pile:not(.is-static):focus-within .reaction-count,
+.reaction-pile:not(.is-static):focus .reaction-count {
+    max-width: 2rem;
+    margin-left: 0.25rem;
+    opacity: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .reaction-item,
+    .reaction-count {
+        transition: none;
+    }
+}
+</style>

@@ -3,7 +3,9 @@
 namespace App\Search;
 
 use App\Actions\BuildTimelineFeed;
+use App\Models\Scopes\ListedScope;
 use App\Models\TimelineEntry;
+use App\Support\FeedInteractions;
 
 /**
  * Runs a validated advanced-search filter (as produced by FilterValidator)
@@ -28,15 +30,15 @@ final class RunSearch
      * @param  array<int, array<string, mixed>>  $groups  Validated filter groups.
      * @param  int  $page  The 1-based results page to load.
      * @param  string  $order  'newest' (default) or 'oldest', by occurrence.
-     * @return array{groups: array<int, mixed>, total: int, currentPage: int, lastPage: int}
+     * @return array{groups: array<int, mixed>, interactions: mixed, total: int, currentPage: int, lastPage: int}
      */
     public function __invoke(array $groups, int $page, string $order = 'newest'): array
     {
         if ($groups === []) {
-            return ['groups' => [], 'total' => 0, 'currentPage' => 1, 'lastPage' => 1];
+            return ['groups' => [], 'interactions' => [], 'total' => 0, 'currentPage' => 1, 'lastPage' => 1];
         }
 
-        $query = TimelineEntry::query()
+        $query = TimelineEntry::query()->withoutGlobalScope(ListedScope::class)
             ->withCardRelations();
 
         $this->compiler->apply($query, $groups);
@@ -45,8 +47,11 @@ final class RunSearch
             ->orderBy('occurred_at', $order === 'oldest' ? 'asc' : 'desc')
             ->paginate(self::PER_PAGE, ['*'], 'page', $page);
 
+        $entries = collect($paginated->items());
+
         return [
-            'groups' => $this->feed->groupByDay(collect($paginated->items())),
+            'groups' => $this->feed->groupByDay($entries),
+            'interactions' => FeedInteractions::defer($entries),
             'total' => $paginated->total(),
             'currentPage' => $paginated->currentPage(),
             'lastPage' => $paginated->lastPage(),

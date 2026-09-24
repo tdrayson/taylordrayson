@@ -3,13 +3,15 @@
 namespace App\Http\Middleware;
 
 use App\Fields\AuthorableTypes;
+use App\Queries\Hub\NeedsAttention;
 use App\Queries\LoggingStreak;
 use App\Queries\NowState;
-use App\Support\OgRenderer;
+use App\Support\FeedDiscovery;
 use App\Support\Preferences;
 use App\Support\StateStore;
 use App\Support\TodaySteps;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Inertia\Middleware;
 
 class HandleInertiaRequests extends Middleware
@@ -45,11 +47,15 @@ class HandleInertiaRequests extends Middleware
         return [
             ...parent::share($request),
             'appUrl' => rtrim((string) config('app.url'), '/'),
-            // The current card design, appended to every generated og:image URL
-            // so a template edit changes the URL and scrapers refetch. Cards are
-            // served immutable, so without it a redesign is invisible to anyone
-            // holding the old one.
-            'ogVersion' => OgRenderer::generation(),
+            // Name, avatar, bio and rel="me" profiles: the one place every
+            // component reads the owner's identity from.
+            'identity' => config('identity'),
+            // Type-narrowed feed links for the current route, rendered by
+            // AppHead rather than the Blade root: the root is only rendered on a
+            // cold load, so after a client-side visit its links would still
+            // advertise the previous page's type. The site-wide feeds stay in
+            // the Blade partial, being the same on every view.
+            'contextualFeeds' => FeedDiscovery::forRoute($request->route()),
             // Colour scheme and unit choices, read from cookies so the first
             // render already matches what the visitor picked.
             'preferences' => Preferences::for($request),
@@ -58,6 +64,13 @@ class HandleInertiaRequests extends Middleware
             // every actual gate is enforced server-side, and sharing the model
             // would put the account's email in the props of every page.
             'signedIn' => $request->user() !== null,
+            // How many things are waiting in HQ, so the sidebar link and the
+            // floating menu can carry a dot on every page. Deferred: it runs
+            // four checks, and no first render needs it. Cached for a minute,
+            // a stale dot being cheaper than four checks on every request.
+            'hubWaiting' => fn (): int => $request->user() === null ? 0 : Cache::remember(
+                'hub:waiting', 60, fn (): int => app(NeedsAttention::class)->count()
+            ),
             // The types the command palette can offer a "New …" command for.
             // Empty when signed out, because every /new route is auth-gated.
             'authorTypes' => $request->user() !== null ? AuthorableTypes::forPicker() : [],

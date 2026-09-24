@@ -9,6 +9,8 @@ use App\Models\Note;
 use App\Models\Page;
 use App\Models\Project;
 use App\Models\Subject;
+use App\Support\DisplayFormat;
+use App\Support\PortableText;
 use Illuminate\Support\Str;
 
 /**
@@ -18,9 +20,8 @@ use Illuminate\Support\Str;
  * here: things that arrive from a sync (activities, check-ins, sleep) are not
  * what anyone reaches for mid-sentence.
  *
- * Drafts are not offered. A mention of one renders as plain text to everyone but
- * the author, so linking to it would read as finished writing while being a dead
- * end for every visitor.
+ * Only listed entries are offered: a mention points visitors at something they
+ * can find.
  */
 final class MentionSearch
 {
@@ -67,7 +68,7 @@ final class MentionSearch
     private function articles(string $query): array
     {
         return Article::query()
-            ->where('published', true)
+            ->listed()
             ->when($query !== '', fn ($builder) => $builder->where('title', 'like', "%{$query}%"))
             ->orderByDesc('occurred_at')
             ->limit(self::PER_GROUP)
@@ -78,7 +79,7 @@ final class MentionSearch
                 'id' => $article->id,
                 'url' => $article->url(),
                 'label' => $article->title,
-                'detail' => $article->occurred_at?->format('j M Y'),
+                'detail' => $article->occurred_at ? app(DisplayFormat::class)->date($article->occurred_at, weekday: false) : null,
             ])
             ->all();
     }
@@ -89,7 +90,7 @@ final class MentionSearch
     private function pages(string $query): array
     {
         return Page::query()
-            ->where('published', true)
+            ->listed()
             ->when($query !== '', fn ($builder) => $builder->where('title', 'like', "%{$query}%"))
             ->orderBy('title')
             ->limit(self::PER_GROUP)
@@ -111,6 +112,7 @@ final class MentionSearch
     private function projects(string $query): array
     {
         return Project::query()
+            ->listed()
             ->when($query !== '', fn ($builder) => $builder->where('title', 'like', "%{$query}%"))
             ->orderByDesc('occurred_at')
             ->limit(self::PER_GROUP)
@@ -121,7 +123,7 @@ final class MentionSearch
                 'id' => $project->id,
                 'url' => $project->url(),
                 'label' => $project->title,
-                'detail' => $project->status,
+                'detail' => $project->stage?->label(),
             ])
             ->all();
     }
@@ -132,6 +134,7 @@ final class MentionSearch
     private function events(string $query): array
     {
         return Event::query()
+            ->listed()
             ->when($query !== '', fn ($builder) => $builder->where('name', 'like', "%{$query}%"))
             ->orderByDesc('occurred_at')
             ->limit(self::PER_GROUP)
@@ -142,7 +145,7 @@ final class MentionSearch
                 'id' => $event->id,
                 'url' => $event->url(),
                 'label' => $event->name,
-                'detail' => $event->occurred_at?->format('j M Y'),
+                'detail' => $event->occurred_at ? app(DisplayFormat::class)->date($event->occurred_at, weekday: false) : null,
             ])
             ->all();
     }
@@ -155,6 +158,7 @@ final class MentionSearch
     private function notes(string $query): array
     {
         return Note::query()
+            ->listed()
             ->when($query !== '', fn ($builder) => $builder->where('content', 'like', "%{$query}%"))
             ->orderByDesc('occurred_at')
             ->limit(self::PER_GROUP)
@@ -164,8 +168,8 @@ final class MentionSearch
                 'group' => 'Notes',
                 'id' => $note->id,
                 'url' => $note->url(),
-                'label' => Str::limit(strip_tags((string) $note->content), 60),
-                'detail' => $note->occurred_at?->format('j M Y'),
+                'label' => Str::limit(PortableText::plainText($note->content), 60),
+                'detail' => $note->occurred_at ? app(DisplayFormat::class)->date($note->occurred_at, weekday: false) : null,
             ])
             ->all();
     }

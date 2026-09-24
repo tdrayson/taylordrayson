@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Enums\Source;
 use App\Models\Concerns\HasAttachments;
+use App\Models\Concerns\HasStatus;
 use App\Models\Concerns\HasSubjects;
 use App\Models\Concerns\HasTimelineEntry;
 use App\Models\Concerns\Timelineable;
@@ -34,10 +35,12 @@ use Spatie\MediaLibrary\HasMedia;
     'source_id',
     'timezone',
     'meta',
+    'status',
+    'password',
 ])]
 class Activity extends Model implements HasMedia, Timelineable
 {
-    use HasAttachments, HasFactory, HasSubjects, HasTimelineEntry;
+    use HasAttachments, HasFactory, HasStatus, HasSubjects, HasTimelineEntry;
 
     /**
      * @return array<string, string>

@@ -61,7 +61,7 @@ class FuelStory implements Story
      */
     public function build(): array
     {
-        $fills = Fuel::query()->orderBy('occurred_at')->get();
+        $fills = Fuel::query()->listed()->orderBy('occurred_at')->get();
 
         if ($fills->isEmpty()) {
             return ['hasData' => false];

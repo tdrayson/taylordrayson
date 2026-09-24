@@ -98,7 +98,7 @@ function selectNode() {
             type="button"
             draggable="false"
             aria-label="Insert a block below"
-            class="rounded p-1 text-neutral-300 transition-colors hover:bg-neutral-25 hover:text-neutral-700 focus-visible:bg-neutral-25 focus-visible:text-neutral-700 focus-visible:outline-none"
+            class="rounded p-1 text-neutral-300 transition-colors hover:bg-neutral-25 hover:text-neutral-700 focus-visible:bg-neutral-25 focus-visible:text-neutral-700"
             @click="insertBelow"
         >
             <Icon :icon="Add01Icon" class="size-4" />
@@ -108,7 +108,7 @@ function selectNode() {
             type="button"
             draggable="false"
             aria-label="Select this block, or drag it to move it"
-            class="cursor-grab rounded p-1 text-neutral-300 transition-colors hover:bg-neutral-25 hover:text-neutral-700 focus-visible:bg-neutral-25 focus-visible:text-neutral-700 focus-visible:outline-none active:cursor-grabbing"
+            class="cursor-grab rounded p-1 text-neutral-300 transition-colors hover:bg-neutral-25 hover:text-neutral-700 focus-visible:bg-neutral-25 focus-visible:text-neutral-700 active:cursor-grabbing"
             @click="selectNode"
         >
             <Icon :icon="DragDropVerticalIcon" class="size-4" />

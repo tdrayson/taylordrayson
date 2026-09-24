@@ -3,7 +3,7 @@ import { computed, ref } from 'vue';
 import { cn } from '../../lib/cn.js';
 import { CONTROL, CONTROL_BORDER } from '../../lib/editor/control.js';
 import { readCookie } from '../../lib/cookies.js';
-import { useDismissable } from '../../lib/editor/dismissable.js';
+import { useDismissable } from '../../composables/useDismissable.js';
 import { useListNavigation } from '../../lib/editor/listNavigation.js';
 import Button from '../Ui/Button.vue';
 
@@ -142,7 +142,7 @@ const { active, onKeydown: onListKeydown } = useListNavigation(listItems, {
                     type="button"
                     role="option"
                     :aria-selected="index === active"
-                    class="flex w-full items-baseline justify-between gap-3 px-3 py-1.5 text-left text-meta transition-colors"
+                    class="flex w-full items-baseline justify-between gap-3 px-3 py-1.5 text-left text-sm transition-colors"
                     :class="index === active ? 'bg-accent-50 text-accent-700' : 'text-neutral-900 hover:bg-accent-50 hover:text-accent-700'"
                     @mousedown.prevent="select(item)"
                 >
@@ -150,8 +150,8 @@ const { active, onKeydown: onListKeydown } = useListNavigation(listItems, {
                 </button>
             </li>
         </ul>
-        <p v-if="hint" class="mt-2 text-caption text-neutral-500">{{ hint }}</p>
-        <p v-if="createError" class="mt-2 text-caption text-red-600">{{ createError }}</p>
+        <p v-if="hint" class="mt-2 text-xs text-neutral-500">{{ hint }}</p>
+        <p v-if="createError" class="mt-2 text-xs text-red-600">{{ createError }}</p>
         <Button variant="ghost" size="sm" class="mt-2 -ml-3" @click="emit('cancel')">Cancel</Button>
     </div>
 </template>

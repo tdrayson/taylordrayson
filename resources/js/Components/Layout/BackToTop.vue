@@ -44,11 +44,11 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-    <Transition name="lift">
+    <Transition name="rise">
         <button
             v-if="visible"
             type="button"
-            class="flex size-12 items-center justify-center rounded-full border border-neutral-100 bg-neutral-0 text-neutral-700 shadow-card transition-colors hover:border-accent-500 hover:text-accent-700 focus-visible:border-accent-500 focus-visible:text-accent-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500 focus-visible:ring-offset-2"
+            class="flex size-12 items-center justify-center rounded-full border border-neutral-100 bg-neutral-0 text-neutral-700 shadow-card transition-colors hover:border-accent-500 hover:text-accent-700 focus-visible:text-accent-700"
             aria-label="Back to top"
             @click="toTop"
         >
@@ -56,28 +56,3 @@ onBeforeUnmount(() => {
         </button>
     </Transition>
 </template>
-
-<style scoped>
-.lift-enter-active,
-.lift-leave-active {
-    transition: opacity 0.25s ease, transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-.lift-enter-from,
-.lift-leave-to {
-    opacity: 0;
-    transform: translateY(0.75rem);
-}
-
-@media (prefers-reduced-motion: reduce) {
-    .lift-enter-active,
-    .lift-leave-active {
-        transition: opacity 0.2s ease;
-    }
-
-    .lift-enter-from,
-    .lift-leave-to {
-        transform: none;
-    }
-}
-</style>

@@ -1,5 +1,7 @@
 <script setup>
 import { computed, onMounted, ref } from 'vue';
+import Heading from '../Ui/Heading.vue';
+import Stat from '../Ui/Stat.vue';
 
 const mounted = ref(false);
 onMounted(() => requestAnimationFrame(() => (mounted.value = true)));
@@ -87,20 +89,32 @@ const segments = computed(() => {
                 </g>
             </svg>
             <div class="absolute inset-0 flex items-center justify-center">
-                <span class="font-display text-stat font-extrabold leading-none tnum">{{ score }}</span>
+                <Stat>{{ score }}</Stat>
             </div>
         </div>
 
         <div class="min-w-0">
-            <div class="font-display text-name text-neutral-900">{{ band.label }}</div>
+            <Heading as="div" size="title" class="text-neutral-900">{{ band.label }}</Heading>
 
             <dl class="mt-3 space-y-1.5">
-                <div v-for="segment in segments" :key="segment.label" class="flex items-center gap-2 text-meta text-neutral-700">
+                <div v-for="segment in segments" :key="segment.label" class="flex items-center gap-2 text-sm text-neutral-700">
                     <span class="size-2.5 shrink-0 rounded-full" :style="{ background: segment.color }" />
                     <dt>{{ segment.label }}</dt>
-                    <dd class="text-neutral-500 tnum">{{ segment.points }}/{{ segment.max }}</dd>
+                    <dd class="text-neutral-500 tabular-nums">{{ segment.points }}/{{ segment.max }}</dd>
                 </div>
             </dl>
         </div>
     </div>
 </template>
+
+<style scoped>
+.ring-fill {
+    transition: stroke-dashoffset 0.7s ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .ring-fill {
+        transition: none;
+    }
+}
+</style>

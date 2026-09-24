@@ -7,6 +7,10 @@ import { useLinkContext } from '../../lib/linkContext.js';
 
 // Read-only renderer for a Portable Text document. Accepts the bare node
 // array (content is cast to an array server-side) or a raw JSON string.
+// Two roots, so the class a caller passes still lands on the content element
+// rather than on a wrapper around it.
+defineOptions({ inheritAttrs: false });
+
 const props = defineProps({
     document: { type: [Array, String], default: null },
     // 'lead' sets the whole document a step up, for a short standfirst that
@@ -14,7 +18,7 @@ const props = defineProps({
     size: { type: String, default: 'body' },
 });
 
-const sizeClass = computed(() => (props.size === 'lead' ? 'text-lead' : 'text-body'));
+const sizeClass = computed(() => (props.size === 'lead' ? 'text-lg leading-relaxed' : 'text-base'));
 
 // href -> preview data for internal links, host -> favicon for external ones.
 // Empty when no page provided it, as on the design-system page.
@@ -55,13 +59,18 @@ const contentEl = ref(null);
 <template>
     <!-- prose supplies the inter-element rhythm; its :where() selectors have zero
          specificity, so the renderer's explicit classes always win. -->
-    <div v-if="nodes.length" ref="contentEl" v-twemoji class="block-content prose max-w-none text-neutral-900" :class="sizeClass">
+    <div v-if="nodes.length" ref="contentEl" v-twemoji v-bind="$attrs" class="block-content prose max-w-none text-neutral-900" :class="sizeClass">
         <PortableTextBlocks :nodes="nodes" :favicons="links.favicons" :previews="links.previews" @image-click="openImage" />
+    </div>
 
+    <!-- Outside the content element on purpose: neither the lightbox nor the
+         hover overlay is part of what the author wrote, and their teleport
+         anchors would otherwise sit in the e-content a consumer reads back. -->
+    <template v-if="nodes.length">
         <Lightbox v-model:index="lightboxIndex" :photos="activeImage ? [activeImage] : []" />
 
         <LinkPreviewLayer :previews="links.previews" :container="contentEl" />
-    </div>
+    </template>
 </template>
 
 <style scoped>
@@ -150,12 +159,12 @@ const contentEl = ref(null);
 
 /* Wins over the generic :deep(a) rule above, which would otherwise underline
    the chip and repaint its text. */
-.block-content :deep(a.entry-chip) {
+.block-content :deep(a.link-chip) {
     color: var(--color-accent-700);
     text-decoration: none;
 }
 
-.block-content :deep(a.entry-chip:hover) {
+.block-content :deep(a.link-chip:hover) {
     background-color: var(--color-accent-100);
 }
 

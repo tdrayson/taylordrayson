@@ -2,7 +2,7 @@
 
 use App\Models\Activity;
 use App\Models\Article;
-use App\Models\Checkin;
+use App\Models\Place;
 use App\Models\Subject;
 use App\Models\User;
 use App\Queries\SubjectCompanions;
@@ -25,16 +25,16 @@ it('lists a subject\'s entries, including ones reached through a photograph', fu
         ->assertInertia(fn ($page) => $page->has('groups', 2));
 });
 
-it('hides an unpublished article from a guest', function () {
+it('hides a draft article from a guest', function () {
     $subject = Subject::factory()->person()->create(['slug' => 'clare']);
-    Article::factory()->create(['published' => false])->subjects()->attach($subject);
+    Article::factory()->draft()->create()->subjects()->attach($subject);
 
     get('/life/people/clare')->assertInertia(fn ($page) => $page->has('groups', 0));
 });
 
-it('previews an unpublished, subject-tagged article for a signed-in request', function () {
+it('previews a draft, subject-tagged article for a signed-in request', function () {
     $subject = Subject::factory()->person()->create(['slug' => 'clare']);
-    Article::factory()->create(['published' => false])->subjects()->attach($subject);
+    Article::factory()->draft()->create()->subjects()->attach($subject);
 
     get('/life/people/clare')->assertInertia(fn ($page) => $page->has('groups', 0));
 
@@ -44,9 +44,9 @@ it('previews an unpublished, subject-tagged article for a signed-in request', fu
         ->assertInertia(fn ($page) => $page->has('groups', 1));
 });
 
-it('hides an unpublished article\'s tagged photograph from a guest', function () {
+it('hides a draft article\'s tagged photograph from a guest', function () {
     $subject = Subject::factory()->person()->create(['slug' => 'clare']);
-    $article = Article::factory()->create(['published' => false]);
+    $article = Article::factory()->draft()->create();
     $attachment = $article->addMediaFromString(fakeJpeg())->usingFileName('p.jpg')->toMediaCollection('photos');
     $attachment->subjects()->attach($subject, ['role' => 'subject', 'x' => 10, 'y' => 10]);
 
@@ -199,7 +199,7 @@ it('folds the counts into the facts rows, with distance in metres', function () 
 
 it('leaves out a distance row for a subject with no activities', function () {
     $subject = Subject::factory()->person()->create();
-    Checkin::factory()->create(['occurred_at' => '2026-02-02 09:00:00'])->subjects()->attach($subject);
+    Place::factory()->create(['occurred_at' => '2026-02-02 09:00:00'])->subjects()->attach($subject);
 
     $labels = collect(app(SubjectStats::class)($subject)['rows'])->pluck('label');
 

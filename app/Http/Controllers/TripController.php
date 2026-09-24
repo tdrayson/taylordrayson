@@ -7,6 +7,8 @@ use App\Data\TagLink;
 use App\Models\Tag;
 use App\Models\Trip;
 use App\Queries\TripEntries;
+use App\Support\DisplayFormat;
+use App\Support\FeedInteractions;
 use App\Support\LocalTime;
 use App\Support\OgMeta;
 use Carbon\CarbonImmutable;
@@ -62,7 +64,7 @@ class TripController extends Controller
             'month' => $zoned->format('M'),
             'year' => $zoned->format('Y'),
             'time' => $local['time'],
-            'label' => $zoned->format('j M Y, g:ia'),
+            'label' => app(DisplayFormat::class)->dateTime($zoned, weekday: false),
             // LocalTime's own weekday-led form, for the timestamp tooltip every
             // timeline card shows on hover.
             'full' => $local['label'],
@@ -81,6 +83,8 @@ class TripController extends Controller
 
         abort_if($trip === null, 404);
 
+        $entries = ($this->entries)($trip);
+
         return Inertia::render('Trip', [
             'og' => OgMeta::trip($trip->title),
             'title' => $trip->title,
@@ -88,7 +92,8 @@ class TripController extends Controller
             'start' => $this->datePartsFor($trip->starts_at, $trip->timezone),
             'end' => $this->datePartsFor($trip->ends_at, $trip->timezone),
             'tags' => $trip->tags->map(fn (Tag $tag): array => TagLink::for($tag)->toArray())->all(),
-            'groups' => $this->feed->groupByDay(($this->entries)($trip)),
+            'groups' => $this->feed->groupByDay($entries),
+            'interactions' => FeedInteractions::defer($entries),
         ]);
     }
 }

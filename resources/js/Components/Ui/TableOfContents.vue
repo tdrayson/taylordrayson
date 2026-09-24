@@ -1,5 +1,6 @@
 <script setup>
 import { ref, onMounted, onBeforeUnmount } from 'vue';
+import Eyebrow from './Eyebrow.vue';
 import Icon from './Icon.vue';
 import { useDialog } from '../../composables/useDialog';
 import { useMounted } from '../../composables/useMounted';
@@ -152,9 +153,9 @@ onBeforeUnmount(() => {
             <li v-for="item in items" :key="item.id">
                 <a
                     :href="`#${item.id}`"
-                    class="-ml-px block w-full border-l-2 py-1.5 text-left text-caption transition-colors focus-visible:text-neutral-900 focus-visible:outline-none"
+                    class="-ml-px block w-full rounded-l-none rounded-r-sm border-l-2 py-1.5 text-left text-xs transition-colors focus-visible:text-neutral-900 focus-visible:-outline-offset-2"
                     :class="[
-                        activeId === item.id ? 'border-neutral-900 font-medium text-neutral-900' : 'border-transparent text-neutral-400 hover:text-neutral-700',
+                        activeId === item.id ? 'border-neutral-900 text-neutral-900' : 'border-transparent text-neutral-400 hover:text-neutral-700',
                         item.level >= 3 ? 'pl-8' : 'pl-4',
                     ]"
                     @click="onItemClick($event, item.id)"
@@ -166,16 +167,16 @@ onBeforeUnmount(() => {
     <!-- Smaller screens: a floating glass pill (top + contents) that slides up
          once the reader has scrolled a way down, and back down at the top. -->
     <div class="fixed bottom-5 left-1/2 z-30 -translate-x-1/2 toc:hidden">
-        <Transition name="pill">
+        <Transition name="rise">
             <div
                 v-if="items.length && scrolled"
                 class="flex items-stretch overflow-hidden rounded-full bg-black/60 text-white shadow-card ring-1 ring-white/10 backdrop-blur-xl"
             >
-                <button type="button" class="flex items-center gap-2 px-5 py-3 text-meta font-semibold transition-colors hover:bg-white/10" @click="toTop">
+                <button type="button" class="flex items-center gap-2 rounded-l-full px-5 py-3 text-sm font-semibold transition-colors hover:bg-white/10 focus-visible:-outline-offset-2 focus-visible:outline-white" @click="toTop">
                     <Icon name="ArrowUp01Icon" class="size-4" /> Top
                 </button>
                 <span class="w-px bg-white/15" />
-                <button type="button" class="flex items-center gap-2 px-5 py-3 text-meta font-semibold transition-colors hover:bg-white/10" @click="open = true">
+                <button type="button" class="flex items-center gap-2 rounded-r-full px-5 py-3 text-sm font-semibold transition-colors hover:bg-white/10 focus-visible:-outline-offset-2 focus-visible:outline-white" @click="open = true">
                     <Icon name="Menu01Icon" class="size-4" /> Contents
                 </button>
             </div>
@@ -183,7 +184,7 @@ onBeforeUnmount(() => {
     </div>
 
     <Teleport v-if="mounted" to="body">
-        <Transition name="sheet">
+        <Transition name="fade">
             <div
                 v-if="open"
                 ref="panelEl"
@@ -197,8 +198,8 @@ onBeforeUnmount(() => {
                 <div class="absolute inset-0 bg-black/50" @click="open = false" />
                 <div class="relative max-h-svh overflow-y-auto rounded-t-2xl bg-neutral-0 p-5 pb-8">
                     <div class="mb-3 flex items-center justify-between">
-                        <h2 class="text-label uppercase text-neutral-500">Contents</h2>
-                        <button type="button" class="text-neutral-500 transition-colors hover:text-neutral-900" aria-label="Close contents" @click="open = false">
+                        <Eyebrow as="h2" class="text-neutral-500">Contents</Eyebrow>
+                        <button type="button" class="rounded-md text-neutral-500 transition-colors hover:text-neutral-900 focus-visible:text-neutral-900" aria-label="Close contents" @click="open = false">
                             <Icon name="Cancel01Icon" class="size-5" />
                         </button>
                     </div>
@@ -213,8 +214,8 @@ onBeforeUnmount(() => {
                                 ]"
                                 @click="onItemClick($event, item.id)"
                             >
-                                <span v-if="item.number" class="text-label tnum text-neutral-400">{{ item.number }}</span>
-                                <span class="text-meta" :class="activeId === item.id ? 'font-semibold text-neutral-900' : 'text-neutral-700'">{{ item.label }}</span>
+                                <span v-if="item.number" class="text-2xs font-semibold tabular-nums text-neutral-400">{{ item.number }}</span>
+                                <span class="text-sm" :class="activeId === item.id ? 'font-semibold text-neutral-900' : 'text-neutral-700'">{{ item.label }}</span>
                             </a>
                         </li>
                     </ul>
@@ -233,53 +234,28 @@ onBeforeUnmount(() => {
     overscroll-behavior: contain;
 }
 
-.pill-enter-active,
-.pill-leave-active {
-    transition: opacity 0.25s ease, transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+/* The shared fade carries the scrim; the panel slides up as a bottom sheet.
+   Held to the root's duration, since the root is the only element Vue times
+   off, and the old 0.25s was being cut short at 0.2s. */
+.fade-enter-active > div:last-child,
+.fade-leave-active > div:last-child {
+    transition: transform var(--duration-fade) var(--ease-out-expo);
 }
 
-.pill-enter-from,
-.pill-leave-to {
-    opacity: 0;
-    transform: translateY(1rem);
-}
-
-@media (prefers-reduced-motion: reduce) {
-    .pill-enter-active,
-    .pill-leave-active {
-        transition: opacity 0.2s ease;
-    }
-
-    .pill-enter-from,
-    .pill-leave-to {
-        transform: none;
-    }
-}
-
-.sheet-enter-active,
-.sheet-leave-active {
-    transition: opacity 0.2s ease;
-}
-
-.sheet-enter-active > div:last-child,
-.sheet-leave-active > div:last-child {
-    transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-.sheet-enter-from,
-.sheet-leave-to {
-    opacity: 0;
-}
-
-.sheet-enter-from > div:last-child,
-.sheet-leave-to > div:last-child {
+.fade-enter-from > div:last-child,
+.fade-leave-to > div:last-child {
     transform: translateY(100%);
 }
 
 @media (prefers-reduced-motion: reduce) {
-    .sheet-enter-active > div:last-child,
-    .sheet-leave-active > div:last-child {
+    .fade-enter-active > div:last-child,
+    .fade-leave-active > div:last-child {
         transition: none;
+    }
+
+    .fade-enter-from > div:last-child,
+    .fade-leave-to > div:last-child {
+        transform: none;
     }
 }
 </style>

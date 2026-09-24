@@ -3,6 +3,7 @@
 use App\Listeners\AlertOnFailedJob;
 use App\Services\Pushover\Client as PushoverClient;
 use App\Support\FailureAlert;
+use Illuminate\Console\Events\ScheduledBackgroundTaskFinished;
 use Illuminate\Console\Events\ScheduledTaskFailed;
 use Illuminate\Console\Scheduling\Event as ScheduledEvent;
 use Illuminate\Console\Scheduling\Schedule;
@@ -26,16 +27,28 @@ function scheduledTask(string $command): ScheduledEvent
 }
 
 it('pushes an alert when a scheduled command fails', function () {
-    event(new ScheduledTaskFailed(scheduledTask('podcast:sync'), new RuntimeException('exit code 1')));
+    event(new ScheduledTaskFailed(scheduledTask('this-week-with:sync'), new RuntimeException('exit code 1')));
 
     Saloon::assertSent(function ($request, $response) {
         $body = $request->body()->all();
 
         return $response->getPendingRequest()->getUrl() === 'https://api.pushover.net/1/messages.json'
             && $body['title'] === 'Scheduled command failed'
-            && str_contains($body['message'], 'podcast:sync')
+            && str_contains($body['message'], 'this-week-with:sync')
             && str_contains($body['message'], 'exit code 1');
     });
+});
+
+it('alerts on a background run only when it exits non-zero', function () {
+    $task = scheduledTask('foursquare:sync');
+
+    $task->exitCode = 0;
+    event(new ScheduledBackgroundTaskFinished($task));
+    Saloon::assertNothingSent();
+
+    $task->exitCode = 1;
+    event(new ScheduledBackgroundTaskFinished($task));
+    Saloon::assertSent(fn ($request) => str_contains($request->body()->all()['message'], 'foursquare:sync exited non-zero: exit code 1'));
 });
 
 it('pushes an alert when a queued job fails', function () {
@@ -69,7 +82,7 @@ it('still alerts on a different command inside the same window', function () {
 it('does nothing when no credentials are configured', function () {
     config(['services.pushover.token' => null, 'services.pushover.user' => null]);
 
-    event(new ScheduledTaskFailed(scheduledTask('podcast:sync'), new RuntimeException('down')));
+    event(new ScheduledTaskFailed(scheduledTask('this-week-with:sync'), new RuntimeException('down')));
 
     Saloon::assertNothingSent();
 });
@@ -89,5 +102,5 @@ it('cannot notify a real device when the suite has no credentials', function () 
 
     expect(config('services.pushover.token'))->toBeEmpty()
         ->and(config('services.pushover.user'))->toBeEmpty()
-        ->and(app(PushoverClient::class)->send('Scheduled command failed', 'podcast:sync'))->toBeFalse();
+        ->and(app(PushoverClient::class)->send('Scheduled command failed', 'this-week-with:sync'))->toBeFalse();
 });

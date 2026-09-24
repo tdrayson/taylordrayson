@@ -110,8 +110,8 @@ const lightboxIndex = ref(null);
          break out past the reading column while the prose stays in it. -->
     <article v-else class="h-card full-width content-grid">
         <header>
-            <h1 v-twemoji class="p-name max-w-2xl font-display text-display">{{ subject.name }}</h1>
-            <p v-if="subject.category" class="mt-2 text-meta text-neutral-500">{{ subject.category }}</p>
+            <h1 v-twemoji class="p-name max-w-2xl font-display text-5xl font-extrabold tracking-tight">{{ subject.name }}</h1>
+            <p v-if="subject.category" class="mt-2 text-sm text-neutral-500">{{ subject.category }}</p>
 
             <!-- Both only mean anything to the owner, so they sit with the
                  name rather than interrupting the sections below. -->
@@ -172,12 +172,12 @@ const lightboxIndex = ref(null);
                     v-for="companion in group.subjects"
                     :key="companion.url"
                     :href="companion.url"
-                    class="group flex items-center gap-2 rounded-full py-1 pr-3 transition-colors hover:bg-neutral-25 focus-visible:bg-neutral-25 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500"
+                    class="group flex items-center gap-2 rounded-full py-1 pr-3 transition-colors hover:bg-neutral-25 focus-visible:bg-neutral-25"
                 >
                     <span class="size-8 overflow-hidden rounded-full bg-neutral-25">
                         <img v-if="companion.cover" :src="companion.cover.src" :alt="companion.cover.alt || companion.name" class="size-full object-cover">
                     </span>
-                    <span class="text-meta font-medium text-neutral-900 underline-offset-4 group-hover:underline group-focus-visible:underline">{{ companion.name }}</span>
+                    <span class="text-sm font-medium text-neutral-900 underline-offset-4 group-hover:underline group-focus-visible:underline">{{ companion.name }}</span>
                 </Link>
             </div>
         </section>

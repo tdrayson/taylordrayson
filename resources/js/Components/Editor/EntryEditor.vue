@@ -1,12 +1,14 @@
 <script setup>
-import { computed, ref, watch } from 'vue';
+import { computed, provide, ref, watch } from 'vue';
 import { router, useForm, usePage } from '@inertiajs/vue3';
 import { withMediaIds } from '../../lib/editor/media.js';
-import { noteSlug, plainTextOf, slugify, slugifyInput } from '../../lib/editor/defaults.js';
+import { noteSlug, plainTextOf, responseSlug, slugify, slugifyInput } from '../../lib/editor/defaults.js';
 import { stash } from '../../lib/editor/handoff.js';
 import { shiftWallClock } from '../../lib/editor/wallClock.js';
+import { hiddenNames, required, revealed } from '../../lib/editor/visibility.js';
 import { DEFAULT_TIMEZONE } from '../../lib/time.js';
 import Button from '../Ui/Button.vue';
+import Heading from '../Ui/Heading.vue';
 import FieldGroup from './FieldGroup.vue';
 import FieldInput from './FieldInput.vue';
 import LengthNotice from './LengthNotice.vue';
@@ -28,21 +30,44 @@ const props = defineProps({
     // note into an article. Null on every surface where that is not on offer,
     // which includes editing something already posted.
     convertTo: { type: String, default: null },
+    // The entry's own title, drawn when the form has no title or body to show where you are.
+    heading: { type: String, default: null },
 });
 
 const form = useForm({ ...props.values });
+
+// Lets a field read its siblings, such as a book cover searching by the title, without new props.
+provide('editorForm', form);
 
 const titleField = computed(() => props.fields.find((field) => field.isTitle) ?? null);
 const page = usePage();
 
 const bodyField = computed(() => props.fields.find((field) => field.isBody) ?? null);
 
-// Publish state is the save action, not a field: it lives in the footer beside
-// the button so the button can say what it will actually do.
-const publishField = computed(() => props.fields.find((field) => field.isPublished) ?? null);
-const isPublished = computed(() => publishField.value !== null && form[publishField.value.name] === true);
+const offered = computed(() => props.fields.filter((field) => !field.hidden && revealed(field, form)));
 
-const offered = computed(() => props.fields.filter((field) => !field.hidden && !field.isPublished));
+/**
+ * A field that stops being shown gives up its value.
+ *
+ * Choosing "RSVP", filling in the reply, then switching to "Like" would
+ * otherwise save the RSVP nobody can see any more, and a stray property is
+ * what post type discovery reads a post's whole type from.
+ */
+const hiddenByCondition = computed(() => hiddenNames(props.fields, form));
+
+// Keyed on the names rather than the array, which is rebuilt on every keystroke
+// and would otherwise fire this on all of them.
+watch(
+    () => hiddenByCondition.value.join(','),
+    () => hiddenByCondition.value.forEach((name) => {
+        if (form[name] !== null && form[name] !== undefined && form[name] !== '') {
+            form[name] = null;
+        }
+    }),
+);
+
+// The status is an ordinary row in the stack; the footer only saves.
+const statusField = computed(() => props.fields.find((field) => field.type === 'status') ?? null);
 
 // Title and body are drawn above the stack, so neither appears in it.
 const rest = computed(() => offered.value.filter((field) => !field.isTitle && !field.isBody));
@@ -86,13 +111,17 @@ function groupSummary(item) {
 const slugField = computed(() => props.fields.find((field) => field.type === 'slug') ?? null);
 
 /**
- * Publishing settles the URL: it can be linked, bookmarked or in a feed from
- * that moment, so the slug stops following the title and stops being editable.
- * A draft has none of that, and keeps tracking its title however often it is
- * saved. A type with no publish state goes live at its first save, which is
- * where its slug settles instead.
+ * Leaving draft settles the URL: it can be linked, bookmarked or in a feed from
+ * then on, so the slug stops following the title. A draft keeps tracking it
+ * however often it is saved; a type with no status settles at its first save.
  */
-const slugLocked = computed(() => (publishField.value ? isPublished.value : props.method !== 'post'));
+const slugLocked = computed(() => {
+    if (props.method === 'post') {
+        return false;
+    }
+
+    return statusField.value ? props.values[statusField.value.name] !== 'draft' : true;
+});
 
 /**
  * Until then it follows the title, unless it has been typed by hand: writing a
@@ -152,6 +181,9 @@ function onFieldInput(field, value) {
     form[field.name] = value;
 }
 
+/** The response context CitationField last loaded, which a response's slug is named from. */
+const responsePreview = ref(null);
+
 /**
  * What the slug will be if the field is left empty. Only types that declare a
  * fallback derive one; elsewhere the slug follows the title and is never blank.
@@ -159,6 +191,21 @@ function onFieldInput(field, value) {
 const derivedSlug = computed(() => {
     if (! slugField.value?.fallback) {
         return '';
+    }
+
+    // A response's slug is stored when it is first posted, so an edit keeps
+    // whatever it got then, and only a new one previews it.
+    const response = props.method === 'post'
+        ? responseSlug({
+            kind: form.response_kind,
+            url: form.response_url,
+            rsvp: form.rsvp_value,
+            preview: responsePreview.value,
+        })
+        : null;
+
+    if (response) {
+        return response;
     }
 
     // A note's body is a Prose field, which isBody does not mark: that flag is
@@ -210,11 +257,26 @@ const previewDay = computed(() => {
     }).format(new Date());
 });
 
-/** Apply the sibling values a lookup resolved: a book's author, a place's coordinates. */
-function applyFill(values) {
+// What each fill last wrote, so a later fill can tell a value typed since from its own.
+const filled = {};
+
+/**
+ * Apply the sibling values a lookup resolved: a book's author, a place's coordinates.
+ * A key in `keepEdits` is only replaced while blank or still holding what a fill put there.
+ */
+function applyFill(values, { keepEdits = [] } = {}) {
     Object.entries(values).forEach(([key, value]) => {
-        if (key in form) {
+        if (! (key in form)) {
+            return;
+        }
+
+        const edited = keepEdits.includes(key)
+            && String(form[key] ?? '').trim() !== ''
+            && form[key] !== filled[key];
+
+        if (! edited) {
             form[key] = value;
+            filled[key] = value;
         }
     });
 }
@@ -256,15 +318,32 @@ function convert() {
 
 const errorCount = computed(() => Object.keys(form.errors).length);
 
+/** A private entry cannot be saved with the password box empty. */
+const needsPassword = computed(() => statusField.value !== null
+    && form[statusField.value.name] === 'private'
+    && ! form.password);
+
+/** What the saved status means for who can see the entry. */
+const STATUS_NOTES = {
+    draft: 'Draft, only you can see this',
+    published: 'Published, live to everyone',
+    unlisted: 'Unlisted, only people with the link',
+    private: 'Private, locked behind a password',
+};
+
 const status = computed(() => {
     if (form.processing) {
-        return publishField.value ? 'Saving...' : 'Posting...';
+        return props.method === 'post' ? 'Posting...' : 'Saving...';
     }
 
     // Ahead of the dirty check for the same reason the error count is: the form
     // being dirty is not the news when the save button will not fire.
     if (overLimit.value) {
         return `Too long to post, by ${overBy.value.toLocaleString()} ${overBy.value === 1 ? 'character' : 'characters'}`;
+    }
+
+    if (needsPassword.value) {
+        return 'Add a password to make this private';
     }
 
     // Ahead of the dirty check: a rejected save leaves the form dirty, and
@@ -277,19 +356,15 @@ const status = computed(() => {
         return 'Unsaved changes';
     }
 
-    if (publishField.value) {
-        return isPublished.value ? 'Published, live to everyone' : 'Draft, only you can see this';
+    if (statusField.value && props.method !== 'post') {
+        return STATUS_NOTES[props.values[statusField.value.name]] ?? 'Posted';
     }
 
     return props.method === 'post' ? 'Not posted yet' : 'Posted';
 });
 
-/** Save, optionally flipping publish state in the same request. */
-function submit(published = null) {
-    if (published !== null && publishField.value) {
-        form[publishField.value.name] = published;
-    }
-
+/** Save the form as it stands; the status travels with every other field. */
+function submit() {
     // A media field holds { id, name, url } so the picker can draw a thumbnail,
     // but the server takes the ids alone. Reduced here rather than in the field
     // component, which would then have nothing left to render.
@@ -307,20 +382,24 @@ function submit(published = null) {
         <!-- The page still needs exactly one h1 for the outline, and the title
              here is an input rather than a heading. Same fallback Entry.vue
              uses for the types that show no headline. -->
-        <h1 class="sr-only">{{ (titleField ? form[titleField.name] : '') || 'Untitled' }}</h1>
+        <Heading v-if="heading && ! titleField && ! bodyField" v-twemoji as="h1" size="display" class="max-w-2xl">{{ heading }}</Heading>
+        <h1 v-else class="sr-only">{{ (titleField ? form[titleField.name] : '') || heading || 'Untitled' }}</h1>
 
-        <!-- The heading: an input that reads as the title it will become, not a
-             form field with a label above it. -->
-        <input
+        <!-- The heading: a textarea that reads as the title it will become, not a
+             form field with a label above it. A textarea so long titles wrap; Enter
+             stays blocked because a title is one line. -->
+        <textarea
             v-if="titleField"
             :id="titleField.name"
             v-model="form[titleField.name]"
             :placeholder="titleField.label"
+            rows="1"
             data-text-size
-            class="w-full border-none bg-transparent p-0 font-display text-display text-neutral-900 placeholder:text-neutral-200 focus:outline-none"
-        >
+            class="field-sizing-content w-full resize-none overflow-hidden border-none bg-transparent p-0 pb-1.5 font-display text-5xl font-extrabold tracking-tight text-neutral-900 placeholder:text-neutral-200 focus:outline-none"
+            @keydown.enter.prevent
+        />
 
-        <p v-if="titleField && form.errors[titleField.name]" class="mt-1 text-caption text-red-600">{{ form.errors[titleField.name] }}</p>
+        <p v-if="titleField && form.errors[titleField.name]" class="mt-1 text-xs text-red-600">{{ form.errors[titleField.name] }}</p>
 
         <FieldInput
             v-if="bodyField"
@@ -356,14 +435,19 @@ function submit(published = null) {
                         :field="row.field"
                         :model-value="form[row.field.name]"
                         :relative-to-value="row.field.relativeTo ? String(form[row.field.relativeTo] ?? '') : null"
+                        :password="form.password ?? ''"
                         :latitude="form.latitude ?? null"
                         :longitude="form.longitude ?? null"
+                        :response-url="form.response_url ?? null"
+                        :response-kind="form.response_kind ?? null"
                         :error="form.errors[row.field.name]"
-                        :readonly="row.field.type === 'slug' && slugLocked"
+                        :readonly="Boolean(row.field.readOnly) || (row.field.type === 'slug' && slugLocked)"
                         :placeholder="row.field.type === 'slug' ? derivedSlug : ''"
                         :hint="row.field.type === 'slug' ? slugPreview : null"
+                        :excused="row.field.required && ! required(row.field, form)"
                         @update:model-value="onFieldInput(row.field, $event)"
                         @fill="applyFill"
+                        @preview="responsePreview = $event"
                     />
 
                     <LengthNotice
@@ -397,30 +481,10 @@ function submit(published = null) {
         <!-- Sticky rather than fixed, so it needs no bottom padding on the form
              and settles at the end of the page on desktop. -->
         <div class="sticky bottom-0 z-10 mt-8 flex items-center justify-between gap-3 border-t border-neutral-50 bg-neutral-0 py-3 sm:static sm:py-0 sm:pt-4">
-            <p class="text-caption text-neutral-500 sm:text-meta">{{ status }}</p>
+            <p class="text-xs text-neutral-500 sm:text-sm">{{ status }}</p>
 
-            <div v-if="publishField" class="flex shrink-0 items-center gap-2">
-                <Button
-                    :variant="isPublished ? 'ghost' : 'secondary'"
-                    size="lg"
-                    :disabled="form.processing || overLimit"
-                    @click="submit(isPublished ? false : null)"
-                >
-                    {{ isPublished ? 'Unpublish' : 'Save draft' }}
-                </Button>
-
-                <Button
-                    variant="primary"
-                    size="lg"
-                    :disabled="form.processing || overLimit"
-                    @click="submit(isPublished ? null : true)"
-                >
-                    {{ isPublished ? 'Update' : 'Publish' }}
-                </Button>
-            </div>
-
-            <Button v-else variant="primary" size="lg" class="shrink-0" :disabled="form.processing || overLimit" @click="submit">
-                {{ submitLabel }}
+            <Button variant="primary" size="lg" class="shrink-0" :disabled="form.processing || overLimit || needsPassword" @click="submit">
+                {{ method === 'post' ? submitLabel : 'Save' }}
             </Button>
         </div>
     </div>

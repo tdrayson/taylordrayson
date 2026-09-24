@@ -206,7 +206,7 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-    <div class="stations-map relative overflow-hidden border-neutral-50" :class="layoutClass">
+    <div class="relative h-map overflow-hidden border-neutral-50" :class="layoutClass">
         <div ref="container" class="size-full" />
         <div class="absolute left-2.5 top-2.5 z-10 flex items-center gap-2">
             <button
@@ -220,7 +220,7 @@ onBeforeUnmount(() => {
             </button>
             <button
                 type="button"
-                class="flex h-8 items-center rounded-md border border-neutral-100 bg-neutral-0 px-2.5 text-label font-semibold text-neutral-700 shadow-sm transition-colors hover:text-accent-500 focus-visible:text-accent-500"
+                class="flex h-8 items-center rounded-md border border-neutral-100 bg-neutral-0 px-2.5 text-2xs font-semibold text-neutral-700 shadow-sm transition-colors hover:text-accent-500 focus-visible:text-accent-500"
                 :aria-pressed="showLabels"
                 @click="showLabels = !showLabels"
             >
@@ -229,9 +229,3 @@ onBeforeUnmount(() => {
         </div>
     </div>
 </template>
-
-<style scoped>
-.stations-map {
-    height: clamp(20rem, 48vh, 32rem);
-}
-</style>

@@ -1,11 +1,11 @@
 <?php
 
 use App\Models\Activity;
-use App\Models\Calorie;
+use App\Models\Film;
 use App\Models\Flight;
-use App\Models\Media;
+use App\Models\Food;
 use App\Models\Note;
-use App\Models\Podcast;
+use App\Models\ThisWeekWith;
 use App\Support\PortableText;
 
 use function Pest\Laravel\get;
@@ -19,9 +19,9 @@ it('renders the timeline page via Inertia', function () {
 });
 
 it('shares the real This Week With episode count', function () {
-    Podcast::factory()->count(3)->create();
+    ThisWeekWith::factory()->count(3)->create();
 
-    get('/')->assertInertia(fn ($page) => $page->where('podcastEpisodes', 3));
+    get('/')->assertInertia(fn ($page) => $page->where('thisWeekWithEpisodes', 3));
 });
 
 it('groups timeline entries by day, newest day first', function () {
@@ -48,75 +48,68 @@ it('orders entries within a day latest first', function () {
 });
 
 it('exposes the card type for each entry', function () {
-    Calorie::factory()->create(['occurred_at' => now()]);
+    Food::factory()->create(['occurred_at' => now()]);
 
     get('/')->assertInertia(fn ($page) => $page
-        ->where('groups.0.items.0.iconKey', 'calorie')
+        ->where('groups.0.items.0.iconKey', 'food')
         ->where('groups.0.items.0.url', fn ($url) => str_contains($url, '/'))
     );
 });
 
-it('pages on a date cursor, not an offset', function () {
-    // Enough to run past a page: one a day, over the entry budget in total.
-    foreach (range(1, 60) as $offset) {
-        Activity::factory()->create(['occurred_at' => now()->subDays($offset)]);
+it('pages 50 entries on a time cursor, splitting a day across pages', function () {
+    foreach (range(1, 60) as $minute) {
+        Activity::factory()->create(['occurred_at' => now()->subDay()->setTime(12, $minute)]);
     }
+    Activity::factory()->create(['occurred_at' => now()->subDays(2)]);
 
     $first = get('/')->assertInertia(fn ($page) => $page
-        // Nothing newer than the front of the feed, so no link back.
         ->where('newerUrl', null)
-        ->where('range.to', now()->subDay()->toDateString())
-        ->has('groups')
+        ->has('groups', 1)
+        ->has('groups.0.items', 50)
     );
 
     $older = $first->viewData('page')['props']['olderUrl'];
 
-    expect($older)->toBeString()->toStartWith('/?before=');
+    expect($older)->toMatch('#^/\?before=\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}$#');
 
-    get($older)->assertInertia(fn ($page) => $page
-        ->has('groups')
-        // The way back exists once you are past the front.
-        ->where('newerUrl', fn ($url) => str_contains((string) $url, 'after='))
+    $second = get($older)->assertInertia(fn ($page) => $page
+        ->has('groups', 2)
+        ->has('groups.0.items', 10)
+        ->where('olderUrl', null)
+        ->where('newerUrl', fn ($url) => str_starts_with((string) $url, '/?after='))
+    );
+
+    // Walking back up lands on the same 50 as the front.
+    get($second->viewData('page')['props']['newerUrl'])->assertInertia(fn ($page) => $page
+        ->has('groups.0.items', 50)
+        ->where('newerUrl', null)
     );
 });
 
-it('never splits a day across pages', function () {
-    // One day carrying more than a page's entry budget on its own. Activity,
-    // not Calorie: a day's food collapses to a single spine row.
-    Activity::factory()->count(60)->create(['occurred_at' => now()->subDay()]);
-    Activity::factory()->create(['occurred_at' => now()->subDays(2)]);
+it('keeps entries sharing an instant on one page', function () {
+    Activity::factory()->count(49)->create(['occurred_at' => now()->subDay()->setTime(18, 0)]);
+    Activity::factory()->count(3)->create(['occurred_at' => now()->subDay()->setTime(9, 0)]);
 
     get('/')->assertInertia(fn ($page) => $page
-        // The heavy day renders whole rather than being cut at the budget.
-        ->has('groups', 1)
-        ->has('groups.0.items', 60)
-        ->where('range.from', now()->subDay()->toDateString())
+        ->has('groups.0.items', 52)
+        ->where('olderUrl', null)
     );
 });
 
-it('takes fewer days per page when the days are dense', function () {
-    // Three days of 20 entries: two fit the budget of 50, the third does not.
-    foreach (range(1, 3) as $offset) {
-        Activity::factory()->count(20)->create(['occurred_at' => now()->subDays($offset)]);
-    }
+it('still reads a bare date cursor from older links', function () {
+    Activity::factory()->create(['occurred_at' => '2026-03-02 10:00:00']);
+    Activity::factory()->create(['occurred_at' => '2026-03-01 10:00:00']);
 
-    get('/')->assertInertia(fn ($page) => $page->has('groups', 2));
-});
-
-it('caps how far a page may reach back when entries are sparse', function () {
-    // A handful of entries spread over years: the entry budget alone would
-    // sweep them all onto one page and label it as spanning a decade.
-    foreach ([1, 400, 800, 1200] as $offset) {
-        Activity::factory()->create(['occurred_at' => now()->subDays($offset)]);
-    }
-
-    get('/')->assertInertia(fn ($page) => $page->has('groups', 1));
+    get('/?before=2026-03-02')->assertInertia(fn ($page) => $page
+        ->has('groups', 1)
+        ->where('groups.0.date', '2026-03-01')
+    );
 });
 
 it('ignores a cursor that is not a date', function () {
     Activity::factory()->create(['occurred_at' => now()->subDay()]);
 
-    foreach (['garbage', '2026-13-99', '../etc/passwd'] as $cursor) {
+    foreach (['garbage', '2026-13-99', '2026-01-01T25:00:00', '../etc/passwd'] as $cursor) {
         get('/?before='.urlencode($cursor))
             ->assertOk()
             ->assertInertia(fn ($page) => $page->has('groups', 1));
@@ -137,7 +130,7 @@ it('offers every year the timeline holds something in', function () {
 it('renders different card types together', function () {
     Activity::factory()->create(['name' => 'Morning Park Run', 'occurred_at' => now()->subHour()]);
     Flight::factory()->create(['origin_iata' => 'LHR', 'destination_iata' => 'JFK', 'occurred_at' => now()->subHours(2)]);
-    Media::factory()->create(['title' => 'The Shawshank Redemption', 'type' => 'film', 'occurred_at' => now()->subHours(3)]);
+    Film::factory()->create(['title' => 'The Shawshank Redemption', 'occurred_at' => now()->subHours(3)]);
     Note::factory()->create(['content' => 'A unique test note for verification', 'occurred_at' => now()->subHours(4)]);
 
     get('/')->assertInertia(function ($page) {

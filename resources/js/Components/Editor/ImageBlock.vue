@@ -21,6 +21,23 @@ const typedUrl = ref('');
 
 const url = computed(() => props.node.attrs.url);
 
+// Dimensions read off the loaded image, for a fresh upload the server has not measured yet.
+const natural = ref(null);
+
+const cropped = computed(() => Boolean(props.node.attrs.ratio && props.node.attrs.ratio !== 'original'));
+
+// Mirrors renderImage in PortableTextBlocks: portraits sit ratio-true under the height cap.
+const portrait = computed(() => {
+    const width = props.node.attrs.width ?? natural.value?.width;
+    const height = props.node.attrs.height ?? natural.value?.height;
+
+    return Boolean(width && height && height >= width);
+});
+
+function measure(event) {
+    natural.value = { width: event.target.naturalWidth, height: event.target.naturalHeight };
+}
+
 async function upload(file) {
     if (! file?.type?.startsWith('image/')) {
         return;
@@ -56,24 +73,27 @@ function useTypedUrl() {
         <!-- See CodeBlockView: the block places its own options panel. -->
         <div data-block-panel contenteditable="false" class="absolute bottom-full left-0 z-40 mb-2 w-full"></div>
 
-        <figure v-if="url" class="group relative">
-            <img
-                :src="url"
-                :alt="node.attrs.alt ?? ''"
-                class="w-full rounded-lg bg-neutral-25"
-                :class="node.attrs.ratio && node.attrs.ratio !== 'original' ? 'object-cover' : ''"
-                :style="node.attrs.ratio && node.attrs.ratio !== 'original' ? { aspectRatio: node.attrs.ratio } : null"
-            >
+        <figure v-if="url">
+            <div class="group relative" :class="{ 'w-fit': portrait && ! cropped }">
+                <img
+                    :src="url"
+                    :alt="node.attrs.alt ?? ''"
+                    class="rounded-lg border border-neutral-50 bg-neutral-25"
+                    :class="cropped ? 'w-full object-cover' : portrait ? 'max-h-media w-auto' : 'max-h-media w-full object-cover'"
+                    :style="cropped ? { aspectRatio: node.attrs.ratio } : null"
+                    @load="measure"
+                >
 
-            <button
-                type="button"
-                contenteditable="false"
-                class="absolute right-2 top-2 rounded-md bg-neutral-900/70 p-1.5 text-neutral-0 opacity-0 transition-opacity hover:bg-neutral-900 focus-visible:opacity-100 group-hover:opacity-100"
-                aria-label="Remove image"
-                @click="deleteNode()"
-            ><Icon name="Delete02Icon" class="size-4" /></button>
+                <button
+                    type="button"
+                    contenteditable="false"
+                    class="absolute right-2 top-2 rounded-md bg-neutral-900/70 p-1.5 text-neutral-0 opacity-0 transition-opacity hover:bg-neutral-900 focus-visible:opacity-100 group-hover:opacity-100"
+                    aria-label="Remove image"
+                    @click="deleteNode()"
+                ><Icon name="Delete02Icon" class="size-4" /></button>
+            </div>
 
-            <figcaption v-if="node.attrs.caption" contenteditable="false" class="mt-2 text-caption text-neutral-500">
+            <figcaption v-if="node.attrs.caption" contenteditable="false" class="mt-2 text-sm text-neutral-500">
                 {{ node.attrs.caption }}
             </figcaption>
         </figure>
@@ -87,7 +107,7 @@ function useTypedUrl() {
             @dragleave.prevent="dragging = false"
             @drop.prevent="dragging = false; upload($event.dataTransfer?.files?.[0])"
         >
-            <label class="flex min-h-11 cursor-pointer items-center justify-center gap-2 text-meta text-neutral-500 transition-colors hover:text-accent-700">
+            <label class="flex min-h-11 cursor-pointer items-center justify-center gap-2 text-sm text-neutral-500 transition-colors hover:text-accent-700">
                 <Icon name="Image01Icon" class="size-4 shrink-0" />
                 <span v-if="uploading">Uploading...</span>
                 <span v-else>Drop an image here, or choose one</span>
@@ -100,18 +120,18 @@ function useTypedUrl() {
                     v-model="typedUrl"
                     type="url"
                     placeholder="or paste an image URL"
-                    class="min-w-0 flex-1 bg-transparent text-meta text-neutral-900 placeholder:text-neutral-400 focus:outline-none"
+                    class="min-w-0 flex-1 bg-transparent text-sm text-neutral-900 placeholder:text-neutral-400 focus:outline-none"
                     @keydown.enter.prevent="useTypedUrl"
                 >
 
                 <button
                     type="button"
-                    class="rounded px-2 py-1 text-caption text-neutral-500 transition-colors hover:bg-accent-50 hover:text-accent-700"
+                    class="rounded px-2 py-1 text-xs text-neutral-500 transition-colors hover:bg-accent-50 hover:text-accent-700"
                     @click="useTypedUrl"
                 >Use</button>
             </div>
 
-            <p v-if="error" class="mt-2 text-caption text-red-600">{{ error }}</p>
+            <p v-if="error" class="mt-2 text-xs text-red-600">{{ error }}</p>
         </div>
     </NodeViewWrapper>
 </template>

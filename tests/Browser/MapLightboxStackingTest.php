@@ -1,7 +1,27 @@
 <?php
 
 use App\Models\Activity;
+use App\Models\Place;
 use Illuminate\Support\Facades\Storage;
+
+/** Whatever paints at the element's centre must not belong to it. */
+const HIT_TEST = '(() => {
+    const el = document.querySelector(SELECTOR);
+    const box = el.getBoundingClientRect();
+    const top = document.elementFromPoint(box.left + box.width / 2, box.top + box.height / 2);
+
+    return top?.closest(SELECTOR) === null;
+})()';
+
+/**
+ * A script asserting the element is painted over while the lightbox is open.
+ *
+ * @param  string  $selector  CSS selector for the element that must be covered.
+ */
+function hitTestCovered(string $selector): string
+{
+    return str_replace('SELECTOR', "'{$selector}'", HIT_TEST);
+}
 
 it('draws the lightbox above the map photo markers', function () {
     config(['queue.default' => 'sync']);
@@ -32,30 +52,30 @@ it('draws the lightbox above the map photo markers', function () {
             true,
         );
 
-    // Hit-test the marker's own centre: whatever paints there while the
-    // lightbox is open must belong to the lightbox, not the map. Clicking a
-    // marker focuses it, and focus is what lifts it up the stack.
-    $page->assertScript(
-        "(() => {
-            const marker = document.querySelector('[data-testid=\"photo-marker\"]');
-            const box = marker.getBoundingClientRect();
-            const top = document.elementFromPoint(box.left + box.width / 2, box.top + box.height / 2);
+    // Clicking a marker focuses it, and focus is what lifts it up the stack.
+    $page->assertScript(hitTestCovered('[data-testid="photo-marker"]'), true);
 
-            return top?.closest('[data-testid=\"photo-marker\"]') === null;
-        })()",
-        true,
-    );
-
-    // Same test for maplibre's own zoom control, which editor.css lifts to
+    // Same test for maplibre's own zoom control, which vendor.css lifts to
     // z-index 901 and which sits in the same contained stacking context.
-    $page->assertScript(
-        "(() => {
-            const zoom = document.querySelector('.maplibregl-ctrl-top-right');
-            const box = zoom.getBoundingClientRect();
-            const top = document.elementFromPoint(box.left + box.width / 2, box.top + box.height / 2);
+    $page->assertScript(hitTestCovered('.maplibregl-ctrl-top-right'), true);
+});
 
-            return top?.closest('.maplibregl-ctrl-top-right') === null;
-        })()",
-        true,
-    );
+it('draws the lightbox above the zoom control of a plain location map', function () {
+    config(['queue.default' => 'sync']);
+    Storage::fake('public');
+
+    $place = Place::factory()->create([
+        'occurred_at' => '2026-07-12 12:00:00',
+        'latitude' => 51.31345,
+        'longitude' => -0.08194,
+    ]);
+
+    $place->addMediaFromString(fakeJpeg())->usingFileName('lunch.jpg')->toMediaCollection('photos');
+
+    $page = visit($place->url())->resize(1280, 900);
+
+    $page->click('[aria-label="View photo 1"]')
+        ->assertPresent('[role="dialog"]')
+        ->wait(0.5)
+        ->assertScript(hitTestCovered('.maplibregl-ctrl-top-right'), true);
 });

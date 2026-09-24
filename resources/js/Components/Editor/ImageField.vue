@@ -2,6 +2,7 @@
 import { computed, ref } from 'vue';
 import Icon from '../Ui/Icon.vue';
 import { CONTROL_BORDER } from '../../lib/editor/control.js';
+import { csrf } from '../../lib/csrf.js';
 
 /**
  * Upload for an entry's images. Handles both a single cover and a gallery: the
@@ -18,6 +19,7 @@ const props = defineProps({
     multiple: { type: Boolean, default: false },
     id: { type: String, default: null },
     invalid: { type: Boolean, default: false },
+    readonly: { type: Boolean, default: false },
 });
 
 const emit = defineEmits(['update:modelValue']);
@@ -28,16 +30,6 @@ const error = ref(null);
 
 const items = computed(() => (Array.isArray(props.modelValue) ? props.modelValue : []));
 const full = computed(() => ! props.multiple && items.value.length >= 1);
-
-/**
- * Laravel ships the token as the XSRF-TOKEN cookie rather than a meta tag here,
- * and expects it back URL-decoded in X-XSRF-TOKEN.
- */
-function csrf() {
-    const cookie = document.cookie.split('; ').find((part) => part.startsWith('XSRF-TOKEN='));
-
-    return cookie ? decodeURIComponent(cookie.slice('XSRF-TOKEN='.length)) : '';
-}
 
 // The long edge the server also caps at, so a file that is already small
 // enough here is not re-encoded twice.
@@ -171,11 +163,14 @@ function move(index, by) {
             >
                 <img :src="item.url" :alt="item.name" class="size-24 object-cover">
 
-                <div class="absolute inset-x-0 bottom-0 flex justify-between gap-1 bg-neutral-900/70 px-1 py-0.5 opacity-0 transition-opacity group-hover:opacity-100 group-focus-within:opacity-100">
+                <div
+                    v-if="! readonly"
+                    class="absolute inset-x-0 bottom-0 flex justify-between gap-1 bg-neutral-900/70 px-1 py-0.5 opacity-0 transition-opacity group-hover:opacity-100 group-focus-within:opacity-100"
+                >
                     <div v-if="multiple" class="flex gap-0.5">
                         <button
                             type="button"
-                            class="rounded p-0.5 text-neutral-0 transition-colors not-disabled:hover:text-accent-300 disabled:opacity-40 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-neutral-0"
+                            class="rounded p-0.5 text-neutral-0 transition-colors not-disabled:hover:text-accent-300 disabled:opacity-40 focus-visible:outline-white"
                             :aria-label="`Move ${item.name} earlier`"
                             :disabled="index === 0"
                             @click="move(index, -1)"
@@ -183,7 +178,7 @@ function move(index, by) {
 
                         <button
                             type="button"
-                            class="rounded p-0.5 text-neutral-0 transition-colors not-disabled:hover:text-accent-300 disabled:opacity-40 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-neutral-0"
+                            class="rounded p-0.5 text-neutral-0 transition-colors not-disabled:hover:text-accent-300 disabled:opacity-40 focus-visible:outline-white"
                             :aria-label="`Move ${item.name} later`"
                             :disabled="index === items.length - 1"
                             @click="move(index, 1)"
@@ -194,7 +189,7 @@ function move(index, by) {
 
                     <button
                         type="button"
-                        class="rounded p-0.5 text-neutral-0 hover:text-red-300 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-neutral-0"
+                        class="rounded p-0.5 text-neutral-0 hover:text-red-300 focus-visible:outline-white"
                         :aria-label="`Remove ${item.name}`"
                         @click="remove(index)"
                     ><Icon name="Delete02Icon" class="size-4" /></button>
@@ -205,8 +200,8 @@ function move(index, by) {
         <!-- A label rather than a div: the whole zone is then the click target
              natively, and the sr-only input keeps its own keyboard focus. -->
         <label
-            v-if="! full"
-            class="flex min-h-11 cursor-pointer items-center justify-center gap-2 rounded-md border border-dashed px-3 py-6 text-meta transition-colors focus-within:ring-2 focus-within:ring-accent-500"
+            v-if="! full && ! readonly"
+            class="flex min-h-11 cursor-pointer items-center justify-center gap-2 rounded-md border border-dashed px-3 py-6 text-sm transition-colors focus-within:outline-2 focus-within:-outline-offset-1 focus-within:outline-accent-500"
             :class="[
                 dragging ? 'border-accent-500 bg-accent-50 text-accent-700' : 'text-neutral-500 hover:border-accent-500 hover:text-accent-700',
                 invalid ? 'border-red-500' : CONTROL_BORDER,
@@ -230,6 +225,10 @@ function move(index, by) {
             >
         </label>
 
-        <p v-if="error" class="text-caption text-red-600">{{ error }}</p>
+        <div v-if="$slots.actions" class="flex flex-wrap gap-2">
+            <slot name="actions" />
+        </div>
+
+        <p v-if="error" class="text-xs text-red-600">{{ error }}</p>
     </div>
 </template>

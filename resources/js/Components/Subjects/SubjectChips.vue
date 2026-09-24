@@ -31,7 +31,7 @@ const editing = ref(false);
 <template>
     <div v-if="lines.length || signedIn" class="flex flex-col items-start gap-2">
         <div class="flex flex-wrap items-center gap-x-4 gap-y-1.5">
-            <p v-for="line in lines" :key="line.phrase" class="text-caption text-neutral-500">
+            <p v-for="line in lines" :key="line.phrase" class="text-xs text-neutral-500">
                 {{ line.phrase }}
                 <template v-for="(subject, index) in line.subjects" :key="subject.id">
                     <Link

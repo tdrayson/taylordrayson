@@ -151,9 +151,8 @@ class SleepAggregator
         $duration = max(0, $window - $stageSeconds['awake']);
 
         return [
-            'occurred_at' => $night,
-            'bedtime' => $bedtime,
-            'wake_time' => $wakeTime,
+            'occurred_at' => $wakeTime ?? $night,
+            'started_at' => $bedtime,
             'duration' => $duration,
             'awake' => $stageSeconds['awake'],
             'rem' => $stageSeconds['rem'],

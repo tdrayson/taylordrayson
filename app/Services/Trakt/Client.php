@@ -295,9 +295,7 @@ class Client
      */
     private function get(string $path, array $params = []): ?array
     {
-        $response = $this->request($path, $params);
-
-        return $response->failed() ? null : $response->json();
+        return $this->connector->json(new GetRequest($path, $params));
     }
 
     /**
@@ -309,21 +307,13 @@ class Client
      */
     private function getOrFail(string $path, array $params = []): array
     {
-        $response = $this->request($path, $params);
+        $response = $this->connector->send(new GetRequest($path, $params));
 
         if ($response->failed()) {
             throw new TraktException("Trakt request to {$path} failed with status {$response->status()}.");
         }
 
         return $response->json() ?? [];
-    }
-
-    /**
-     * @param  array<string, mixed>  $params
-     */
-    private function request(string $path, array $params): Response
-    {
-        return $this->connector->send(new GetRequest($path, $params));
     }
 
     /**

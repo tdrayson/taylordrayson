@@ -7,7 +7,7 @@ use Saloon\Http\Auth\TokenAuthenticator;
 use Saloon\Http\Response;
 
 /**
- * Client for the Hardcover GraphQL API, used to look up books for the media
+ * Client for the Hardcover GraphQL API, used to look up books for the
  * timeline. A failed response or a GraphQL `errors` payload throws rather than
  * returning an empty result set.
  */
@@ -92,6 +92,40 @@ class Client
             ->map(fn (mixed $hit): array => is_array($hit) ? ($hit['document'] ?? []) : [])
             ->filter(fn (array $document): bool => $document !== [])
             ->values()
+            ->all();
+    }
+
+    /**
+     * Each book's description, tags and editions (cover, ISBN, year, pages), keyed by Hardcover book id.
+     *
+     * @param  list<int>  $ids
+     * @return array<int, array<string, mixed>>
+     */
+    public function booksWithEditions(array $ids): array
+    {
+        if ($ids === []) {
+            return [];
+        }
+
+        $data = $this->query(<<<'GRAPHQL'
+            query BooksWithEditions($ids: [Int!]) {
+              books(where: {id: {_in: $ids}}) {
+                id
+                description
+                image { url }
+                cached_tags
+                editions(
+                  where: {image_id: {_is_null: false}, _or: [{language_id: {_is_null: true}}, {language: {code2: {_eq: "en"}}}]}
+                  order_by: {users_count: desc}
+                  limit: 40
+                ) { isbn_13 isbn_10 release_year release_date pages image { url } }
+              }
+            }
+            GRAPHQL, ['ids' => $ids]);
+
+        return collect($data['books'] ?? [])
+            ->filter(fn (mixed $book): bool => is_array($book) && isset($book['id']))
+            ->keyBy(fn (array $book): int => (int) $book['id'])
             ->all();
     }
 

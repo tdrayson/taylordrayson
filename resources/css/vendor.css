@@ -4,6 +4,13 @@
     --plyr-border-radius: var(--radius-lg);
 }
 
+/* Plyr draws its own focus ring; only the dash differs from ours. */
+.plyr .plyr__control:focus-visible,
+.plyr--full-ui input[type='range']:focus-visible::-webkit-slider-runnable-track,
+.plyr--full-ui input[type='range']:focus-visible::-moz-range-track {
+    outline-style: solid;
+}
+
 .plyr,
 .plyr--video,
 .plyr--video .plyr__video-wrapper {
@@ -21,73 +28,28 @@
     width: 100%;
 }
 
-/* GridStack drag chrome: match the widgets' rounded-3xl so corners stay round
-   while dragging/dropping (the placeholder and the drag shadow are otherwise square). */
-.now-grid .grid-stack-item-content,
-.now-grid .grid-stack-placeholder > .placeholder-content {
-    border-radius: 1.5rem;
+/* Contains every z-index inside a map (MapLibre's own, plus the two below), so
+   none of them is measured against the page and painted over a page-level
+   overlay such as the lightbox. */
+.maplibregl-map {
+    isolation: isolate;
 }
 
-/* Route intro on an activity map: a photo marker stays hidden until the line
-   being drawn reaches where it was taken. !important because maplibre writes
-   its own opacity onto every marker element as it renders them. */
-.entry-map-photo {
-    transition: opacity 220ms ease-out;
+/* Above every marker, raised or not. MapLibre numbers its markers itself and
+   ships the controls at 2, so a raised marker would sit over the zoom buttons.
+   Qualified by the map class to beat MapLibre's own rule, whose stylesheet is
+   imported dynamically and so cannot be ordered against. */
+.maplibregl-map .maplibregl-ctrl-top-left,
+.maplibregl-map .maplibregl-ctrl-top-right,
+.maplibregl-map .maplibregl-ctrl-bottom-left,
+.maplibregl-map .maplibregl-ctrl-bottom-right {
+    z-index: 901;
 }
 
-.entry-map-photo--pending {
-    opacity: 0 !important;
-}
-
-/* Photo markers popping in and out with the map's photo control. The scale sits
-   on the inner disc rather than the marker element: maplibre owns that one's
-   transform, and overwriting it flings the marker to the map origin. The
-   doubled class outranks the hover scale utility on the same span. */
-.entry-map-photo-pop > span {
-    transition: transform 260ms cubic-bezier(0.34, 1.56, 0.64, 1), opacity 150ms ease-out;
-}
-
-.entry-map-photo-pop.entry-map-photo-pop--out > span {
-    transform: scale(0.3);
-    opacity: 0;
-}
-
-@media (prefers-reduced-motion: reduce) {
-    .entry-map-photo-pop > span {
-        transition: none;
-    }
-}
-
-/* The dot riding the front of the drawing line, fading out where it stops.
-   !important for the same reason as the photo markers above. */
-.entry-map-head {
-    transition: opacity 240ms ease-out;
-}
-
-.entry-map-head--done {
-    opacity: 0 !important;
-}
-
-/* Route endpoints: a plain dot where the activity started, a chequered one
-   where it finished. Both wait for the drawing line to reach them. */
-.entry-map-endpoint {
-    box-shadow: 0 1px 3px rgb(0 0 0 / 0.3);
-    transition: opacity 240ms ease-out;
-}
-
-.entry-map-endpoint--pending {
-    opacity: 0 !important;
-}
-
-/* Inverted against the page rather than tinted with the route colour, which
-   would hide the dot in the line it sits on. Reads in either theme, since the
-   neutral scale flips. */
-.entry-map-endpoint--start {
-    background: var(--color-neutral-0);
-    border-color: var(--color-neutral-900);
-}
-
-/* Four alternating quadrants: at this size a finer grid turns to mush. */
-.entry-map-endpoint--finish {
-    background-image: conic-gradient(#1c1c1c 0 25%, #fafafa 0 50%, #1c1c1c 0 75%, #fafafa 0);
+/* The zoom buttons are one joined stack: our ring, inset so each button keeps
+   the group's corners, in place of MapLibre's blue glow. */
+.maplibregl-map .maplibregl-ctrl-group button:focus:focus-visible,
+.maplibregl-map .maplibregl-ctrl-attrib-button:focus:focus-visible {
+    box-shadow: none;
+    outline-offset: -2px;
 }

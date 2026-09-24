@@ -3,18 +3,25 @@ import { ref, computed, onBeforeUnmount } from 'vue';
 import { Link } from '@inertiajs/vue3';
 import { PlayIcon, PauseIcon } from '@hugeicons-pro/core-stroke-rounded';
 import Icon from '../Ui/Icon.vue';
+import ReactionBar from '../Conversation/ReactionBar.vue';
+import { useInteractions } from '../../lib/interactionContext.js';
 import Button from '../Ui/Button.vue';
+import Pill from '../Ui/Pill.vue';
 import Tooltip from '../Ui/Tooltip.vue';
 import ZoomButton from '../Ui/ZoomButton.vue';
+import Heading from '../Ui/Heading.vue';
 import StageBar from '../Stats/StageBar.vue';
 import FlightRoute from '../Maps/FlightRoute.vue';
 import Lightbox from '../Overlays/Lightbox.vue';
 import CardMediaCarousel from './CardMediaCarousel.vue';
 import NoteBody from '../Ui/NoteBody.vue';
+import ResponseContext from '../Entry/ResponseContext.vue';
 import { entryType } from '../../entryTypes.js';
-import { clock, duration, flightDurationLabel } from '../../lib/format.js';
+import { clock, duration as clockDuration, flightDurationLabel } from '../../lib/format.js';
 import { player, playAudio, playVideo, togglePlay, isCurrent, dockVideo, undockVideo } from '../../lib/player.js';
 import { useFormat } from '../../composables/useFormat';
+import { useTokenText } from '../../composables/useTokenText';
+import { useTheme } from '../../useTheme';
 
 const props = defineProps({
     // Registry name string (from entryTypes) or a raw hugeicons object.
@@ -22,9 +29,13 @@ const props = defineProps({
     iconKey: { type: String, default: null },
     accent: { type: String, default: null },
     type: { type: String, default: '' },
+    // The entry's own key, for addressing the reaction endpoint.
+    id: { type: [Number, String], default: null },
     time: { type: String, default: '' },
     datetime: { type: String, default: null },
     title: { type: String, required: true },
+    // The title as tokens when it carries a measurement, e.g. a night's sleep.
+    titleTokens: { type: Array, default: null },
     // Accessible name for the title when the visible text lacks context (e.g. "3,145 kcal").
     titleLabel: { type: String, default: null },
     // Full note content as a Portable Text document: title-less types render
@@ -43,6 +54,9 @@ const props = defineProps({
     // Wide artwork for a film or episode (an episode borrows its show's). Shown
     // as context, so unlike `photos` it has no lightbox.
     backdrop: { type: String, default: null },
+    // What this post responds to, for a note or article that answers somebody.
+    // The same ResponseData the entry page draws, in its compact form.
+    response: { type: Object, default: null },
     // A pre-generated static map (e.g. an event's location map), shown in the
     // same banner slot as an activity/flight's live-rendered route map.
     map: { type: String, default: null },
@@ -67,10 +81,12 @@ const props = defineProps({
     url: { type: String, default: null },
     label: { type: String, default: '' },
     offset: { type: String, default: '' },
+    // Set only for an entry that is not published, which only the owner's search returns.
+    statusLabel: { type: String, default: null },
 });
 
 // Unit-aware distance formatter; route.distance is already in miles.
-const { distance, weight, distanceFromMiles } = useFormat();
+const { distanceFromMiles, exactDistanceFromMiles, duration, exactMeasure } = useFormat();
 
 // A note renders its document in place of the display-font title, so the
 // heading below is a v-else on this rather than on `body` being truthy: an
@@ -128,45 +144,18 @@ function listen() {
 // Leaving the page releases the inline dock, popping the video to the corner.
 onBeforeUnmount(() => undockVideo(videoSlot.value));
 
-// Timeline card subtitle. When the server sends structured tokens, compose them
-// through useFormat so distance/weight react to the unit toggle; otherwise fall
-// back to the plain server string (e.g. notes have no unit-bearing subtitle).
-const metaText = computed(() => {
-    if (!props.metaTokens) {
-        return props.meta;
-    }
-    // Each token may carry a `sep` (e.g. ' in ') to join it onto the previous
-    // token with a light connective instead of the default ', ' list comma.
-    // Empty-text tokens are dropped before joining so a missing value never
-    // leaves a dangling separator (e.g. no leading "in" when duration is first).
-    const parts = props.metaTokens
-        .map((token) => {
-            if (token.t === 'dist') {
-                return { text: distance(token.m, token.p), sep: token.sep ?? ', ' };
-            }
-            if (token.t === 'wt') {
-                return { text: weight(token.kg, token.p), sep: token.sep ?? ', ' };
-            }
-            return { text: token.v, sep: token.sep ?? ', ' };
-        })
-        .filter((part) => part.text);
+// Card title and subtitle. Tokens carry raw measurements, composed here so they
+// follow the visitor's unit settings; otherwise the plain server string stands.
+const { tokenText, tokenTitle } = useTokenText();
 
-    return parts.map((part, index) => (index === 0 ? '' : part.sep) + part.text).join('');
-});
+const titleText = computed(() => (props.titleTokens ? tokenText(props.titleTokens) : props.title));
+const titleExact = computed(() => tokenTitle(props.titleTokens));
+const metaText = computed(() => (props.metaTokens ? tokenText(props.metaTokens) : props.meta));
+const metaTitle = computed(() => tokenTitle(props.metaTokens));
 
 const displayIcon = computed(() => props.icon ?? entryType(props.iconKey).icon);
 const displayType = computed(() => props.type || entryType(props.iconKey).label);
 const typeHref = computed(() => entryType(props.iconKey).href ?? null);
-
-const clockOf = (value) => {
-    if (!value) {
-        return null;
-    }
-
-    const date = new Date(value);
-
-    return Number.isNaN(date.getTime()) ? null : clock(date);
-};
 
 const routeView = computed(() => {
     if (!props.route) {
@@ -176,19 +165,20 @@ const routeView = computed(() => {
     return {
         origin: props.route.origin,
         destination: props.route.destination,
-        departTime: clockOf(props.route.depart),
-        arriveTime: clockOf(props.route.arrive),
+        departTime: clock(props.route.depart),
+        arriveTime: clock(props.route.arrive),
         duration: props.route.duration ? duration(props.route.duration) : flightDurationLabel(props.route.distance),
         note: props.route.distance ? distanceFromMiles(props.route.distance) : null,
+        noteTitle: exactDistanceFromMiles(props.route.distance),
+        durationTitle: exactMeasure('duration', props.route.duration, clockDuration(props.route.duration)),
     };
 });
 
 const airline = computed(() => props.route?.airline ?? null);
 
-// The data type's colour token (accent resolves divergent keys, e.g. calorie → food).
 const typeColor = computed(() => `var(--color-${props.accent ?? props.iconKey})`);
 
-// Stored static map for this entry (activity route, flight arc, event/fuel/checkin
+// Stored static map for this entry (activity route, flight arc, event/fuel/place
 // pin), pre-generated server-side. Shown only when there is no cover photo.
 const routeImageUrl = computed(() => props.map ?? null);
 
@@ -198,22 +188,52 @@ const routeImageDarkUrl = computed(() => props.mapDark ?? null);
 const fullTimestamp = computed(() => (props.label ? `${props.label} ${props.offset}`.trim() : props.time));
 
 // Activity photos: the cover sits beside the route map, with a "+N" badge for
-// any extras. A hover zoom icon opens the photos in a lightbox in place; the map
-// is not lightboxed (clicking the card opens the entry's interactive map).
+// any extras. Clicking any of the card's media opens the lightbox in place
+// rather than navigating; the entry is still one click away from the title, the
+// timestamp, and the lightbox's own "View entry" link.
 const coverPhoto = computed(() => props.photos?.[0] ?? null);
 const extraPhotos = computed(() => (props.photos ? props.photos.length - 1 : 0));
 
 const lightboxIndex = ref(null);
-const lightboxItems = computed(() => props.photos ?? []);
+
+// The map trails the photos, matching CardMediaCarousel's slide order, so one
+// index addresses both.
+const mapLightboxIndex = computed(() => props.photos?.length ?? 0);
+
+// The card renders both map PNGs and lets `dark:` pick one, but the lightbox
+// shows a single image, so the active scheme chooses it here instead.
+const { resolved } = useTheme();
+
+// Lightbox slides: the photos, then the map. Each carries the entry permalink so
+// the lightbox offers the link the image itself used to be.
+const lightboxItems = computed(() => {
+    const items = (props.photos ?? []).map((photo) => ({ ...photo, url: props.url }));
+
+    if (routeImageUrl.value) {
+        items.push({
+            full: resolved.value === 'dark' && routeImageDarkUrl.value ? routeImageDarkUrl.value : routeImageUrl.value,
+            url: props.url,
+        });
+    }
+
+    return items;
+});
 
 function openLightbox(index) {
     lightboxIndex.value = index;
 }
+
+// Deferred, so absent on first paint and present on the second request. A card
+// whose type takes no interactions never gets a row at all.
+const interactions = useInteractions();
+// Keyed on iconKey: that is the timeline type value the reaction endpoint is
+// addressed by. The `type` prop is the display label and is empty in the feed.
+const row = computed(() => (props.id === null ? null : interactions.value[`${props.iconKey}:${props.id}`] ?? null));
 </script>
 
 <template>
     <div class="relative block h-entry" :style="{ '--type-color': typeColor }">
-        <span class="type-color absolute -left-14 top-px flex size-9 items-center justify-center rounded-full bg-neutral-25 lg:-left-12">
+        <span class="absolute -left-14 top-px flex size-9 items-center justify-center rounded-full bg-neutral-25 text-(--type-color) lg:-left-12">
             <Icon :icon="displayIcon" class="size-5" />
         </span>
         <div class="flex min-h-9 items-center">
@@ -221,43 +241,50 @@ function openLightbox(index) {
                 <component
                     :is="typeHref ? Link : 'div'"
                     :href="typeHref || undefined"
-                    class="type-color p-category text-label uppercase"
+                    class="p-category text-2xs font-semibold uppercase tracking-wider text-(--type-color)"
                     :class="typeHref ? 'underline-offset-2 hover:underline focus-visible:underline' : ''"
                 >{{ displayType }}</component>
                 <Tooltip v-if="datetime" :label="fullTimestamp" placement="top">
                     <Link v-if="url" :href="url" :aria-label="fullTimestamp" class="u-url underline-offset-2 transition-colors hover:text-accent-500 hover:underline focus-visible:text-accent-500 focus-visible:underline">
-                        <time :datetime="datetime" class="dt-published text-xs text-neutral-500 tnum transition-colors hover:text-accent-500">{{ time }}</time>
+                        <time :datetime="datetime" class="dt-published text-xs text-neutral-500 tabular-nums transition-colors hover:text-accent-500">{{ time }}</time>
                     </Link>
-                    <time v-else :datetime="datetime" :aria-label="fullTimestamp" class="dt-published text-xs text-neutral-500 tnum">{{ time }}</time>
+                    <time v-else :datetime="datetime" :aria-label="fullTimestamp" class="dt-published text-xs text-neutral-500 tabular-nums">{{ time }}</time>
                 </Tooltip>
-                <span v-else-if="time" class="text-xs text-neutral-500 tnum">{{ time }}</span>
+                <span v-else-if="time" class="text-xs text-neutral-500 tabular-nums">{{ time }}</span>
+                <Pill v-if="statusLabel" :label="statusLabel" />
             </div>
         </div>
+        <!-- Above the words, the same order the entry page reads in. -->
+        <ResponseContext v-if="response" :response="response" class="mt-1.5" />
+
         <NoteBody v-if="hasBody" :document="body" />
-        <!-- A real h3: each card is a subsection of its DateGroup's h2/h3 heading. -->
-        <h3 v-else class="mt-1 max-w-md font-display text-item-title">
+        <!-- A real h3: each card is a subsection of its DateGroup's h2/h3
+             heading. A gesture has none, because the line above is the card:
+             its title only restates that line in a display face. -->
+        <Heading v-else-if="! response?.namedInTitle" as="h3" size="title" class="mt-1 max-w-md">
             <component
                 :is="url ? Link : 'span'"
                 v-twemoji
                 :href="url || undefined"
                 :aria-label="titleLabel || undefined"
+                :title="titleExact"
                 class="p-name"
-                :class="url ? 'type-link u-url underline-offset-4 transition-colors hover:underline focus-visible:underline' : ''"
-            >{{ title }}</component>
-        </h3>
-        <p v-if="category" class="mt-1.5 text-caption text-neutral-500">{{ category }}</p>
-        <div v-if="brandLogo || brand" class="mt-1.5 flex items-center gap-1.5 text-caption text-neutral-500">
+                :class="url ? 'u-url underline-offset-4 transition-colors hover:text-(--type-color) hover:underline focus-visible:text-(--type-color) focus-visible:underline' : ''"
+            >{{ titleText }}</component>
+        </Heading>
+        <p v-if="category" class="mt-1.5 text-xs text-neutral-500">{{ category }}</p>
+        <div v-if="brandLogo || brand" class="mt-1.5 flex items-center gap-1.5 text-xs text-neutral-500">
             <span v-if="brandLogo" class="inline-flex size-6 items-center justify-center overflow-hidden rounded bg-white ring-1 ring-neutral-100">
                 <img :src="brandLogo" alt="" class="size-full object-contain p-0.5">
             </span>
             <span v-if="brand">{{ brand }} garage</span>
         </div>
-        <div v-if="airline" class="mt-1.5 flex items-center gap-1.5 text-caption text-neutral-500">
+        <div v-if="airline" class="mt-1.5 flex items-center gap-1.5 text-xs text-neutral-500">
             <img v-if="airline.icon" :src="airline.icon" :alt="airline.name" class="size-4 shrink-0 object-contain">
             <span>{{ airline.name }}</span>
-            <span v-if="airline.number" class="text-neutral-400 tnum">{{ airline.number }}</span>
+            <span v-if="airline.number" class="text-neutral-400 tabular-nums">{{ airline.number }}</span>
         </div>
-        <span v-if="range" class="mt-1.5 block text-caption text-neutral-400">{{ range.label }} ({{ range.days }} days)</span>
+        <span v-if="range" class="mt-1.5 block text-xs text-neutral-400">{{ range.label }} ({{ range.days }} days)</span>
         <FlightRoute
             v-if="routeView"
             compact
@@ -267,13 +294,27 @@ function openLightbox(index) {
             :arrive-time="routeView.arriveTime"
             :duration="routeView.duration"
             :note="routeView.note"
+            :note-title="routeView.noteTitle"
+            :duration-title="routeView.durationTitle"
             class="mt-3 max-w-sm"
         />
-        <p v-else-if="metaText" v-twemoji class="p-summary mt-2 line-clamp-3 max-w-prose text-meta" :class="pb ? 'font-semibold text-accent-500' : 'text-neutral-700'">{{ metaText }}</p>
-        <!-- Map alone when there is no photo. Light/dark PNGs are both rendered
-             and the `dark:` class picks the right one, no JS needed. -->
-        <img v-if="routeImageUrl && !coverPhoto" :src="routeImageUrl" alt="" class="mt-3 aspect-video w-full max-w-lg rounded-lg border border-neutral-50 object-cover" :class="routeImageDarkUrl ? 'dark:hidden' : ''">
-        <img v-if="routeImageDarkUrl && !coverPhoto" :src="routeImageDarkUrl" alt="" class="mt-3 hidden aspect-video w-full max-w-lg rounded-lg border border-neutral-50 object-cover dark:block">
+        <p v-else-if="metaText" v-twemoji :title="metaTitle" class="p-summary mt-2 line-clamp-3 max-w-prose text-sm" :class="pb ? 'font-semibold text-accent-500' : 'text-neutral-700'">{{ metaText }}</p>
+        <!-- Map alone when there is no photo, and it opens the lightbox like a
+             photo would. Light/dark PNGs are both rendered and the `dark:` class
+             picks the right one, no JS needed. -->
+        <button
+            v-if="routeImageUrl && !coverPhoto"
+            type="button"
+            class="group/zoom relative mt-3 block aspect-video w-full max-w-lg cursor-zoom-in overflow-hidden rounded-lg border border-neutral-50"
+            aria-label="View map"
+            @click="openLightbox(mapLightboxIndex)"
+        >
+            <img :src="routeImageUrl" alt="" class="size-full object-cover" :class="routeImageDarkUrl ? 'dark:hidden' : ''">
+            <img v-if="routeImageDarkUrl" :src="routeImageDarkUrl" alt="" class="hidden size-full object-cover dark:block">
+            <span class="pointer-events-none absolute right-2 top-2 opacity-0 transition-opacity group-hover/zoom:opacity-100 group-focus-within/zoom:opacity-100">
+                <ZoomButton />
+            </span>
+        </button>
 
         <!-- Small screens with both a map and photos get a swipeable carousel;
              the lg+ layout below keeps them side by side. -->
@@ -282,7 +323,6 @@ function openLightbox(index) {
             :map="routeImageUrl"
             :map-dark="routeImageDarkUrl"
             :photos="photos"
-            :url="url"
             class="lg:hidden"
             @open="openLightbox"
         />
@@ -301,25 +341,24 @@ function openLightbox(index) {
             <img :src="backdrop" alt="" loading="lazy" decoding="async" class="size-full object-cover">
         </component>
 
-        <!-- Image link and zoom button are siblings, not nested; the image link
-             duplicates the text permalink, so it is aria-hidden. -->
+        <!-- The cover is the lightbox trigger; the zoom chip and the "+N" badge
+             ride inside it as decoration, so the whole image is one hit target. -->
         <div
             v-if="coverPhoto && !routeImageUrl"
-            class="group/zoom relative mt-3 block aspect-video w-full max-w-lg overflow-hidden rounded-lg border border-neutral-50"
+            class="focus-frame group/zoom relative mt-3 block aspect-video w-full max-w-lg overflow-hidden rounded-lg border border-neutral-50"
         >
-            <component
-                :is="url ? Link : 'div'"
-                :href="url || undefined"
-                :tabindex="url ? -1 : undefined"
-                :aria-hidden="url ? 'true' : undefined"
-                class="block size-full"
+            <button
+                type="button"
+                class="focus-frame-target block size-full cursor-zoom-in"
+                aria-label="View photos"
+                @click="openLightbox(0)"
             >
                 <img :src="coverPhoto.src" :srcset="coverPhoto.srcset || undefined" sizes="100vw" alt="" class="size-full object-cover">
-            </component>
-            <button type="button" class="absolute right-2 top-2 opacity-0 transition-opacity group-hover/zoom:opacity-100 group-focus-within/zoom:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500" aria-label="View photos" @click="openLightbox(0)">
-                <ZoomButton />
             </button>
-            <span v-if="extraPhotos > 0" class="absolute bottom-2 right-2 rounded-md bg-black/70 px-1.5 py-0.5 text-caption font-semibold text-white tnum">+{{ extraPhotos }}</span>
+            <span class="pointer-events-none absolute right-2 top-2 opacity-0 transition-opacity group-hover/zoom:opacity-100 group-focus-within/zoom:opacity-100">
+                <ZoomButton />
+            </span>
+            <span v-if="extraPhotos > 0" class="pointer-events-none absolute bottom-2 right-2 rounded-md bg-black/70 px-1.5 py-0.5 text-xs font-semibold text-white tabular-nums">+{{ extraPhotos }}</span>
         </div>
 
         <!-- A wide route map beside a square cover on lg+, sharing one fixed height
@@ -330,46 +369,49 @@ function openLightbox(index) {
             v-if="routeImageUrl && coverPhoto"
             class="mt-3 hidden gap-2 lg:flex"
         >
-            <component
-                :is="url ? Link : 'div'"
-                :href="url || undefined"
-                :tabindex="url ? -1 : undefined"
-                :aria-hidden="url ? 'true' : undefined"
-                class="block min-w-0 max-w-lg flex-1"
-            >
-                <img :src="routeImageUrl" alt="" class="h-72 w-full rounded-lg border border-neutral-50 object-cover" :class="routeImageDarkUrl ? 'dark:hidden' : ''">
-                <img v-if="routeImageDarkUrl" :src="routeImageDarkUrl" alt="" class="hidden h-72 w-full rounded-lg border border-neutral-50 object-cover dark:block">
-            </component>
+            <div class="group/zoom relative min-w-0 max-w-lg flex-1">
+                <button
+                    type="button"
+                    class="block w-full cursor-zoom-in rounded-lg"
+                    aria-label="View map"
+                    @click="openLightbox(mapLightboxIndex)"
+                >
+                    <img :src="routeImageUrl" alt="" class="h-72 w-full rounded-lg border border-neutral-50 object-cover" :class="routeImageDarkUrl ? 'dark:hidden' : ''">
+                    <img v-if="routeImageDarkUrl" :src="routeImageDarkUrl" alt="" class="hidden h-72 w-full rounded-lg border border-neutral-50 object-cover dark:block">
+                </button>
+                <span class="pointer-events-none absolute right-2 top-2 opacity-0 transition-opacity group-hover/zoom:opacity-100 group-focus-within/zoom:opacity-100">
+                    <ZoomButton />
+                </span>
+            </div>
             <div class="group/zoom relative shrink-0">
-                <component
-                    :is="url ? Link : 'div'"
-                    :href="url || undefined"
-                    :tabindex="url ? -1 : undefined"
-                    :aria-hidden="url ? 'true' : undefined"
-                    class="block"
+                <button
+                    type="button"
+                    class="block cursor-zoom-in rounded-lg"
+                    aria-label="View photos"
+                    @click="openLightbox(0)"
                 >
                     <img :src="coverPhoto.src" :srcset="coverPhoto.srcset || undefined" sizes="320px" alt="" class="aspect-square h-72 w-auto max-w-none rounded-lg border border-neutral-50 object-cover">
-                </component>
-                <button type="button" class="absolute right-2 top-2 opacity-0 transition-opacity group-hover/zoom:opacity-100 group-focus-within/zoom:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500" aria-label="View photos" @click="openLightbox(0)">
-                    <ZoomButton />
                 </button>
-                <span v-if="extraPhotos > 0" class="absolute bottom-2 right-2 rounded-md bg-black/70 px-1.5 py-0.5 text-caption font-semibold text-white tnum">+{{ extraPhotos }}</span>
+                <span class="pointer-events-none absolute right-2 top-2 opacity-0 transition-opacity group-hover/zoom:opacity-100 group-focus-within/zoom:opacity-100">
+                    <ZoomButton />
+                </span>
+                <span v-if="extraPhotos > 0" class="pointer-events-none absolute bottom-2 right-2 rounded-md bg-black/70 px-1.5 py-0.5 text-xs font-semibold text-white tabular-nums">+{{ extraPhotos }}</span>
             </div>
         </div>
         <!-- Check-in's full address, shown beneath the map/photos whether or not
              the card carries a note. -->
-        <p v-if="address" class="mt-3 text-caption text-neutral-500">{{ address }}</p>
+        <p v-if="address" class="mt-3 text-xs text-neutral-500">{{ address }}</p>
 
         <Lightbox v-model:index="lightboxIndex" :photos="lightboxItems" />
         <div
             v-if="media?.thumbnail && media?.videoUrl"
             ref="videoSlot"
-            class="relative mt-3 aspect-video w-full max-w-lg overflow-hidden rounded-lg border border-neutral-50 bg-neutral-25"
+            class="focus-frame relative mt-3 aspect-video w-full max-w-lg overflow-hidden rounded-lg border border-neutral-50 bg-neutral-25"
         >
             <button
                 v-if="!playingInline"
                 type="button"
-                class="group absolute inset-0"
+                class="focus-frame-target group absolute inset-0"
                 aria-label="Watch video"
                 @click="playInline"
             >
@@ -411,16 +453,25 @@ function openLightbox(index) {
             {{ mediaPlaying ? 'Pause' : 'Listen' }}
         </Button>
         <StageBar v-if="segments?.length" :segments="segments" class="mt-3 max-w-md" />
+
+        <!-- The counts arrive on a second request, so the row fades in rather than
+             appearing all at once. -->
+        <Transition name="fade">
+        <ReactionBar
+            v-if="row"
+            variant="compact"
+            class="mt-3"
+            :type="iconKey"
+            :id="Number(id)"
+            :url="url"
+            :reactions="row.reactions"
+            :like-count="row.likeCount"
+            :reply-count="row.replyCount"
+            :repost-count="row.repostCount"
+            :bookmark-count="row.bookmarkCount"
+            :rsvp-count="row.rsvpCount"
+            :mention-count="row.mentionCount"
+        />
+        </Transition>
     </div>
 </template>
-
-<style scoped>
-.type-color {
-    color: var(--type-color);
-}
-
-.type-link:hover,
-.type-link:focus-visible {
-    color: var(--type-color);
-}
-</style>

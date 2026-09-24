@@ -7,7 +7,8 @@ import Button from '../Ui/Button.vue';
 import DetailList from '../Ui/DetailList.vue';
 import SectionHead from '../Ui/SectionHead.vue';
 import ExternalLink from '../Ui/ExternalLink.vue';
-import { duration, titleCase } from '../../lib/format.js';
+import { duration as clockDuration, titleCase } from '../../lib/format.js';
+import { useFormat } from '../../composables/useFormat';
 import { youtubeId } from '../../lib/youtube.js';
 import { player, playAudio, playVideo, togglePlay, isCurrent, dockVideo, undockVideo } from '../../lib/player.js';
 
@@ -15,6 +16,7 @@ const props = defineProps({
     entry: { type: Object, required: true },
 });
 
+const { duration, exactMeasure } = useFormat();
 const slot = ref(null);
 const entryUrl = usePage().url.split('?')[0];
 
@@ -42,7 +44,7 @@ const track = computed(() => ({
 const rows = computed(() => [
     { label: 'Type', value: titleCase(props.entry.type) },
     { label: 'Show', value: props.entry.show_name },
-    { label: 'Duration', value: duration(props.entry.duration) },
+    { label: 'Duration', value: duration(props.entry.duration), title: exactMeasure('duration', props.entry.duration, clockDuration(props.entry.duration)) },
 ]);
 
 const audioPlaying = computed(() => isCurrent(track.value, 'audio') && player.playing);
@@ -78,12 +80,12 @@ onBeforeUnmount(() => {
         <div
             v-if="entry.video_url"
             ref="slot"
-            class="relative aspect-video w-full overflow-hidden rounded-lg border border-neutral-50 bg-neutral-25"
+            class="focus-frame relative aspect-video w-full overflow-hidden rounded-lg border border-neutral-50 bg-neutral-25"
         >
             <button
                 v-if="!playingInline"
                 type="button"
-                class="group absolute inset-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500"
+                class="focus-frame-target group absolute inset-0"
                 aria-label="Watch video"
                 @click="watchVideo"
             >
@@ -109,7 +111,7 @@ onBeforeUnmount(() => {
 
         <div v-if="entry.description">
             <SectionHead title="About" />
-            <p v-twemoji class="max-w-prose whitespace-pre-line text-body text-neutral-700">{{ entry.description }}</p>
+            <p v-twemoji class="max-w-prose whitespace-pre-line text-base text-neutral-700">{{ entry.description }}</p>
         </div>
 
         <div v-if="entry.url || entry.video_url" class="flex flex-wrap gap-x-6 gap-y-3">

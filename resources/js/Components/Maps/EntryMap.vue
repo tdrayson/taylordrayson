@@ -559,7 +559,7 @@ onMounted(async () => {
         const element = document.createElement('div');
 
         element.dataset.testid = isFinish ? 'route-finish' : 'route-start';
-        element.className = `entry-map-endpoint size-3.5 rounded-full border-2 ${isFinish ? 'border-neutral-0 entry-map-endpoint--finish' : 'entry-map-endpoint--start'}`;
+        element.className = `entry-map-endpoint size-3.5 rounded-full border-2 shadow-marker ${isFinish ? 'border-neutral-0 entry-map-endpoint--finish' : 'border-neutral-900 bg-neutral-0'}`;
 
         element.style.pointerEvents = 'none';
         // Below the photo markers (2), above the line itself.
@@ -684,11 +684,7 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-    <!-- isolate: a hovered or focused photo marker lifts itself to z-index 900 to
-         clear its neighbours, which without a stacking context here is measured
-         against the whole page and paints the marker over the lightbox it just
-         opened. Contained, the markers can only outrank each other. -->
-    <div class="relative isolate">
+    <div class="relative">
         <div ref="container" class="w-full overflow-hidden rounded-lg border border-neutral-50" :class="heightClass" />
         <div v-if="ready" class="absolute left-2.5 top-2.5 z-10 flex gap-1.5">
             <button
@@ -737,3 +733,58 @@ onBeforeUnmount(() => {
         </div>
     </div>
 </template>
+
+<style>
+/* Markers are created by MapLibre outside Vue's render, so scoped styles can't reach them.
+   !important because MapLibre writes its own opacity onto every marker as it renders. */
+.entry-map-photo {
+    transition: opacity 220ms ease-out;
+}
+
+.entry-map-photo--pending {
+    opacity: 0 !important;
+}
+
+/* Scale the inner disc: MapLibre owns the marker's transform. The doubled class
+   outranks the hover scale utility on the same span. */
+.entry-map-photo-pop > span {
+    transition: transform 260ms cubic-bezier(0.34, 1.56, 0.64, 1), opacity 150ms ease-out;
+}
+
+.entry-map-photo-pop.entry-map-photo-pop--out > span {
+    transform: scale(0.3);
+    opacity: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .entry-map-photo-pop > span {
+        transition: none;
+    }
+}
+
+.entry-map-head {
+    transition: opacity 240ms ease-out;
+}
+
+.entry-map-head--done {
+    opacity: 0 !important;
+}
+
+.entry-map-endpoint {
+    transition: opacity 240ms ease-out;
+}
+
+.entry-map-endpoint--pending {
+    opacity: 0 !important;
+}
+
+/* Four alternating quadrants: at this size a finer grid turns to mush. */
+.entry-map-endpoint--finish {
+    background-image: conic-gradient(
+        var(--color-neutral-900) 0 25%,
+        var(--color-neutral-0) 0 50%,
+        var(--color-neutral-900) 0 75%,
+        var(--color-neutral-0) 0
+    );
+}
+</style>

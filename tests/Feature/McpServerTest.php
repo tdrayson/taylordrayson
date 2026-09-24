@@ -12,6 +12,31 @@ use Laravel\Passport\ClientRepository;
  * the statement shape, and `PRAGMA query_only` on the connection underneath.
  */
 
+/**
+ * A throwaway RSA pair, so the OAuth tests pass in a checkout with no generated storage/oauth-*.key.
+ *
+ * @return array{private: string, public: string}
+ */
+function passportTestKeys(): array
+{
+    static $keys = null;
+
+    if ($keys === null) {
+        $pair = openssl_pkey_new(['private_key_bits' => 2048, 'private_key_type' => OPENSSL_KEYTYPE_RSA]);
+        openssl_pkey_export($pair, $private);
+        $keys = ['private' => $private, 'public' => openssl_pkey_get_details($pair)['key']];
+    }
+
+    return $keys;
+}
+
+beforeEach(function () {
+    config([
+        'passport.private_key' => passportTestKeys()['private'],
+        'passport.public_key' => passportTestKeys()['public'],
+    ]);
+});
+
 function readOnly(): ReadOnlyDatabase
 {
     return app(ReadOnlyDatabase::class);

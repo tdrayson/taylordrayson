@@ -8,6 +8,7 @@ import DateGroup from '../Components/Timeline/DateGroup.vue';
 import AuthorRef from '../Components/Profile/AuthorRef.vue';
 import Pagination from '../Components/Ui/Pagination.vue';
 import YearJump from '../Components/Timeline/YearJump.vue';
+import { formatRange } from '../lib/dateFormat.js';
 
 defineOptions({ layout: AppLayout, inheritAttrs: false });
 
@@ -20,7 +21,7 @@ const props = defineProps({
     newerUrl: { type: String, default: null },
     // list<{ year, href }>, newest first.
     years: { type: Array, default: () => [] },
-    podcastEpisodes: { type: Number, default: 0 },
+    thisWeekWithEpisodes: { type: Number, default: 0 },
 });
 
 setLayoutProps({
@@ -31,29 +32,8 @@ setLayoutProps({
 // nothing newer than it rather than page 1.
 const isFront = computed(() => props.newerUrl === null);
 
-const dayFormat = new Intl.DateTimeFormat('en-GB', { day: 'numeric', month: 'short' });
-const fullFormat = new Intl.DateTimeFormat('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
-
-/**
- * The page's span as one line, dropping what both ends share: within a year the
- * year is written once, and a single day is not written as a range at all.
- */
-const rangeLabel = computed(() => {
-    if (!props.range) {
-        return '';
-    }
-
-    const from = new Date(`${props.range.from}T00:00:00`);
-    const to = new Date(`${props.range.to}T00:00:00`);
-
-    if (props.range.from === props.range.to) {
-        return fullFormat.format(to);
-    }
-
-    const sameYear = from.getFullYear() === to.getFullYear();
-
-    return `${sameYear ? dayFormat.format(from) : fullFormat.format(from)} \u2013 ${fullFormat.format(to)}`;
-});
+/** The page's span as one line, e.g. "1-22 Sep 2026". */
+const rangeLabel = computed(() => (props.range ? formatRange(props.range.from, props.range.to) : ''));
 
 // The year the page sits in, for the jump control to mark. Null when it straddles two.
 const currentYear = computed(() => {
@@ -70,7 +50,7 @@ const currentYear = computed(() => {
 <template>
     <AppHead :og="og" />
 
-    <IntroBlock v-if="isFront" :podcast-episodes="podcastEpisodes" class="mb-14" />
+    <IntroBlock v-if="isFront" :this-week-with-episodes="thisWeekWithEpisodes" class="mb-14" />
 
     <div v-if="groups.length" class="h-feed flex flex-col gap-14">
         <h1 class="p-name sr-only">Taylor Drayson timeline</h1>
@@ -85,7 +65,7 @@ const currentYear = computed(() => {
         />
     </div>
 
-    <p v-else class="text-meta text-neutral-500">No entries yet.</p>
+    <p v-else class="text-sm text-neutral-500">No entries yet.</p>
 
     <div v-if="olderUrl || newerUrl" class="mt-14">
         <Pagination

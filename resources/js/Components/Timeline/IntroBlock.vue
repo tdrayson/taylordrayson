@@ -10,7 +10,7 @@ const props = defineProps({
     streakDays: { type: [Number, String], default: null },
     agencyUrl: { type: String, default: 'https://thecreativetinker.com' },
     pluginUrl: { type: String, default: 'https://wpextended.io' },
-    podcastEpisodes: { type: Number, default: 0 },
+    thisWeekWithEpisodes: { type: Number, default: 0 },
 });
 
 const page = usePage();
@@ -40,11 +40,11 @@ const externalIconClass =
         <p>
             Hi. I'm
             <span class="whitespace-nowrap">
-                Taylor<Avatar size="size-7" alt="" class="ml-1.5 inline-block rounded-sm align-[-0.25em]" />
+                Taylor<Avatar size="size-7" alt="" class="ml-1.5 inline-block rounded-sm align-drop-25" />
             </span>,
             a web developer in London. I log far more of my life than is strictly necessary. I've
             <Link href="/food" :class="textLinkClass">logged every calorie</Link>
-            for <span class="tnum">{{ streak }}</span> days straight, which is either
+            for <span class="tabular-nums">{{ streak }}</span> days straight, which is either
             impressive or a cry for help depending on who's asking.
         </p>
         <p class="mt-6">
@@ -94,7 +94,7 @@ const externalIconClass =
                 </span>
                 podcast
             </Link>
-            with my dad that's somehow at <span class="tnum">{{ podcastEpisodes }}</span> episodes.
+            with my dad that's somehow at <span class="tabular-nums">{{ thisWeekWithEpisodes }}</span> episodes.
             Elsewhere on here you'll find
             <Link href="/activities" :class="textLinkClass">activities</Link>,
             <Link href="/sleep" :class="textLinkClass">sleep</Link>,

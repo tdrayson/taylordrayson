@@ -2,7 +2,6 @@
 
 namespace App\Services\PetrolPrices;
 
-
 /**
  * Client for the PetrolPrices.com forecourt lookup, which returns GeoJSON
  * features for stations near a coordinate.

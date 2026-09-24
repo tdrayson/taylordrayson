@@ -3,7 +3,9 @@ import { computed } from 'vue';
 import FlightRoute from '../Maps/FlightRoute.vue';
 import FlightMap from '../Maps/FlightMap.vue';
 import StatGrid from '../Stats/StatGrid.vue';
-import { titleCase, time, duration, flightDurationLabel } from '../../lib/format.js';
+import Eyebrow from '../Ui/Eyebrow.vue';
+import Heading from '../Ui/Heading.vue';
+import { titleCase, clock, duration as clockDuration, flightDurationLabel } from '../../lib/format.js';
 import { metresToMiles } from '../../lib/distance.js';
 import { useFormat } from '../../composables/useFormat';
 
@@ -14,7 +16,7 @@ const props = defineProps({
 // Unit-aware distance formatter; the visible label re-runs when the visitor
 // toggles distance units, while distanceMiles (below) stays fixed in miles
 // for the duration estimate.
-const { distance } = useFormat();
+const { distance, exactDistance, duration, exactMeasure } = useFormat();
 
 const meta = computed(() => props.entry.meta || {});
 const airline = computed(() => props.entry.airline || null);
@@ -57,10 +59,10 @@ const stats = computed(() => [
                 :title="airline.name"
                 class="h-8 w-auto object-contain"
             >
-            <span v-else-if="airline" class="font-display text-section">{{ airline.name }}</span>
+            <Heading v-else-if="airline" as="span" size="section">{{ airline.name }}</Heading>
             <div v-if="flightNumber" class="ml-auto text-right">
-                <div class="text-label uppercase text-neutral-500">Flight</div>
-                <div class="text-section text-neutral-700 tnum">{{ flightNumber }}</div>
+                <Eyebrow class="text-neutral-500">Flight</Eyebrow>
+                <div class="text-lg font-bold leading-tight tracking-tight text-neutral-700 tabular-nums">{{ flightNumber }}</div>
             </div>
         </div>
 
@@ -68,10 +70,12 @@ const stats = computed(() => [
             <FlightRoute
                 :origin="{ iata: entry.origin_iata, city: origin.place, name: origin.name }"
                 :destination="{ iata: entry.destination_iata, city: destination.place, name: destination.name }"
-                :depart-time="time(departAt)"
-                :arrive-time="time(arriveAt)"
+                :depart-time="clock(departAt)"
+                :arrive-time="clock(arriveAt)"
                 :duration="durationLabel"
+                :duration-title="exactMeasure('duration', entry.duration, clockDuration(entry.duration))"
                 :note="distanceLabel"
+                :note-title="exactDistance(entry.distance)"
             />
         </div>
 

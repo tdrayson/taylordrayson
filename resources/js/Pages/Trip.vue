@@ -5,6 +5,7 @@ import AppHead from '../Components/AppHead.vue';
 import AppLayout from '../Layouts/AppLayout.vue';
 import DateGroup from '../Components/Timeline/DateGroup.vue';
 import AuthorRef from '../Components/Profile/AuthorRef.vue';
+import Heading from '../Components/Ui/Heading.vue';
 
 defineOptions({ layout: AppLayout, inheritAttrs: false });
 
@@ -33,16 +34,16 @@ const dayCount = computed(() => `${props.days} ${props.days === 1 ? 'day' : 'day
     <AppHead :og="og" />
 
     <header>
-        <h1 class="font-display text-display">{{ title }}</h1>
+        <Heading as="h1" size="display">{{ title }}</Heading>
         <!-- The full window, both ends spelled out with their time, then the span
              in brackets the way a multi-day event card reports its own. -->
-        <p class="mt-2 text-meta text-neutral-500">
-            <time :datetime="start.iso">{{ start.label }}</time> to <time :datetime="end.iso">{{ end.label }}</time> <span class="text-neutral-400 tnum">({{ dayCount }})</span>
+        <p class="mt-2 text-sm text-neutral-500">
+            <time :datetime="start.iso">{{ start.label }}</time> to <time :datetime="end.iso">{{ end.label }}</time> <span class="text-neutral-400 tabular-nums">({{ dayCount }})</span>
         </p>
 
         <!-- Same treatment EntryFooter gives entry tags, so a trip's tags read
              identically to tags anywhere else on the site. -->
-        <p v-if="tags.length" class="mt-2 text-caption text-neutral-500">
+        <p v-if="tags.length" class="mt-2 text-xs text-neutral-500">
             Tagged
             <template v-for="(tag, index) in tags" :key="tag.slug"><Link :href="tag.url" class="font-medium text-neutral-700 underline decoration-neutral-100 underline-offset-2 transition-colors hover:text-accent-500 focus-visible:text-accent-500">{{ tag.name }}</Link><span v-if="index < tags.length - 1">, </span></template>
         </p>
@@ -62,5 +63,5 @@ const dayCount = computed(() => `${props.days} ${props.days === 1 ? 'day' : 'day
         </div>
     </template>
 
-    <p v-else class="mt-10 text-meta text-neutral-500">Nothing logged during this trip.</p>
+    <p v-else class="mt-10 text-sm text-neutral-500">Nothing logged during this trip.</p>
 </template>

@@ -2,7 +2,11 @@
 
 namespace App\Models;
 
+use App\Enums\ResponseKind;
+use App\Enums\RsvpValue;
 use App\Models\Concerns\HasAttachments;
+use App\Models\Concerns\HasResponse;
+use App\Models\Concerns\HasStatus;
 use App\Models\Concerns\HasSubjects;
 use App\Models\Concerns\HasTags;
 use App\Models\Concerns\HasTimelineEntry;
@@ -13,6 +17,7 @@ use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Spatie\MediaLibrary\HasMedia;
 
 #[ObservedBy([TimelineEntryObserver::class, LinkFaviconObserver::class])]
@@ -22,12 +27,18 @@ use Spatie\MediaLibrary\HasMedia;
     'slug',
     'excerpt',
     'content',
-    'published',
+    'response_kind',
+    'response_url',
+    'rsvp_value',
     'timezone',
+    'citation_id',
+    'response_quote',
+    'status',
+    'password',
 ])]
 class Article extends Model implements HasMedia, Timelineable
 {
-    use HasAttachments, HasFactory, HasSubjects, HasTags, HasTimelineEntry;
+    use HasAttachments, HasFactory, HasResponse, HasStatus, HasSubjects, HasTags, HasTimelineEntry;
 
     /**
      * @return array<string, string>
@@ -37,22 +48,14 @@ class Article extends Model implements HasMedia, Timelineable
         return [
             'occurred_at' => 'datetime',
             'content' => 'array',
-            'published' => 'boolean',
+            'response_kind' => ResponseKind::class,
+            'rsvp_value' => RsvpValue::class,
         ];
     }
 
     public function slug(): string
     {
         return $this->getAttribute('slug');
-    }
-
-    /**
-     * Read from the raw attribute so unsaved models resolve to false rather
-     * than throwing under strict attribute access.
-     */
-    public function shouldAppearOnTimeline(): bool
-    {
-        return (bool) ($this->attributes['published'] ?? false);
     }
 
     /**
@@ -77,5 +80,11 @@ class Article extends Model implements HasMedia, Timelineable
             'alt' => $media->getCustomProperty('alt'),
             'caption' => $media->getCustomProperty('caption'),
         ];
+    }
+
+    /** @return BelongsTo<Citation, $this> */
+    public function citation(): BelongsTo
+    {
+        return $this->belongsTo(Citation::class);
     }
 }

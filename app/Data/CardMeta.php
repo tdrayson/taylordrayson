@@ -34,10 +34,11 @@ final readonly class CardMeta implements Arrayable, JsonSerializable
         public ?string $category = null,
         public ?array $previews = null,
         public ?array $favicons = null,
+        public ?array $response = null,
     ) {}
 
     /**
-     * No meta at all (Calorie, Project).
+     * No meta at all (Food, Project).
      */
     public static function empty(): self
     {
@@ -85,7 +86,7 @@ final readonly class CardMeta implements Arrayable, JsonSerializable
     }
 
     /**
-     * Appearance/Podcast: media.
+     * Appearance/This Week With: media.
      */
     public static function media(MediaData $media): self
     {
@@ -101,13 +102,13 @@ final readonly class CardMeta implements Arrayable, JsonSerializable
     }
 
     /**
-     * Checkin: the check-in's own photos alongside the generated location map,
+     * Place: the check-in's own photos alongside the generated location map,
      * both rather than one-or-other, with the address beneath and Foursquare's
      * category as a label.
      *
      * @param  list<PhotoData>  $photos
      */
-    public static function checkin(array $photos, ?string $map, ?string $mapDark, ?string $address, ?string $category): self
+    public static function place(array $photos, ?string $map, ?string $mapDark, ?string $address, ?string $category): self
     {
         return new self(null, $photos, $map, $mapDark, null, null, null, null, null, null, ['photos', 'map', 'mapDark', 'address', 'category'], $address, null, $category);
     }
@@ -125,9 +126,9 @@ final readonly class CardMeta implements Arrayable, JsonSerializable
      *
      * @param  list<PhotoData>  $photos
      */
-    public static function photos(array $photos): self
+    public static function photos(array $photos, ?array $response = null): self
     {
-        return new self(null, $photos, null, null, null, null, null, null, null, null, ['photos']);
+        return new self(null, $photos, null, null, null, null, null, null, null, null, ['photos', 'response'], null, null, null, null, null, $response);
     }
 
     /**
@@ -143,9 +144,9 @@ final readonly class CardMeta implements Arrayable, JsonSerializable
      * @param  array<string, array<string, mixed>>  $previews
      * @param  array<string, string>  $favicons
      */
-    public static function note(array $body, array $photos, array $previews = [], array $favicons = []): self
+    public static function note(array $body, array $photos, array $previews = [], array $favicons = [], ?array $response = null): self
     {
-        return new self(null, $photos, null, null, null, null, null, $body, null, null, ['body', 'photos', 'previews', 'favicons'], null, null, null, $previews, $favicons);
+        return new self(null, $photos, null, null, null, null, null, $body, null, null, ['body', 'photos', 'previews', 'favicons', 'response'], null, null, null, $previews, $favicons, $response);
     }
 
     /**
@@ -169,6 +170,7 @@ final readonly class CardMeta implements Arrayable, JsonSerializable
             'category' => $this->category,
             'previews' => $this->previews,
             'favicons' => $this->favicons,
+            'response' => $this->response,
         ];
 
         $result = [];

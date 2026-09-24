@@ -64,6 +64,10 @@ function inlineToSpans(content) {
                         def.blank = false;
                     }
 
+                    if (mark.attrs?.expanded) {
+                        def.expanded = true;
+                    }
+
                     markDefs.push(def);
                 }
 

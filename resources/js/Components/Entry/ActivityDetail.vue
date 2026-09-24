@@ -4,6 +4,8 @@ import { Deferred, usePage } from '@inertiajs/vue3';
 import StatGrid from '../Stats/StatGrid.vue';
 import SectionHead from '../Ui/SectionHead.vue';
 import Skeleton from '../Ui/Skeleton.vue';
+import Heading from '../Ui/Heading.vue';
+import Eyebrow from '../Ui/Eyebrow.vue';
 import ActivityProfile from './ActivityProfile.vue';
 import ActivityMedia from './ActivityMedia.vue';
 import Lightbox from '../Overlays/Lightbox.vue';
@@ -17,7 +19,7 @@ const props = defineProps({
 
 // Unit-aware distance/weight formatters; reading their settings reactively
 // keeps stats/labels live when a visitor toggles units in Settings.
-const { distanceParts, weight } = useFormat();
+const { distanceParts, weight, exactWeight } = useFormat();
 
 const photos = computed(() => (Array.isArray(props.entry.photos) ? props.entry.photos : []));
 const polyline = computed(() => props.entry.meta?.polyline ?? null);
@@ -102,20 +104,20 @@ function weightLabel(value) {
         <Lightbox v-model:index="lightboxIndex" :photos="photos" tags />
 
         <div v-if="exercises.length">
-            <SectionHead title="Exercises" :meta="totalVolume ? `${weight(totalVolume, 0)} volume` : ''" />
+            <SectionHead title="Exercises" :meta="totalVolume ? `${weight(totalVolume, 0)} volume` : ''" :meta-title="exactWeight(totalVolume, 0)" />
             <div class="space-y-3">
                 <div v-for="exercise in exercises" :key="exercise.name" class="overflow-hidden rounded-lg border border-neutral-50">
                     <div class="flex items-baseline justify-between gap-4 bg-neutral-25 px-4 py-2.5">
-                        <span class="min-w-0 truncate font-display text-section">{{ exercise.name }}</span>
-                        <span class="shrink-0 text-meta font-semibold text-neutral-700 tnum">
-                            {{ exercise.sets.length }} {{ exercise.sets.length === 1 ? 'set' : 'sets' }}<template v-if="exercise.volume">, {{ weight(exercise.volume, 0) }}</template>
+                        <Heading as="span" size="section" class="min-w-0 truncate">{{ exercise.name }}</Heading>
+                        <span class="shrink-0 text-sm font-semibold text-neutral-700 tabular-nums">
+                            {{ exercise.sets.length }} {{ exercise.sets.length === 1 ? 'set' : 'sets' }}<template v-if="exercise.volume">, <span :title="exactWeight(exercise.volume, 0)">{{ weight(exercise.volume, 0) }}</span></template>
                         </span>
                     </div>
                     <div class="divide-y divide-neutral-50">
                         <div v-for="(set, index) in exercise.sets" :key="index" class="flex items-center justify-between gap-4 px-4 py-2">
-                            <span class="text-label uppercase text-neutral-500">Set {{ index + 1 }}</span>
-                            <span class="text-meta text-neutral-900 tnum">
-                                <span class="font-semibold">{{ set.reps }}</span> <span class="text-neutral-500">reps</span>, {{ weightLabel(set.weight) }}
+                            <Eyebrow as="span" class="text-neutral-500">Set {{ index + 1 }}</Eyebrow>
+                            <span class="text-sm text-neutral-900 tabular-nums">
+                                <span class="font-semibold">{{ set.reps }}</span> <span class="text-neutral-500">reps</span>, <span :title="set.weight > 0 ? exactWeight(set.weight) : null">{{ weightLabel(set.weight) }}</span>
                             </span>
                         </div>
                     </div>

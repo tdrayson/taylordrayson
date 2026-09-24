@@ -56,3 +56,28 @@ it('opens the lightbox on a photo click, navigates with arrows, and closes on es
     $page->keys('[role="dialog"]', 'Escape')
         ->assertScript("document.querySelector('[role=\"dialog\"]') === null", true);
 });
+
+it('closes a single-photo lightbox when the image itself is clicked', function () {
+    $event = Event::factory()->create([
+        'name' => 'Solo Shot',
+        'occurred_at' => '2022-06-02 19:00:00',
+        'venue_name' => 'Gallery Venue',
+        'city' => 'London',
+    ]);
+    $event->addMediaFromString(lightboxPhotoJpegBytes(1))->usingFileName('p1.jpg')->toMediaCollection('photos');
+
+    $page = visit($event->url())->resize(1280, 900);
+
+    $page->click('[aria-label="View photo 1"]')
+        ->assertScript('!!document.querySelector(\'[role="dialog"]\')', true);
+
+    // Dispatched rather than clicked: the faked disk serves the full-size render
+    // a 403, so the image renders at zero height and is not actionable.
+    // The image carries the zoom-out cursor, so clicking it has to close.
+    $page->assertScript(
+        '(() => { document.querySelector(\'[role="dialog"] img\').dispatchEvent(new MouseEvent(\'click\', { bubbles: true })); return true; })()',
+        true,
+    );
+
+    $page->assertScript('document.querySelector(\'[role="dialog"]\') === null', true);
+});

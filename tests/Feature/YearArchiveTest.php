@@ -1,13 +1,14 @@
 <?php
 
-use App\Enums\MediaType;
 use App\Models\Activity;
 use App\Models\Article;
-use App\Models\Calorie;
+use App\Models\Book;
+use App\Models\Film;
 use App\Models\Flight;
-use App\Models\Media;
+use App\Models\Food;
 use App\Models\Note;
 use App\Models\Sleep;
+use App\Models\TvEpisode;
 use Illuminate\Support\Facades\Storage;
 
 use function Pest\Laravel\get;
@@ -27,7 +28,7 @@ it('serves real year numbers, entry count and heatmap', function () {
     Activity::factory()->create(['occurred_at' => '2025-03-10 18:00:00', 'distance' => 7000]);
     Sleep::factory()->create(['occurred_at' => '2025-03-11 00:00:00', 'duration' => 8 * 3600]);
     Flight::factory()->create(['occurred_at' => '2025-06-01 10:00:00']);
-    Article::factory()->create(['occurred_at' => '2025-07-01 12:00:00', 'published' => true]);
+    Article::factory()->create(['occurred_at' => '2025-07-01 12:00:00', 'status' => 'published']);
     Note::factory()->create(['occurred_at' => '2025-07-02 12:00:00']);
 
     get('/2025')
@@ -49,10 +50,10 @@ it('splits distance by discipline, averages daily food, and adds a year-only sup
     Activity::factory()->create(['type' => 'ride', 'distance' => 32187, 'occurred_at' => '2025-06-08 08:00:00']); // 20 mi
 
     // 6000 kcal across 3 logged days -> 2000 kcal/day.
-    Calorie::factory()->create(['calories' => 1000, 'occurred_at' => '2025-06-01 08:00:00']);
-    Calorie::factory()->create(['calories' => 1000, 'occurred_at' => '2025-06-01 12:00:00']);
-    Calorie::factory()->create(['calories' => 2000, 'occurred_at' => '2025-06-02 12:00:00']);
-    Calorie::factory()->create(['calories' => 2000, 'occurred_at' => '2025-06-03 12:00:00']);
+    Food::factory()->create(['calories' => 1000, 'occurred_at' => '2025-06-01 08:00:00']);
+    Food::factory()->create(['calories' => 1000, 'occurred_at' => '2025-06-01 12:00:00']);
+    Food::factory()->create(['calories' => 2000, 'occurred_at' => '2025-06-02 12:00:00']);
+    Food::factory()->create(['calories' => 2000, 'occurred_at' => '2025-06-03 12:00:00']);
 
     get('/2025')->assertInertia(fn ($page) => $page
         ->component('Year')
@@ -81,9 +82,9 @@ it('counts tv episodes (not just films) in the "Watched" stat', function () {
     // Regression guard for the periodStats bug where `whereIn('type', ['film', 'show'])`
     // used the non-existent value 'show' instead of the real 'episode', silently
     // undercounting TV in the year/month "Watched" stat.
-    Media::factory()->create(['type' => MediaType::TvEpisode, 'occurred_at' => '2025-04-01 20:00:00']);
-    Media::factory()->create(['type' => MediaType::Film, 'occurred_at' => '2025-04-02 20:00:00']);
-    Media::factory()->create(['type' => MediaType::Book, 'occurred_at' => '2025-04-03 20:00:00']);
+    TvEpisode::factory()->create(['occurred_at' => '2025-04-01 20:00:00']);
+    Film::factory()->create(['occurred_at' => '2025-04-02 20:00:00']);
+    Book::factory()->create(['occurred_at' => '2025-04-03 20:00:00']);
 
     get('/2025')->assertInertia(fn ($page) => $page
         ->where('stats', fn ($stats) => collect($stats)->firstWhere('label', 'Watched')['value'] === '2'));
@@ -98,40 +99,24 @@ it('excludes other years from the aggregates', function () {
         ->where('heatmap', []));
 });
 
-it('serves the year timeline tail ascending, day-paginated and deferred', function () {
-    // Six a day over twelve days: 72 entries, so the 50-entry budget splits
-    // them after the eighth day rather than at a fixed number of days.
+it('serves the year timeline tail ascending, 50 entries a page', function () {
+    // Six a day over twelve days: 72 entries, so page one ends two entries into the ninth day.
     foreach (range(1, 12) as $day) {
         Note::factory()->count(6)->create(['occurred_at' => sprintf('2025-05-%02d 10:00:00', $day)]);
     }
 
-    // The feed carries the page's h-feed, so it resolves in the response
-    // itself rather than a follow-up reload. Tail is oldest-first.
     get('/2025')->assertInertia(fn ($page) => $page
         ->where('currentPage', 1)
         ->where('lastPage', 2)
-        ->has('groups', 8)
+        ->has('groups', 9)
         ->where('groups.0.date', '2025-05-01')
-        ->where('groups.7.date', '2025-05-08'));
+        ->has('groups.8.items', 2));
 
     get('/2025?page=2')->assertInertia(fn ($page) => $page
         ->where('currentPage', 2)
         ->has('groups', 4)
-        ->where('groups.0.date', '2025-05-09'));
-});
-
-/**
- * The point of a flexing page size: a dense month used to be four pages of
- * roughly 150 entries, which is a long scroll for one page.
- */
-it('takes fewer days per page when the days are dense', function () {
-    foreach (range(1, 4) as $day) {
-        Note::factory()->count(20)->create(['occurred_at' => sprintf('2025-05-%02d 10:00:00', $day)]);
-    }
-
-    get('/2025')->assertInertia(fn ($page) => $page
-        ->where('lastPage', 2)
-        ->has('groups', 2));
+        ->where('groups.0.date', '2025-05-09')
+        ->has('groups.0.items', 4));
 });
 
 it('offers every month of the year, marking the empty ones', function () {

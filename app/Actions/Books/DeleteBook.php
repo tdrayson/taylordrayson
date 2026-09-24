@@ -2,11 +2,11 @@
 
 namespace App\Actions\Books;
 
-use App\Models\Media;
+use App\Models\Book;
 
 class DeleteBook
 {
-    public function __invoke(Media $book): void
+    public function __invoke(Book $book): void
     {
         $book->delete();
     }

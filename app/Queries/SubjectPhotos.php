@@ -2,7 +2,7 @@
 
 namespace App\Queries;
 
-use App\Models\Article;
+use App\Enums\EntryStatus;
 use App\Models\Attachment;
 use App\Models\Subject;
 use App\Support\GalleryPhotos;
@@ -30,9 +30,9 @@ final class SubjectPhotos
                     return [];
                 }
 
-                // Mirrors SubjectFeed: an unpublished article has no spine row
-                // for a guest to reach, so its photograph stays hidden too.
-                if ($owner instanceof Article && ! $owner->shouldAppearOnTimeline() && ! Auth::check()) {
+                // Mirrors SubjectFeed: an entry a guest cannot list keeps its
+                // photograph hidden too.
+                if ($owner->getAttribute('status') !== EntryStatus::Published && ! Auth::check()) {
                     return [];
                 }
 

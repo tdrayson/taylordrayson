@@ -1,8 +1,10 @@
 <script setup>
 import { computed } from 'vue';
-import { CONTROL, CONTROL_BORDER } from '../../lib/editor/control.js';
+import { CONTROL, CONTROL_BORDER, READONLY } from '../../lib/editor/control.js';
 import { cn } from '../../lib/cn.js';
+import Eyebrow from '../Ui/Eyebrow.vue';
 import Input from '../Ui/Input.vue';
+import Select from '../Ui/Select.vue';
 import Switch from '../Ui/Switch.vue';
 import LocationMap from '../Maps/LocationMap.vue';
 import RichTextEditor from './RichTextEditor.vue';
@@ -13,8 +15,11 @@ import TagsInput from './TagsInput.vue';
 import DurationInput from './DurationInput.vue';
 import DistanceInput from './DistanceInput.vue';
 import ImageField from './ImageField.vue';
+import BookCoverField from './BookCoverField.vue';
 import RepeaterInput from './RepeaterInput.vue';
 import LengthRing from './LengthRing.vue';
+import CitationField from './CitationField.vue';
+import StatusInput from './StatusInput.vue';
 import { plainTextOf } from '../../lib/editor/defaults.js';
 
 /**
@@ -33,23 +38,34 @@ const props = defineProps({
     // way to check them.
     latitude: { type: [Number, String], default: null },
     longitude: { type: [Number, String], default: null },
+    // The response URL and kind, which a citation field previews from.
+    responseUrl: { type: String, default: null },
+    responseKind: { type: String, default: null },
     // The server's validation message for this field, if the last save was refused.
     error: { type: String, default: null },
+    // The sibling password a status field edits alongside the status itself.
+    password: { type: String, default: '' },
     // Settled and no longer editable, like a slug after the entry's first save.
     readonly: { type: Boolean, default: false },
     // Shown greyed in an empty control: what the value will be if left blank.
     placeholder: { type: String, default: '' },
     // A line under the control, e.g. the URL a slug is going to produce.
     hint: { type: String, default: null },
+    // A required field its condition has excused, e.g. the body of a like.
+    excused: { type: Boolean, default: false },
 });
 
 // How much of a capped field's budget the current value spends. Measured on
 // readable text, the same way the server measures it.
 const usedCharacters = computed(() => plainTextOf(props.modelValue).length);
 
-const borderClass = computed(() => (props.error
-    ? 'border-red-500 focus:border-red-500 focus:outline-none'
-    : CONTROL_BORDER));
+const borderClass = computed(() => {
+    if (props.error) {
+        return 'border-red-500 focus:border-red-500 focus-visible:outline-red-500';
+    }
+
+    return props.readonly ? 'border-neutral-100 focus:border-neutral-100' : CONTROL_BORDER;
+});
 
 /** The picked point, or null while the lookup has not resolved one. */
 const coordinates = computed(() => {
@@ -61,8 +77,8 @@ const coordinates = computed(() => {
 
 // `fill` carries the sibling values a lookup resolved: a book's author, a
 // place's coordinates. The editor applies them; this component does not know
-// what other fields exist.
-defineEmits(['update:modelValue', 'fill']);
+// what other fields exist. `preview` relays the response context a citation loaded.
+defineEmits(['update:modelValue', 'fill', 'preview']);
 
 /**
  * A datetime-local input silently renders blank for anything but
@@ -91,8 +107,10 @@ function textToTags(value) {
 
 <template>
     <div>
-        <div v-if="! hideLabel && field.type !== 'boolean'" class="mb-1 flex items-center justify-between gap-3">
-            <label :for="field.name" class="block text-label uppercase text-neutral-500">{{ field.label }}</label>
+        <!-- A citation field with nothing but a preview to show (a like, repost
+             or RSVP has no quote of its own) draws no label above it. -->
+        <div v-if="! hideLabel && field.type !== 'boolean' && (field.type !== 'citation' || responseKind === 'reply')" class="mb-1 flex items-center justify-between gap-3">
+            <Eyebrow as="label" :for="field.name" class="block text-neutral-500">{{ field.label }}</Eyebrow>
 
             <LengthRing v-if="field.max" :used="usedCharacters" :max="field.max" />
         </div>
@@ -118,8 +136,8 @@ function textToTags(value) {
                 ref="prose"
                 profile="prose"
                 :model-value="Array.isArray(modelValue) ? modelValue : []"
-                :placeholder="`Write your ${field.label.toLowerCase()}. Paste a link, or select text to format it.`"
-                placeholder-short="Write something."
+                :placeholder="excused ? `Add a ${field.label.toLowerCase()}, or leave it blank.` : `Write your ${field.label.toLowerCase()}. Paste a link, or select text to format it.`"
+                :placeholder-short="excused ? 'Optional.' : 'Write something.'"
                 @update:model-value="$emit('update:modelValue', $event)"
             />
         </div>
@@ -129,8 +147,19 @@ function textToTags(value) {
             :id="field.name"
             :value="modelValue ?? ''"
             rows="4"
-            :class="[CONTROL, borderClass, 'text-neutral-900']"
+            :readonly="readonly"
+            :class="[CONTROL, borderClass, readonly ? READONLY : 'text-neutral-900']"
             @input="$emit('update:modelValue', $event.target.value)"
+        />
+
+        <BookCoverField
+            v-else-if="field.type === 'book-cover'"
+            :id="field.name"
+            :model-value="Array.isArray(modelValue) ? modelValue : []"
+            :invalid="Boolean(error)"
+            :readonly="readonly"
+            @update:model-value="$emit('update:modelValue', $event)"
+            @fill="(values, options) => $emit('fill', values, options)"
         />
 
         <ImageField
@@ -139,6 +168,7 @@ function textToTags(value) {
             :model-value="Array.isArray(modelValue) ? modelValue : []"
             :multiple="field.type === 'gallery'"
             :invalid="Boolean(error)"
+            :readonly="readonly"
             @update:model-value="$emit('update:modelValue', $event)"
         />
 
@@ -146,35 +176,46 @@ function textToTags(value) {
              than repeating the label drawn above every other field. -->
         <div
             v-else-if="field.type === 'boolean'"
-            :class="[CONTROL, borderClass, 'flex items-center justify-between gap-3 text-neutral-900']"
+            :class="[CONTROL, borderClass, 'flex items-center justify-between gap-3', readonly ? READONLY : 'text-neutral-900']"
         >
             <span>{{ field.label }}</span>
 
             <Switch
                 :id="field.name"
                 :model-value="Boolean(modelValue)"
+                :readonly="readonly"
                 @update:model-value="$emit('update:modelValue', $event)"
             />
         </div>
 
-        <select
+        <StatusInput
+            v-else-if="field.type === 'status'"
+            :id="field.name"
+            :model-value="modelValue ?? 'published'"
+            :password="password"
+            :options="field.options ?? []"
+            :readonly="readonly"
+            @update:model-value="$emit('update:modelValue', $event)"
+            @fill="$emit('fill', $event)"
+        />
+
+        <Select
             v-else-if="field.type === 'select'"
             :id="field.name"
-            :value="modelValue ?? ''"
-            :class="[CONTROL, borderClass, modelValue ? 'text-neutral-900' : 'text-neutral-500']"
-            @change="$emit('update:modelValue', $event.target.value)"
-        >
-            <option value="" disabled>Choose {{ field.label.toLowerCase() }}</option>
-
-            <option v-for="option in field.options ?? []" :key="option.value" :value="option.value">
-                {{ option.label }}
-            </option>
-        </select>
+            :model-value="modelValue ?? ''"
+            :options="field.options ?? []"
+            :placeholder="`Choose ${field.label.toLowerCase()}`"
+            :invalid="Boolean(error)"
+            :clearable="! field.required"
+            :readonly="readonly"
+            @update:model-value="$emit('update:modelValue', $event)"
+        />
 
         <TagsInput
             v-else-if="field.type === 'tags'"
             :id="field.name"
             :model-value="Array.isArray(modelValue) ? modelValue : []"
+            :readonly="readonly"
             @update:model-value="$emit('update:modelValue', $event)"
         />
 
@@ -191,6 +232,7 @@ function textToTags(value) {
             :id="field.name"
             :model-value="String(modelValue ?? '')"
             :relative-to-value="relativeToValue"
+            :readonly="readonly"
             @update:model-value="$emit('update:modelValue', $event)"
         />
 
@@ -198,6 +240,7 @@ function textToTags(value) {
             v-else-if="field.type === 'duration'"
             :id="field.name"
             :model-value="modelValue"
+            :readonly="readonly"
             @update:model-value="$emit('update:modelValue', $event)"
         />
 
@@ -205,6 +248,7 @@ function textToTags(value) {
             v-else-if="field.type === 'distance'"
             :id="field.name"
             :model-value="modelValue"
+            :readonly="readonly"
             @update:model-value="$emit('update:modelValue', $event)"
         />
 
@@ -213,6 +257,7 @@ function textToTags(value) {
             :id="field.name"
             :model-value="modelValue ?? ''"
             :source="field.source"
+            :readonly="readonly"
             @update:model-value="$emit('update:modelValue', $event)"
             @fill="$emit('fill', $event)"
         />
@@ -222,8 +267,19 @@ function textToTags(value) {
             :id="field.name"
             :model-value="modelValue ?? ''"
             :source="field.source ?? 'place'"
+            :readonly="readonly"
             @update:model-value="$emit('update:modelValue', $event)"
             @fill="$emit('fill', $event)"
+        />
+
+        <CitationField
+            v-else-if="field.type === 'citation'"
+            :id="field.name"
+            :model-value="modelValue ?? ''"
+            :response-url="responseUrl"
+            :response-kind="responseKind"
+            @update:model-value="$emit('update:modelValue', $event)"
+            @preview="$emit('preview', $event)"
         />
 
         <Input
@@ -231,11 +287,12 @@ function textToTags(value) {
             :id="field.name"
             :model-value="modelValue ?? ''"
             :invalid="Boolean(error)"
-            :readonly="readonly || undefined"
-            :class="readonly ? 'text-neutral-500' : ''"
-            :type="field.type === 'number' ? 'number' : 'text'"
-            :inputmode="field.type === 'number' ? 'decimal' : undefined"
-            :step="field.type === 'number' ? 'any' : undefined"
+            :readonly="readonly"
+            :type="field.type === 'number' || field.type === 'rating' ? 'number' : 'text'"
+            :inputmode="field.type === 'number' ? 'decimal' : field.type === 'rating' ? 'numeric' : undefined"
+            :step="field.type === 'number' ? 'any' : field.type === 'rating' ? '1' : undefined"
+            :min="field.type === 'rating' ? '1' : undefined"
+            :max="field.type === 'rating' ? '10' : undefined"
             :prefix="field.prefix"
             :suffix="field.suffix"
             :placeholder="placeholder"
@@ -252,10 +309,10 @@ function textToTags(value) {
             class="mt-3 overflow-hidden rounded-lg"
         />
 
-        <p v-if="error" class="mt-1 text-caption text-red-600">{{ error }}</p>
+        <p v-if="error" class="mt-1 text-xs text-red-600">{{ error }}</p>
 
-        <p v-else-if="readonly" class="mt-1 text-caption text-neutral-500">Settled when this was first saved.</p>
+        <p v-else-if="readonly && field.type === 'slug'" class="mt-1 text-xs text-neutral-500">Settled when this was first saved.</p>
 
-        <p v-else-if="hint" class="mt-1 truncate text-caption text-neutral-500">{{ hint }}</p>
+        <p v-else-if="hint" class="mt-1 truncate text-xs text-neutral-500">{{ hint }}</p>
     </div>
 </template>

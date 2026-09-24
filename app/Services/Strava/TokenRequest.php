@@ -13,7 +13,7 @@ use Saloon\Traits\Body\HasJsonBody;
  * Strava's refresh tokens do not expire, so this is the whole of the OAuth
  * flow the app performs: there is no interactive authorisation to run.
  */
-class TokenRequest extends Request implements HasBody
+class TokenRequest extends Request implements HasBody, UsesClientCredentials
 {
     use HasJsonBody;
 

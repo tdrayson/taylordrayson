@@ -1,5 +1,6 @@
 <script setup>
 import { computed, ref } from 'vue';
+import Eyebrow from './Eyebrow.vue';
 import Icon from './Icon.vue';
 import { videoEmbed, videoProvider, videoThumbnails } from '../../lib/video';
 
@@ -56,7 +57,7 @@ const label = computed(() => (props.caption ? `Play video: ${props.caption}` : '
         <button
             v-else-if="provider"
             type="button"
-            class="group/play relative flex aspect-video w-full items-center justify-center overflow-hidden rounded-lg border border-neutral-50 bg-neutral-25 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500 focus-visible:ring-offset-2"
+            class="group/play relative flex aspect-video w-full items-center justify-center overflow-hidden rounded-lg border border-neutral-50 bg-neutral-25"
             :aria-label="label"
             @click="playing = true"
         >
@@ -80,10 +81,11 @@ const label = computed(() => (props.caption ? `Play video: ${props.caption}` : '
 
             <!-- Names the host: pressing play is what contacts it, so it is
                  worth saying which one before that happens. -->
-            <span
-                class="absolute bottom-2 right-2 rounded-md px-2 py-1 text-label uppercase"
+            <Eyebrow
+                as="span"
+                class="absolute bottom-2 right-2 rounded-md px-2 py-1"
                 :class="still ? 'bg-black/55 text-white' : 'text-neutral-500'"
-            >{{ provider }}</span>
+            >{{ provider }}</Eyebrow>
         </button>
 
         <!-- preload none: a direct file should cost nothing either until asked for. -->
@@ -98,6 +100,6 @@ const label = computed(() => (props.caption ? `Play video: ${props.caption}` : '
             class="block max-h-media w-full rounded-lg border border-neutral-50"
         ></video>
 
-        <figcaption v-if="caption" class="mt-2 text-left text-meta text-neutral-500">{{ caption }}</figcaption>
+        <figcaption v-if="caption" class="mt-2 text-left text-sm text-neutral-500">{{ caption }}</figcaption>
     </figure>
 </template>

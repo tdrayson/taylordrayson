@@ -1,6 +1,6 @@
 <script setup>
-import { ref, onMounted, onBeforeUnmount, markRaw } from 'vue';
-import { setLayoutProps, usePage } from '@inertiajs/vue3';
+import { ref, reactive, watch, onMounted, onBeforeUnmount, markRaw } from 'vue';
+import { router, setLayoutProps, usePage, usePoll } from '@inertiajs/vue3';
 import AppHead from '../Components/AppHead.vue';
 import 'gridstack/dist/gridstack.min.css';
 import { DragDropVerticalIcon, Tick02Icon } from '@hugeicons-pro/core-stroke-rounded';
@@ -8,6 +8,7 @@ import AppLayout from '../Layouts/AppLayout.vue';
 import { setupWidgetTilt } from '../lib/widgetTilt.js';
 import Button from '../Components/Ui/Button.vue';
 import Icon from '../Components/Ui/Icon.vue';
+import Heading from '../Components/Ui/Heading.vue';
 import ChargingWidget from '../Components/Now/ChargingWidget.vue';
 import ActivityWidget from '../Components/Now/ActivityWidget.vue';
 import WeatherWidget from '../Components/Now/WeatherWidget.vue';
@@ -17,7 +18,7 @@ import SleepWidget from '../Components/Now/SleepWidget.vue';
 import EntriesWidget from '../Components/Now/EntriesWidget.vue';
 import ReadingWidget from '../Components/Now/ReadingWidget.vue';
 import LocationWidget from '../Components/Now/LocationWidget.vue';
-import PodcastWidget from '../Components/Now/PodcastWidget.vue';
+import ThisWeekWithWidget from '../Components/Now/ThisWeekWithWidget.vue';
 
 defineOptions({ layout: AppLayout, inheritAttrs: false });
 
@@ -26,10 +27,14 @@ const props = defineProps({
     episode: { type: Object, default: null },
     // Real sleep data ({ nights, stageHours }) or null when there is none.
     sleep: { type: Object, default: null },
-    // Per-day timeline entry counts for the trailing 30 days (oldest first).
-    entryCounts: { type: Array, default: () => [] },
+    // Four Mon-Sun weeks of { date, count }, oldest first; future days have a null count.
+    entryDays: { type: Array, default: () => [] },
     // Recent real photos ({ src, srcset, url, caption }) for the "Life lately" deck.
     photos: { type: Array, default: () => [] },
+    // The book on the go ({ title, author, cover, percent }), or null when none is matched.
+    reading: { type: Object, default: null },
+    // [{ extension, type, label, url }] /now can be exported as.
+    formats: { type: Array, default: () => [] },
 });
 
 setLayoutProps({
@@ -45,7 +50,6 @@ const LAYOUT_KEY = 'now-layout-v1';
 // Only forward data props to a widget when the backend supplied something, so an
 // empty source falls back to the widget's own placeholder rather than blanking.
 const sleepProps = props.sleep ?? {};
-const entriesProps = props.entryCounts.length ? { counts: props.entryCounts } : {};
 const photosProps = props.photos.length ? { photos: props.photos } : {};
 
 // Ambient groups follow the same rule, per widget prop rather than per group:
@@ -65,6 +69,26 @@ const weatherProps = ambient('weather', ['condition', 'temp', 'humidity', 'wind'
 const locationProps = ambient('location', ['city', 'latitude', 'longitude']);
 const ringsProps = ambient('rings', ['move', 'moveGoal', 'exercise', 'exerciseGoal', 'stand', 'standGoal']);
 
+// One reactive object, so a poll updates the mounted card in place. Gridstack
+// owns the tiles, so they are never re-rendered from a fresh widget list.
+const readingProps = reactive({ fill: true, ...(props.reading ?? {}) });
+
+// A book appearing or going away changes the tiles, so remount; otherwise update the card in place.
+watch(() => props.reading, (reading, previous) => {
+    if (Boolean(reading) !== Boolean(previous)) {
+        router.visit(window.location.href, { preserveState: false, preserveScroll: true });
+
+        return;
+    }
+
+    if (reading) {
+        Object.assign(readingProps, reading);
+    }
+});
+
+// The Kindle syncs whenever a book is closed; a minute behind is close enough.
+usePoll(60_000, { only: ['reading'] });
+
 // The clock reads the same location group, under the prop names it declares.
 const timeProps = ambient('location', ['timezone']);
 
@@ -83,9 +107,9 @@ const defaultWidgets = [
     { id: 'weather', component: markRaw(WeatherWidget), x: 1, y: 1, w: 1, h: 1, props: { ...weatherProps } },
     { id: 'photos', component: markRaw(PhotosWidget), x: 2, y: 1, w: 2, h: 2, props: { ...photosProps } },
     { id: 'sleep', component: markRaw(SleepWidget), x: 0, y: 2, w: 2, h: 1, props: { ...sleepProps } },
-    { id: 'podcast', component: markRaw(PodcastWidget), x: 0, y: 3, w: 1, h: 1, props: { episode: props.episode } },
-    { id: 'entries', component: markRaw(EntriesWidget), x: 1, y: 3, w: 1, h: 1, props: { ...entriesProps } },
-    { id: 'reading', component: markRaw(ReadingWidget), x: 2, y: 3, w: 2, h: 1, props: { fill: true } },
+    { id: 'this-week-with', component: markRaw(ThisWeekWithWidget), x: 0, y: 3, w: 1, h: 1, props: { episode: props.episode } },
+    { id: 'entries', component: markRaw(EntriesWidget), x: 1, y: 3, w: 1, h: 1, props: { days: props.entryDays } },
+    ...(props.reading ? [{ id: 'reading', component: markRaw(ReadingWidget), x: 2, y: 3, w: 2, h: 1, props: readingProps }] : []),
 ];
 
 function readSaved() {
@@ -202,13 +226,13 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-    <AppHead :og="og" />
+    <AppHead :og="og" :formats="formats" />
 
     <div class="breakout mx-auto w-full max-w-5xl">
         <header class="flex items-start justify-between gap-4">
             <div>
-                <h1 class="font-display text-display">Now</h1>
-                <p class="mt-2 text-meta text-neutral-500">A live snapshot of my world, ticking away right this second.</p>
+                <Heading as="h1" size="display">Now</Heading>
+                <p class="mt-2 text-sm text-neutral-500">A live snapshot of my world, ticking away right this second.</p>
             </div>
             <div class="flex shrink-0 items-center gap-2">
                 <Button v-if="editing" variant="ghost" size="sm" @click="resetLayout">
@@ -249,6 +273,7 @@ onBeforeUnmount(() => {
     overflow: visible;
     background: transparent;
     border: 0;
+    border-radius: 1.5rem;
 }
 
 /* Fill the cell so widgets whose content is absolutely positioned (and so have

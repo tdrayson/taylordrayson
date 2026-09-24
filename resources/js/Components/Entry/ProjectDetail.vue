@@ -12,15 +12,15 @@ defineProps({
 <template>
     <div class="space-y-8">
         <div class="flex flex-wrap items-center gap-2">
-            <Pill v-if="entry.status" :label="titleCase(entry.status)" :variant="entry.status === 'active' ? 'accent' : 'default'" />
+            <Pill v-if="entry.stage" :label="titleCase(entry.stage)" :variant="entry.stage === 'active' ? 'accent' : 'default'" />
             <Pill v-if="entry.featured" label="Featured" />
         </div>
 
-        <p v-if="entry.description" v-twemoji class="text-body text-neutral-700">{{ entry.description }}</p>
+        <p v-if="entry.description" v-twemoji class="text-base text-neutral-700">{{ entry.description }}</p>
 
         <div v-if="entry.long_description">
             <SectionHead title="About" />
-            <p v-twemoji class="whitespace-pre-line text-body text-neutral-700">{{ entry.long_description }}</p>
+            <p v-twemoji class="whitespace-pre-line text-base text-neutral-700">{{ entry.long_description }}</p>
         </div>
 
         <div v-if="entry.url || entry.github_url" class="flex flex-wrap gap-x-6 gap-y-3">

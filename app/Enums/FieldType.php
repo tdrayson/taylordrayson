@@ -19,17 +19,20 @@ enum FieldType: string
     case Url = 'url';
     case DateTime = 'datetime';
     case Number = 'number';
+    case Rating = 'rating';
     case Duration = 'duration';
     case Distance = 'distance';
     case Boolean = 'boolean';
-    case Published = 'published';
+    case Status = 'status';
     case Select = 'select';
     case Tags = 'tags';
     case Lookup = 'lookup';
     case Location = 'location';
     case Image = 'image';
+    case BookCover = 'book-cover';
     case Gallery = 'gallery';
     case Facts = 'facts';
+    case Citation = 'citation';
 
     public function label(): string
     {
@@ -43,17 +46,20 @@ enum FieldType: string
             self::Url => 'URL',
             self::DateTime => 'Date and time',
             self::Number => 'Number',
+            self::Rating => 'Rating',
             self::Duration => 'Duration',
             self::Distance => 'Distance',
             self::Boolean => 'Toggle',
-            self::Published => 'Publish state',
+            self::Status => 'Status',
             self::Select => 'Choice',
             self::Tags => 'Tags',
             self::Lookup => 'Lookup',
             self::Location => 'Location',
             self::Image => 'Image',
+            self::BookCover => 'Book cover',
             self::Gallery => 'Photos',
             self::Facts => 'Facts',
+            self::Citation => 'Quote',
         };
     }
 
@@ -64,7 +70,7 @@ enum FieldType: string
      */
     public function isMedia(): bool
     {
-        return $this === self::Image || $this === self::Gallery;
+        return $this === self::Image || $this === self::BookCover || $this === self::Gallery;
     }
 
     /**
@@ -93,15 +99,5 @@ enum FieldType: string
     public function isTitle(): bool
     {
         return $this === self::Title;
-    }
-
-    /**
-     * Whether this field decides public visibility. The editor draws it as the
-     * save action itself rather than as a checkbox, so "Post" can never claim
-     * an entry is live while it is still a draft.
-     */
-    public function isPublished(): bool
-    {
-        return $this === self::Published;
     }
 }

@@ -1,9 +1,11 @@
 <script setup>
-import { onBeforeUnmount, onMounted, ref } from 'vue';
+import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
+import { getMarkRange } from '@tiptap/core';
 import { BubbleMenu } from '@tiptap/vue-3/menus';
 import Icon from '../Ui/Icon.vue';
 import BlockOptions from './BlockOptions.vue';
 import { blockOptionsFor } from '../../lib/editor/blockOptions';
+import { isBareUrl } from '../../lib/portable-text/links';
 import { useMounted } from '../../composables/useMounted';
 
 const mounted = useMounted();
@@ -24,6 +26,11 @@ const props = defineProps({
 const editingLink = ref(false);
 const href = ref('');
 const blank = ref(false);
+const expanded = ref(false);
+const linkText = ref('');
+
+// Only a pasted URL collapses to its domain, so only one can be expanded.
+const pastedUrl = computed(() => isBareUrl(linkText.value, href.value));
 
 const BUTTONS = [
     { mark: 'bold', icon: 'TextBoldIcon', label: 'Bold' },
@@ -164,7 +171,13 @@ function startLink() {
     }
 
     const link = props.editor.getAttributes('link');
+    const { state } = props.editor;
+    const range = props.editor.isActive('link')
+        ? getMarkRange(state.selection.$from, state.schema.marks.link)
+        : state.selection;
 
+    linkText.value = range ? state.doc.textBetween(range.from, range.to) : '';
+    expanded.value = link.expanded === true;
     href.value = link.href ?? '';
     // A new link to another host defaults to opening away, which is what is
     // wanted almost every time; the toggle is for the exceptions.
@@ -180,7 +193,7 @@ function applyLink() {
     // An emptied field is how you remove a link, rather than a separate control.
     (value === ''
         ? chain.unsetLink()
-        : chain.setLink({ href: value, target: blank.value ? '_blank' : '_self' })
+        : chain.setLink({ href: value, target: blank.value ? '_blank' : '_self', expanded: expanded.value && pastedUrl.value })
     ).run();
 
     editingLink.value = false;
@@ -206,7 +219,7 @@ function cancelLink() {
                 v-model="href"
                 type="url"
                 placeholder="https://"
-                class="w-56 rounded px-2 py-1 text-meta text-neutral-900 focus:outline-none"
+                class="w-56 rounded px-2 py-1 text-sm text-neutral-900 focus:outline-none"
                 autofocus
                 @keydown.enter.prevent="applyLink"
                 @keydown.esc.prevent="cancelLink"
@@ -214,7 +227,7 @@ function cancelLink() {
 
             <button
                 type="button"
-                class="rounded p-1.5 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500"
+                class="rounded p-1.5 transition-colors"
                 :class="blank ? 'bg-accent-50 text-accent-700' : 'text-neutral-500 hover:bg-neutral-25 hover:text-neutral-900'"
                 :aria-label="blank ? 'Opens in a new tab' : 'Opens in the same tab'"
                 :aria-pressed="blank"
@@ -222,8 +235,18 @@ function cancelLink() {
             ><Icon name="ArrowUpRight01Icon" class="size-4" /></button>
 
             <button
+                v-if="pastedUrl"
                 type="button"
-                class="rounded p-1.5 text-neutral-500 transition-colors hover:bg-accent-50 hover:text-accent-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500"
+                class="rounded p-1.5 transition-colors"
+                :class="expanded ? 'bg-accent-50 text-accent-700' : 'text-neutral-500 hover:bg-neutral-25 hover:text-neutral-900'"
+                :aria-label="expanded ? 'Shows the full address' : 'Shows the domain only'"
+                :aria-pressed="expanded"
+                @click="expanded = ! expanded"
+            ><Icon name="ArrowHorizontalIcon" class="size-4" /></button>
+
+            <button
+                type="button"
+                class="rounded p-1.5 text-neutral-500 transition-colors hover:bg-accent-50 hover:text-accent-700"
                 aria-label="Apply link"
                 @click="applyLink"
             ><Icon name="Tick02Icon" class="size-4" /></button>
@@ -234,7 +257,7 @@ function cancelLink() {
                 v-for="button in BUTTONS"
                 :key="button.mark"
                 type="button"
-                class="rounded p-1.5 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500"
+                class="rounded p-1.5 transition-colors"
                 :class="editor.isActive(button.mark)
                     ? 'bg-accent-50 text-accent-700'
                     : 'text-neutral-500 hover:bg-neutral-25 hover:text-neutral-900'"
@@ -247,7 +270,7 @@ function cancelLink() {
 
             <button
                 type="button"
-                class="rounded p-1.5 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500"
+                class="rounded p-1.5 transition-colors"
                 :class="onLink(editor)
                     ? 'bg-accent-50 text-accent-700'
                     : 'text-neutral-500 hover:bg-neutral-25 hover:text-neutral-900'"

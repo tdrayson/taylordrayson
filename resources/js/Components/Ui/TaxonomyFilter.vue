@@ -2,6 +2,7 @@
 import { computed, nextTick, ref, watch, onMounted, onBeforeUnmount } from 'vue';
 import { Link, router } from '@inertiajs/vue3';
 import { number } from '../../lib/format.js';
+import { useDismissable } from '../../composables/useDismissable.js';
 import { useListboxNavigation } from '../../composables/useListboxNavigation.js';
 
 const props = defineProps({
@@ -106,7 +107,7 @@ onBeforeUnmount(() => {
 watch(() => props.chips, () => measure());
 
 
-const open = ref(false);
+const { isOpen: open, root, toggle, close } = useDismissable();
 const search = ref('');
 const searchInput = ref(null);
 const listRef = ref(null);
@@ -126,51 +127,31 @@ const { activeIndex, onKeydown } = useListboxNavigation(filtered, {
     listEl: listRef,
     onSelect: (chip) => {
         if (chip) {
-            open.value = false;
+            close();
             router.visit(chip.href);
         }
     },
 });
 
-// Focus the search box and close on outside click when the popover opens.
+// Focus the search box when the popover opens.
 watch(open, (isOpen) => {
     if (isOpen) {
         search.value = '';
         activeIndex.value = 0;
         nextTick(() => searchInput.value?.focus());
-        document.addEventListener('click', onDocumentClick);
-    } else {
-        document.removeEventListener('click', onDocumentClick);
     }
 });
-
-function onDocumentClick(event) {
-    if (rowRef.value && ! rowRef.value.parentElement.contains(event.target)) {
-        open.value = false;
-    }
-}
-
-// Escape closes the popover; the wrapping arrow/Enter navigation is shared.
-function onSearchKeydown(event) {
-    if (event.key === 'Escape') {
-        open.value = false;
-
-        return;
-    }
-
-    onKeydown(event);
-}
 </script>
 
 <template>
-    <div v-if="chips.length" class="relative mt-6">
+    <div v-if="chips.length" ref="root" class="relative mt-6">
         <div ref="rowRef" class="flex flex-wrap gap-2" :class="{ invisible: measuring }">
             <Link
                 v-for="chip in shownChips"
                 :key="chip.href"
                 data-chip
                 :href="chip.href"
-                class="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-caption font-medium transition-colors"
+                class="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium transition-colors"
                 :class="chip.active
                     ? 'bg-accent-500 text-neutral-0'
                     : 'bg-neutral-25 text-neutral-700 hover:bg-accent-50 hover:text-accent-700'"
@@ -182,9 +163,9 @@ function onSearchKeydown(event) {
             <button
                 v-if="overflowCount > 0"
                 type="button"
-                class="self-center text-caption font-medium text-neutral-500 underline-offset-2 transition-colors hover:text-accent-600 hover:underline focus-visible:text-accent-600 focus-visible:underline focus-visible:outline-none"
+                class="self-center text-xs font-medium text-neutral-500 underline-offset-2 transition-colors hover:text-accent-600 hover:underline focus-visible:text-accent-600 focus-visible:underline"
                 :aria-expanded="open"
-                @click.stop="open = ! open"
+                @click="toggle"
             >
                 +{{ number(overflowCount) }} more
             </button>
@@ -192,8 +173,7 @@ function onSearchKeydown(event) {
 
         <div
             v-if="open"
-            class="absolute left-0 top-full z-20 mt-2 w-72 max-w-[calc(100vw-2rem)] rounded-xl border border-neutral-50 bg-neutral-0 p-2 shadow-card"
-            @click.stop
+            class="absolute left-0 top-full z-20 mt-2 w-72 max-w-viewport-inset rounded-xl border border-neutral-50 bg-neutral-0 p-2 shadow-card"
         >
             <input
                 ref="searchInput"
@@ -204,14 +184,14 @@ function onSearchKeydown(event) {
                 aria-controls="taxonomy-options"
                 placeholder="Search categories…"
                 aria-label="Search categories"
-                class="mb-2 w-full rounded-lg border border-neutral-50 bg-neutral-25 px-3 py-1.5 text-caption text-neutral-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500"
-                @keydown="onSearchKeydown"
+                class="mb-2 w-full rounded-lg border border-neutral-50 bg-neutral-25 px-3 py-1.5 text-xs text-neutral-900"
+                @keydown="onKeydown"
             >
             <ul id="taxonomy-options" ref="listRef" role="listbox" class="max-h-72 overflow-y-auto">
                 <li v-for="(chip, index) in filtered" :key="chip.href" role="option" :aria-selected="index === activeIndex" :data-active="index === activeIndex">
                     <Link
                         :href="chip.href"
-                        class="flex items-center justify-between gap-2 rounded-lg px-3 py-1.5 text-caption transition-colors"
+                        class="flex items-center justify-between gap-2 rounded-lg px-3 py-1.5 text-xs transition-colors"
                         :class="[
                             index === activeIndex ? 'bg-accent-50 text-accent-700' : 'text-neutral-700 hover:bg-accent-50 hover:text-accent-700',
                             chip.active ? 'font-semibold' : '',
@@ -223,10 +203,10 @@ function onSearchKeydown(event) {
                             <span v-else-if="hasIcons" class="size-4 shrink-0" aria-hidden="true"></span>
                             <span class="truncate">{{ chip.label }}</span>
                         </span>
-                        <span v-if="chip.count != null" class="shrink-0 text-neutral-400 tnum">{{ number(chip.count) }}</span>
+                        <span v-if="chip.count != null" class="shrink-0 text-neutral-400 tabular-nums">{{ number(chip.count) }}</span>
                     </Link>
                 </li>
-                <li v-if="!filtered.length" class="px-3 py-2 text-caption text-neutral-400">No matches</li>
+                <li v-if="!filtered.length" class="px-3 py-2 text-xs text-neutral-400">No matches</li>
             </ul>
         </div>
     </div>

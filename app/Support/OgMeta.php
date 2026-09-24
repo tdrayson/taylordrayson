@@ -4,18 +4,21 @@ namespace App\Support;
 
 use App\Actions\Og\BuildEntryOgData;
 use App\Data\CardData;
+use App\Enums\EntryStatus;
 use App\Enums\SubjectCategory;
 use App\Enums\SubjectKind;
 use App\Models\Article;
-use App\Models\Checkin;
-use App\Models\Media;
-use App\Models\Podcast;
+use App\Models\Place;
 use App\Models\Project;
 use App\Models\Subject;
+use App\Models\ThisWeekWith;
 use App\Models\TimelineEntry;
+use App\Models\TvEpisode;
+use App\Presenters\CardPresenter;
 use App\Presenters\EntryDescription;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Str;
 
 /**
@@ -36,8 +39,6 @@ use Illuminate\Support\Str;
  */
 class OgMeta
 {
-    private const SITE_DESCRIPTION = 'I build things on the internet, track everything, and drink too much coffee. A living archive of what I make, watch, read, and get up to.';
-
     /** Where Google truncates a title, measured on the whole assembled string. */
     private const TITLE_LIMIT = 60;
 
@@ -56,7 +57,6 @@ class OgMeta
         return self::make([
             'title' => 'Timeline',
             'heading' => 'Taylor Drayson',
-            'description' => 'Everything I log, in one continuous feed, newest first.',
             'variant' => 'home',
         ]);
     }
@@ -197,14 +197,14 @@ class OgMeta
     /**
      * @return OgPayload
      */
-    public static function series(): array
+    public static function tvShows(): array
     {
         return self::make([
             'title' => 'TV',
             'eyebrow' => 'TV',
-            'heading' => 'Every series I have watched',
+            'heading' => 'Every show I have watched',
             'description' => 'Television by show rather than by episode, with what I have finished and what I am partway through.',
-            'accent' => 'media',
+            'accent' => 'tv-episode',
         ]);
     }
 
@@ -244,7 +244,7 @@ class OgMeta
             'title' => "{$status} Not Found",
             'description' => 'The page you were looking for does not exist.',
             'noindex' => true,
-        ]);
+        ], "error-{$status}");
     }
 
     /**
@@ -308,7 +308,7 @@ class OgMeta
     /**
      * @param  string  $label  The type's display label (e.g. "Places"), shown as the eyebrow.
      * @param  string  $title  The page title (the type label, or a taxonomy phrase).
-     * @param  string  $accentToken  The card accent token (e.g. "checkin", "food").
+     * @param  string  $accentToken  The card accent token (e.g. "place", "food").
      * @param  bool  $isTaxonomy  Whether this is a taxonomy sub-page rather than the index.
      * @param  string  $noun  The type's singular noun (e.g. "activity"), pluralised against the total.
      * @param  int  $total  How many entries the archive holds.
@@ -355,17 +355,22 @@ class OgMeta
      * falling back to the site description on every untended page.
      *
      * @param  string|null  $content  The page body as plain text, used only when there is no excerpt.
+     * @param  EntryStatus  $status  The page's publishing status, for noindex.
      * @return OgPayload
      */
-    public static function page(string $title, ?string $excerpt, ?string $content = null): array
+    public static function page(string $title, ?string $excerpt, ?string $content = null, EntryStatus $status = EntryStatus::Published): array
     {
-        $description = Text::excerpt($excerpt, 200) ?: Text::excerpt($content, 200);
+        // A private page's description never derives from its body: crawlers
+        // and link unfurlers see this whether or not the viewer has unlocked it.
+        $description = Text::excerpt($excerpt, 200)
+            ?: ($status === EntryStatus::Private ? null : Text::excerpt($content, 200));
 
         return self::make(array_filter([
             'title' => $title,
             'heading' => $title,
             'description' => $description,
-        ], fn (?string $value): bool => $value !== null && $value !== ''));
+            'noindex' => $status !== EntryStatus::Published,
+        ], fn (mixed $value): bool => $value !== null && $value !== ''));
     }
 
     /**
@@ -377,7 +382,7 @@ class OgMeta
      * @param  string|null  $span  The watch period (e.g. "Mar 2024 to Aug 2026").
      * @return OgPayload
      */
-    public static function seriesShow(string $title, int $episodes, ?int $seasons, ?string $span): array
+    public static function tvShow(string $title, int $episodes, ?int $seasons, ?string $span): array
     {
         $across = $seasons ? sprintf(' across %s %s', $seasons, Str::plural('season', $seasons)) : '';
         $when = $span ? ", {$span}" : '';
@@ -386,7 +391,7 @@ class OgMeta
             'title' => $title,
             'eyebrow' => 'TV',
             'heading' => $title,
-            'accent' => TypeColors::hex('media'),
+            'accent' => TypeColors::hex('tv-episode'),
             'description' => sprintf(
                 "I've watched %s %s of %s%s%s.",
                 number_format($episodes),
@@ -500,7 +505,7 @@ class OgMeta
 
     /**
      * @param  TimelineEntry|null  $entry  The entry whose pre-rendered card to point at, or null when
-     *                                     the model has no spine row (e.g. an unpublished article
+     *                                     the model has no spine row (e.g. a draft article
      *                                     previewed by its author), in which case the OG image is omitted.
      * @param  Model  $model  The entry's content, which its description is written from.
      * @param  CardData  $card  The built card, for its title, subtitle and date.
@@ -510,10 +515,31 @@ class OgMeta
     {
         return self::make([
             'title' => self::entryTitle($model, $card),
-            'description' => EntryDescription::for($model, $card),
+            'description' => EntryDescription::for($model, $card) ?? config('identity.bio'),
             'image' => $entry !== null ? self::entryCardUrl($entry) : null,
             'type' => $model instanceof Article ? 'article' : 'website',
+            'noindex' => $model->status !== EntryStatus::Published,
         ]);
+    }
+
+    /**
+     * The signed URL of a page's generated card. Signing stops the renderer
+     * taking requests for cards no page publishes.
+     *
+     * @param  OgPayload  $og
+     * @param  string  $owner  The page the card belongs to; it keeps only its latest card.
+     */
+    public static function cardUrl(array $og, string $owner): string
+    {
+        return URL::signedRoute('og', array_filter([
+            'for' => $owner,
+            'title' => $og['heading'] ?? $og['title'] ?? config('identity.name'),
+            'eyebrow' => $og['eyebrow'],
+            'accent' => $og['accent'],
+            'variant' => $og['variant'],
+            'description' => $og['description'],
+            'v' => OgRenderer::generation(),
+        ]));
     }
 
     /**
@@ -523,13 +549,21 @@ class OgMeta
      * Both belong in the URL because the card is cached against both, and the
      * URL is what anyone holding a share preview refetches by. Without them a
      * redesigned or edited card keeps the address of the one it replaced.
+     *
+     * An unlisted or private entry's card URL is signed, so its card cannot be
+     * found by walking timeline ids.
      */
     public static function entryCardUrl(TimelineEntry $entry): string
     {
-        return route('og.entry', $entry).'?'.http_build_query([
+        $parameters = [
+            'entry' => $entry,
             'v' => OgRenderer::generation(),
             't' => BuildEntryOgData::entryTimestamp($entry),
-        ]);
+        ];
+
+        return $entry->status === EntryStatus::Published
+            ? route('og.entry', $parameters)
+            : URL::signedRoute('og.entry', $parameters);
     }
 
     /**
@@ -546,8 +580,10 @@ class OgMeta
      */
     private static function entryTitle(Model $model, CardData $card): string
     {
+        $cardTitle = CardPresenter::publicTitle($model, $card);
+
         if ($model instanceof Article || $model instanceof Project) {
-            return $card->title;
+            return $cardTitle;
         }
 
         // An episode's card title is the episode's alone, which off the show's
@@ -555,35 +591,36 @@ class OgMeta
         // A podcast has the same problem for the same reason: on the timeline
         // its show is the type eyebrow, which does not travel with the title.
         $show = match (true) {
-            $model instanceof Media => ShowTitle::for($model),
-            $model instanceof Podcast => 'This Week With',
+            $model instanceof TvEpisode => ShowTitle::for($model),
+            $model instanceof ThisWeekWith => 'This Week With',
             default => null,
         };
 
         // A check-in card reads "at Cineworld", which is a phrase in a feed but
         // not a title. The venue is the name of the thing.
         $title = match (true) {
-            $model instanceof Checkin => trim(collect([$model->event_name, $model->venue_name])->filter()->implode(' at ')),
-            $show !== null => "{$show}: {$card->title}",
-            default => $card->title,
+            $model instanceof Place => trim(collect([$model->event_name, $model->venue_name])->filter()->implode(' at ')),
+            $show !== null => "{$show}: {$cardTitle}",
+            default => $cardTitle,
         };
 
-        $suffix = ' - '.$card->occurredAt->format('j M Y');
+        $suffix = $card->occurredAt === null ? '' : ' - '.$card->occurredAt->format('j M Y');
 
         return Text::excerpt($title, self::TITLE_LIMIT - self::SITE_SUFFIX_LENGTH - mb_strlen($suffix)).$suffix;
     }
 
     /**
-     * Fill a partial payload with the shared defaults.
+     * Fill a partial payload with the shared defaults and the page's card.
      *
      * @param  array{title?: ?string, description?: string, heading?: ?string, eyebrow?: ?string, accent?: ?string, image?: ?string, variant?: ?string, type?: string, noindex?: bool}  $attributes
+     * @param  string|null  $owner  The card's owner, when it is not the requested path.
      * @return OgPayload
      */
-    private static function make(array $attributes): array
+    private static function make(array $attributes, ?string $owner = null): array
     {
-        return array_merge([
+        $og = array_merge([
             'title' => null,
-            'description' => self::SITE_DESCRIPTION,
+            'description' => config('identity.bio'),
             'heading' => null,
             'eyebrow' => null,
             'accent' => null,
@@ -592,5 +629,9 @@ class OgMeta
             'type' => 'website',
             'noindex' => false,
         ], $attributes);
+
+        $og['image'] ??= self::cardUrl($og, $owner ?? '/'.ltrim(request()->path(), '/'));
+
+        return $og;
     }
 }

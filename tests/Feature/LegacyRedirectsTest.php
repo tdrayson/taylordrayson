@@ -1,5 +1,8 @@
 <?php
 
+use App\Models\Article;
+use App\Models\Page;
+
 it('301s every legacy path to its current one', function () {
     expect(config('redirects'))->not->toBeEmpty();
 
@@ -16,6 +19,10 @@ it('leaves a live sub-route of a redirected path alone', function () {
 });
 
 it('sends every legacy path somewhere that actually resolves', function () {
+    Page::factory()->create(['slug' => 'about']);
+    Article::factory()->create(['status' => 'published'])
+        ->syncTagNames(['Fitness', 'Health', 'Technology', 'Photography', 'Living Alone']);
+
     foreach (config('redirects') as $to) {
         $this->get("/{$to}")->assertSuccessful();
     }

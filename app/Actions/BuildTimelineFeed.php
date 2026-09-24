@@ -2,7 +2,8 @@
 
 namespace App\Actions;
 
-use App\Models\Calorie;
+use App\Enums\EntryStatus;
+use App\Models\Food;
 use App\Models\TimelineEntry;
 use App\Presenters\CardPresenter;
 use App\Queries\DayFoodTotals;
@@ -24,7 +25,7 @@ class BuildTimelineFeed
         $this->warmFoodTotals($entries);
 
         return $entries
-            ->filter(fn (TimelineEntry $entry): bool => $entry->timelineable !== null)
+            ->filter(fn (TimelineEntry $entry): bool => $entry->entry !== null)
             ->groupBy(fn (TimelineEntry $entry): string => $entry->occurred_at->format('Y-m-d'))
             ->map(fn (Collection $group): array => [
                 'label' => $group->first()->occurred_at->format('l j F Y'),
@@ -45,8 +46,8 @@ class BuildTimelineFeed
     private function warmFoodTotals(Collection $entries): void
     {
         $dates = $entries
-            ->filter(fn (TimelineEntry $entry): bool => $entry->timelineable instanceof Calorie)
-            ->map(fn (TimelineEntry $entry): string => $entry->timelineable->occurred_at->toDateString())
+            ->filter(fn (TimelineEntry $entry): bool => $entry->entry instanceof Food)
+            ->map(fn (TimelineEntry $entry): string => $entry->entry->occurred_at->toDateString())
             ->unique()
             ->values()
             ->all();
@@ -110,16 +111,17 @@ class BuildTimelineFeed
     {
         // Seed the inverse relation so url() reads the spine's url_slug
         // without a lazy query per card.
-        $entry->timelineable->setRelation('timelineEntry', $entry);
+        $entry->entry->setRelation('timelineEntry', $entry);
 
-        $card = CardPresenter::for($entry->timelineable);
-        $local = LocalTime::for($entry->timelineable->occurredAtForDisplay(), $entry->timelineable->timezone());
+        $card = CardPresenter::for($entry->entry);
+        $local = LocalTime::for($entry->entry->occurredAtForDisplay(), $entry->entry->timezone());
 
         return [
             'iconKey' => $card->type->value,
             'accent' => $card->accent,
             'title' => $card->title,
             'titleLabel' => $card->titleLabel,
+            'titleTokens' => $card->titleTokens,
             'meta' => Text::excerpt($card->subtitle, 240),
             'metaTokens' => $card->subtitleTokens,
             'body' => $card->meta->body,
@@ -137,14 +139,19 @@ class BuildTimelineFeed
             'address' => $card->meta->address,
             'category' => $card->meta->category,
             'backdrop' => $card->meta->backdrop,
+            'response' => $card->meta->response,
             'range' => $card->range,
             // A day total has no clock reading to show, but keeps a real
             // instant in `datetime` for ordering, microformats and the tooltip.
-            'time' => $entry->timelineable->hasClockTime() ? $local['time'] : 'All day',
+            'time' => $entry->entry->hasClockTime() ? $local['time'] : 'All day',
             'datetime' => $local['iso'],
             'label' => $local['label'],
             'offset' => $local['offset'],
-            'url' => $entry->timelineable->url(),
+            'url' => $entry->entry->url(),
+            // The entry's own key, so a card can address the reaction endpoint
+            // without the feed having to resolve a model again.
+            'id' => $entry->entry->getKey(),
+            'statusLabel' => $entry->entry->status === EntryStatus::Published ? null : $entry->entry->status?->label(),
         ];
     }
 }

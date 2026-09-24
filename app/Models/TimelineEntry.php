@@ -2,12 +2,16 @@
 
 namespace App\Models;
 
+use App\Datasets\Dataset;
+use App\Datasets\Datasets;
+use App\Enums\EntryStatus;
+use App\Models\Scopes\ListedScope;
 use App\Presenters\CardPresenter;
 use App\Presenters\EntryDescription;
 use App\Support\SqlDate;
 use App\Timeline\FeedPresets;
-use App\Timeline\TypeRegistry;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Attributes\ScopedBy;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -16,13 +20,15 @@ use Illuminate\Database\Eloquent\Relations\MorphTo;
 use Spatie\Feed\Feedable;
 use Spatie\Feed\FeedItem;
 
+#[ScopedBy([ListedScope::class])]
 #[Fillable([
-    'timelineable_type',
-    'timelineable_id',
+    'dataset',
+    'entry_id',
     'occurred_at',
     'ends_at',
     'occurred_utc',
     'url_slug',
+    'status',
 ])]
 class TimelineEntry extends Model implements Feedable
 {
@@ -37,16 +43,17 @@ class TimelineEntry extends Model implements Feedable
             'occurred_at' => 'datetime',
             'occurred_utc' => 'datetime',
             'ends_at' => 'datetime',
+            'status' => EntryStatus::class,
         ];
     }
 
-    public function timelineable(): MorphTo
+    public function entry(): MorphTo
     {
-        return $this->morphTo();
+        return $this->morphTo('entry', 'dataset', 'entry_id');
     }
 
     /**
-     * Relations each timelineable's card() reads, so feeds can eager-load them
+     * Relations each entry's card() reads, so feeds can eager-load them
      * and avoid N+1 queries (flight endpoints/airline, appearance cover thumbnail).
      *
      * @return array<class-string, array<int, string>>
@@ -57,25 +64,28 @@ class TimelineEntry extends Model implements Feedable
             Flight::class => ['origin', 'destination', 'airline', 'media'],
             Appearance::class => ['media'],
             Activity::class => ['media'],
-            Article::class => ['media'],
+            Article::class => ['media', 'citation'],
             Event::class => ['media'],
             Fuel::class => ['media'],
-            Checkin::class => ['media'],
-            // `series` names the show on an episode card, and carries the
+            Place::class => ['media'],
+            Note::class => ['citation'],
+            Film::class => ['media'],
+            // `tvShow` names the show on an episode card, and carries the
             // backdrop an episode has none of its own. Without these every
             // episode in the feed resolves its show, and both their
             // attachments, one query at a time.
-            Media::class => ['series', 'media', 'series.media'],
+            TvEpisode::class => ['tvShow', 'media', 'tvShow.media'],
+            Book::class => ['media'],
         ];
     }
 
     /**
-     * Eager-load the polymorphic timelineable together with every relation its
+     * Eager-load the polymorphic entry together with every relation its
      * card() needs.
      */
     public function scopeWithCardRelations(Builder $query): Builder
     {
-        return $query->with(['timelineable' => fn (MorphTo $morphTo) => $morphTo->morphWith(self::cardRelations())]);
+        return $query->with(['entry' => fn (MorphTo $morphTo) => $morphTo->morphWith(self::cardRelations())]);
     }
 
     /**
@@ -123,10 +133,10 @@ class TimelineEntry extends Model implements Feedable
 
     public function toFeedItem(): FeedItem
     {
-        $this->timelineable->setRelation('timelineEntry', $this);
+        $this->entry->setRelation('timelineEntry', $this);
 
-        $card = CardPresenter::for($this->timelineable);
-        $link = url($this->timelineable->url());
+        $card = CardPresenter::for($this->entry);
+        $link = url($this->entry->url());
 
         return FeedItem::create([
             'id' => $link,
@@ -134,7 +144,7 @@ class TimelineEntry extends Model implements Feedable
             // The standalone sentence, not the card subtitle: a subtitle is
             // written to sit under its title, and a check-in without a note has
             // none at all.
-            'summary' => EntryDescription::for($this->timelineable, $card),
+            'summary' => EntryDescription::for($this->entry, $card) ?? '',
             'updated' => $this->occurred_at,
             'link' => $link,
             'authorName' => config('feed.author_name'),
@@ -151,20 +161,20 @@ class TimelineEntry extends Model implements Feedable
         $models = self::requestedModels();
 
         return self::query()
-            ->when($models !== null, fn (Builder $query) => $query->whereHasMorph('timelineable', $models))
+            ->when($models !== null, fn (Builder $query) => $query->whereHasMorph('entry', $models))
             ->withCardRelations()
             ->orderByDesc('occurred_at')
             ->limit(50)
             ->get()
-            ->filter(fn (TimelineEntry $entry): bool => $entry->timelineable !== null)
+            ->filter(fn (TimelineEntry $entry): bool => $entry->entry !== null)
             ->values();
     }
 
     /**
-     * Resolve the requested timelineable models from the feed query string:
+     * Resolve the requested entry models from the feed query string:
      * `?filter=` selects a named preset, `?types=` a comma-separated list of
-     * TypeRegistry keys. Unknown presets/types are ignored, and an empty or
-     * absent selection returns null so the feed falls back to every type.
+     * dataset keys. Unknown presets/types are ignored, and an empty or absent
+     * selection returns null so the feed falls back to every type.
      *
      * @return array<int, class-string>|null
      */
@@ -176,20 +186,21 @@ class TimelineEntry extends Model implements Feedable
         if (is_string($filter = $request->query('filter'))) {
             $keys = FeedPresets::types($filter);
         } elseif (is_string($types = $request->query('types'))) {
-            $keys = array_filter(
-                explode(',', $types),
-                fn (string $key): bool => TypeRegistry::find(trim($key)) !== null,
-            );
+            $keys = explode(',', $types);
         }
 
         if (empty($keys)) {
             return null;
         }
 
-        return collect($keys)
-            ->map(fn (string $key): string => TypeRegistry::find(trim($key))['model'])
+        $models = collect($keys)
+            ->map(fn (string $key): ?Dataset => Datasets::for(trim($key)))
+            ->filter()
+            ->map(fn (Dataset $dataset): string => $dataset->model())
             ->unique()
             ->values()
             ->all();
+
+        return $models === [] ? null : $models;
     }
 }

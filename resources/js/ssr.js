@@ -1,10 +1,11 @@
 import '../css/app.css';
 
-import { createInertiaApp } from '@inertiajs/vue3';
+import { createInertiaApp, usePage } from '@inertiajs/vue3';
 import createServer from '@inertiajs/vue3/server';
 import { createSSRApp, h } from 'vue';
 import { renderToString } from 'vue/server-renderer';
 import { seedPreferences } from './useSettings';
+import './composables/useDateFormat';
 import { twemojiDirective } from './directives/twemoji';
 
 /**
@@ -21,7 +22,13 @@ createServer((page) =>
     createInertiaApp({
         page,
         render: renderToString,
-        title: (title) => (title ? `${title} | Taylor Drayson` : 'Taylor Drayson'),
+        // Same reasoning as app.js: this runs during <Head> rendering, after
+        // the page's props (including identity) are already set.
+        title: (title) => {
+            const { name } = usePage().props.identity;
+
+            return title ? `${title} | ${name}` : name;
+        },
         resolve: (name) => {
             const pages = import.meta.glob('./Pages/**/*.vue');
 

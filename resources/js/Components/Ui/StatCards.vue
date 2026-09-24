@@ -1,6 +1,8 @@
 <script setup>
 import { computed } from 'vue';
 import { unitTitle } from '../../lib/units.js';
+import Eyebrow from './Eyebrow.vue';
+import Stat from './Stat.vue';
 
 const props = defineProps({
     // Each: { value, label, unit?, tone? } where tone is 'default', 'accent',
@@ -40,8 +42,8 @@ const columns = computed(() => COLUMNS[props.stats.length] ?? 'grid-cols-2 sm:gr
              packs from the bottom, and a label wrapping to three lines lifts
              its figure clear of the ones beside it. -->
         <div v-for="(stat, index) in stats" :key="index" class="flex flex-col-reverse justify-end px-4 py-4" :class="TONES[stat.tone] ?? TONES.default">
-            <dt class="mt-1.5 text-label uppercase text-neutral-500">{{ stat.label }}</dt>
-            <dd class="font-display text-stat leading-none tnum">{{ stat.value }}<abbr v-if="stat.unit" :title="unitTitle(stat.unit)" class="ml-1 text-base font-semibold text-neutral-500 no-underline">{{ stat.unit }}</abbr></dd>
+            <Eyebrow as="dt" class="mt-1.5 text-neutral-500">{{ stat.label }}</Eyebrow>
+            <Stat as="dd">{{ stat.value }}<abbr v-if="stat.unit" :title="unitTitle(stat.unit)" class="ml-1 text-base font-semibold text-neutral-500 no-underline">{{ stat.unit }}</abbr></Stat>
         </div>
     </dl>
 </template>

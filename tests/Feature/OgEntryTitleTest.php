@@ -1,19 +1,21 @@
 <?php
 
 use App\Actions\Og\BuildEntryOgData;
-use App\Models\Calorie;
-use App\Models\Media;
-use App\Models\Series;
+use App\Models\Book;
+use App\Models\Film;
+use App\Models\Food;
 use App\Models\Sleep;
 use App\Models\TimelineEntry;
+use App\Models\TvEpisode;
+use App\Models\TvShow;
 
 /** The headline the OG card would print for the entry behind this model. */
 function ogTitle(object $model): string
 {
     $entry = TimelineEntry::query()
-        ->where('timelineable_type', $model::class)
-        ->where('timelineable_id', $model->id)
-        ->with('timelineable')
+        ->where('dataset', $model->getMorphClass())
+        ->where('entry_id', $model->id)
+        ->with('entry')
         ->sole();
 
     return app(BuildEntryOgData::class)($entry, fn (): ?string => null)['title'];
@@ -34,26 +36,24 @@ it('builds the sleep headline from the duration, not the card title', function (
 });
 
 it('builds the food headline from the day total, not the card title', function () {
-    $calorie = Calorie::factory()->create([
+    $food = Food::factory()->create([
         'occurred_at' => '2026-08-29 12:00:00',
         'calories' => 2140,
     ]);
 
-    expect(ogTitle($calorie))
+    expect(ogTitle($food))
         ->toContain('2,140')
         ->not->toContain('calories');
 });
 
 it('says what was watched or read rather than naming it alone', function () {
-    $film = Media::factory()->create([
-        'type' => 'film',
+    $film = Film::factory()->create([
         'title' => 'Karate Kid',
         'occurred_at' => '2026-08-29 20:00:00',
         'meta' => ['year' => 2010],
     ]);
 
-    $book = Media::factory()->create([
-        'type' => 'book',
+    $book = Book::factory()->create([
         'title' => 'Piranesi',
         'occurred_at' => '2026-08-28 20:00:00',
         'meta' => ['author' => 'Susanna Clarke'],
@@ -64,11 +64,10 @@ it('says what was watched or read rather than naming it alone', function () {
 });
 
 it('names the show and the place in it, so a binge is not four identical cards', function () {
-    $series = Series::factory()->create(['slug' => 'severance', 'title' => 'Severance']);
+    $tvShow = TvShow::factory()->create(['slug' => 'severance', 'title' => 'Severance']);
 
-    $episode = Media::factory()->create([
-        'series_id' => $series->id,
-        'type' => 'episode',
+    $episode = TvEpisode::factory()->create([
+        'tv_show_id' => $tvShow->id,
         'title' => 'Good News About Hell',
         'occurred_at' => '2026-08-29 21:00:00',
         'meta' => ['season' => 1, 'episode' => 2, 'show_title' => 'Severance'],

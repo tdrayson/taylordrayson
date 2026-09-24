@@ -1,11 +1,10 @@
 <?php
 
-use App\Enums\MediaType;
 use App\Models\Activity;
 use App\Models\Appearance;
 use App\Models\Event;
+use App\Models\Film;
 use App\Models\Flight;
-use App\Models\Media;
 use App\Models\Note;
 use App\Models\Sleep;
 use App\Presenters\CardPresenter;
@@ -40,8 +39,10 @@ it('reproduces the pre-refactor activity card shape', function () {
         'subtitleTokens' => [
             ['t' => 'text', 'v' => 'I ran'],
             ['t' => 'dist', 'm' => 5000, 'p' => 1, 'sep' => ' '],
-            ['t' => 'text', 'v' => 'in 30m', 'sep' => ' '],
-            ['t' => 'text', 'v' => 'and burned 350 kcal', 'sep' => ' '],
+            ['t' => 'text', 'v' => 'in', 'sep' => ' '],
+            ['t' => 'dur', 's' => 1800, 'sep' => ' '],
+            ['t' => 'text', 'v' => 'and burned', 'sep' => ' '],
+            ['t' => 'kcal', 'kcal' => 350, 'sep' => ' '],
             ['t' => 'text', 'v' => '.', 'sep' => ''],
         ],
         'occurred_at' => $activity->occurred_at,
@@ -91,20 +92,20 @@ it('reproduces the pre-refactor flight card shape', function () {
     ]);
 });
 
-it('reproduces the pre-refactor media card shape', function () {
-    $media = Media::factory()->create([
+it('reproduces the pre-refactor film card shape', function () {
+    $film = Film::factory()->create([
         'occurred_at' => '2026-01-01 20:00:00',
-        'type' => MediaType::Film,
         'title' => 'Interstellar',
         'rating' => 9,
         'meta' => ['year' => 2014],
     ]);
 
-    expect(CardPresenter::for($media)->toArray())->toEqual([
-        'type' => 'media',
+    expect(CardPresenter::for($film)->toArray())->toEqual([
+        'type' => 'film',
         'title' => 'Interstellar',
         'subtitle' => 'I watched this 2014 film and rated it 9/10.',
-        'occurred_at' => $media->occurred_at,
+        'subtitleTokens' => [['t' => 'text', 'v' => 'I watched this 2014 film and rated it 9/10.']],
+        'occurred_at' => $film->occurred_at,
         'meta' => ['backdrop' => null],
     ]);
 });
@@ -120,7 +121,7 @@ it('reproduces the pre-refactor note card shape', function () {
         'title' => 'A short note about today.',
         'subtitle' => null,
         'occurred_at' => $note->occurred_at,
-        'meta' => ['body' => $note->content, 'photos' => [], 'previews' => [], 'favicons' => []],
+        'meta' => ['body' => $note->content, 'photos' => [], 'previews' => [], 'favicons' => [], 'response' => null],
     ]);
 });
 
@@ -144,9 +145,8 @@ it('reproduces the pre-refactor single-day event card shape', function () {
 
 it('reproduces the pre-refactor sleep card shape', function () {
     $sleep = Sleep::factory()->create([
-        'occurred_at' => '2026-01-01 00:00:00',
-        'bedtime' => '2025-12-31 23:00:00',
-        'wake_time' => '2026-01-01 07:00:00',
+        'occurred_at' => '2026-01-01 07:00:00',
+        'started_at' => '2025-12-31 23:00:00',
         'duration' => 28800,
         'awake' => 600,
         'rem' => 6000,
@@ -158,6 +158,7 @@ it('reproduces the pre-refactor sleep card shape', function () {
         'type' => 'sleep',
         'title' => 'I slept for 8h',
         'titleLabel' => 'Sleep log, I slept for 8 hours',
+        'titleTokens' => [['t' => 'text', 'v' => 'I slept for'], ['t' => 'dur', 's' => 28800, 'sep' => ' ']],
         'subtitle' => 'I went to bed at 11:00pm and woke at 7:00am.',
         'occurred_at' => $sleep->occurred_at,
         'meta' => [
@@ -184,7 +185,13 @@ it('reproduces the pre-refactor appearance card shape', function () {
     expect(CardPresenter::for($appearance)->toArray())->toEqual([
         'type' => 'appearance',
         'title' => 'Building a Lifelog',
-        'subtitle' => 'I spoke at Laracon EU.',
+        'subtitle' => 'I spoke at Laracon EU. It was 30 minutes long.',
+        'subtitleTokens' => [
+            ['t' => 'text', 'v' => 'I spoke at Laracon EU.'],
+            ['t' => 'text', 'v' => 'It was', 'sep' => ' '],
+            ['t' => 'dur', 's' => 1800, 'u' => 'minutes', 'sep' => ' '],
+            ['t' => 'text', 'v' => 'long.', 'sep' => ' '],
+        ],
         'occurred_at' => $appearance->occurred_at,
         'meta' => [
             'media' => [

@@ -2,7 +2,7 @@
 
 namespace App\Queries;
 
-use App\Models\Calorie;
+use App\Models\Food;
 use App\Support\SqlDate;
 use Illuminate\Support\Collection;
 
@@ -73,7 +73,7 @@ final class DayFoodTotals
     {
         $day = SqlDate::date('occurred_at');
 
-        return Calorie::query()
+        return Food::query()
             ->selectRaw("{$day} as day, SUM(calories) as calories, SUM(protein) as protein, SUM(carbs) as carbs, SUM(fat) as fat")
             ->where('occurred_at', '>=', $from.' 00:00:00')
             ->where('occurred_at', '<', date('Y-m-d', strtotime($to.' +1 day')).' 00:00:00')

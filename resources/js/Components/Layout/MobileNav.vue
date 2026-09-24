@@ -76,7 +76,7 @@ onUnmounted(() => {
         <div class="flex flex-none items-center justify-between border-b border-neutral-50 px-5 py-3">
             <Link href="/" class="flex items-center gap-2.5">
                 <Avatar size="size-8" alt="" />
-                <span class="font-display text-lg font-extrabold tracking-tight">Taylor Drayson</span>
+                <span class="font-display text-lg font-extrabold tracking-tight">{{ page.props.identity.name }}</span>
             </Link>
             <button
                 v-if="! props.minimal"
@@ -99,7 +99,7 @@ onUnmounted(() => {
                     <button
                         type="button"
                         aria-label="Open settings"
-                        class="-ml-3 flex items-center gap-3 rounded-md px-3 py-2.5 text-base font-medium text-neutral-700 transition-colors hover:bg-neutral-25 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500"
+                        class="-ml-3 flex items-center gap-3 rounded-md px-3 py-2.5 text-base font-medium text-neutral-700 transition-colors hover:bg-neutral-25"
                         @click="openSettingsFromMenu"
                     >
                         <Icon name="Settings01Icon" class="size-5 flex-none text-neutral-500" />
@@ -123,11 +123,21 @@ onUnmounted(() => {
     transform: translateY(-8px);
 }
 
-/* Stagger each nav group, then the search pill below them, then the footer. */
+/* Stagger each nav row, then the search pill below them, then the footer.
+   Signed in, the owner rows add three children (rule, HQ, Drafts), so the
+   search and footer wait for those too rather than landing before them. */
+#mobile-menu {
+    --menu-rows: 6;
+}
+
+#mobile-menu:has(:deep(nav > :nth-child(7))) {
+    --menu-rows: 9;
+}
+
 .menu-search,
 #mobile-menu :deep(nav > *),
 #mobile-menu .menu-foot {
-    animation: menu-item-in 0.38s cubic-bezier(0.16, 1, 0.3, 1) both;
+    animation: menu-item-in 0.38s var(--ease-out-expo) both;
 }
 
 #mobile-menu :deep(nav > *:nth-child(1)) {
@@ -154,12 +164,24 @@ onUnmounted(() => {
     animation-delay: 0.24s;
 }
 
-.menu-search {
+#mobile-menu :deep(nav > *:nth-child(7)) {
     animation-delay: 0.28s;
 }
 
-#mobile-menu .menu-foot {
+#mobile-menu :deep(nav > *:nth-child(8)) {
     animation-delay: 0.32s;
+}
+
+#mobile-menu :deep(nav > *:nth-child(9)) {
+    animation-delay: 0.36s;
+}
+
+.menu-search {
+    animation-delay: calc((var(--menu-rows) + 1) * 0.04s);
+}
+
+#mobile-menu .menu-foot {
+    animation-delay: calc((var(--menu-rows) + 2) * 0.04s);
 }
 
 @keyframes menu-item-in {
@@ -183,7 +205,8 @@ onUnmounted(() => {
         transform: none;
     }
 
-    #mobile-menu :deep(nav > a),
+    .menu-search,
+    #mobile-menu :deep(nav > *),
     #mobile-menu .menu-foot {
         animation: none;
     }

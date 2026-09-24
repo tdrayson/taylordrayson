@@ -1,23 +1,20 @@
 <script setup>
 import { ref, computed } from 'vue';
-import { Link } from '@inertiajs/vue3';
 import ZoomButton from '../Ui/ZoomButton.vue';
 import PhotoTagLayer from '../Subjects/PhotoTagLayer.vue';
 
 const props = defineProps({
     // The static location/route map (light) and its dark twin, shown as the
-    // last slide and linking through to the entry.
+    // last slide. Like the photos, it opens the lightbox.
     map: { type: String, default: null },
     mapDark: { type: String, default: null },
     // Photo gallery in {src, srcset, full} shape; each becomes a slide that
     // opens the lightbox.
     photos: { type: Array, default: () => [] },
-    // Entry permalink the map slide links to (photos open the lightbox instead).
-    url: { type: String, default: null },
 });
 
-// Opening a photo slide bubbles its index up so the parent can drive the
-// shared Lightbox (whose items are the photos, map excluded).
+// Opening a slide bubbles its index up so the parent can drive the shared
+// Lightbox, whose items are the photos followed by the map.
 const emit = defineEmits(['open']);
 
 function hasTags(photo) {
@@ -29,13 +26,14 @@ const track = ref(null);
 const active = ref(0);
 
 // Photos lead and the map trails them: an entry with a photo should open on the
-// photo, and one without a photo shows the map anyway. `photoIndex` maps a photo
-// slide back to its position in the parent's photos/lightbox array.
+// photo, and one without a photo shows the map anyway. `lightboxIndex` maps a
+// slide back to its position in the parent's lightbox array, which is built in
+// this same order.
 const slides = computed(() => {
-    const list = props.photos.map((photo, index) => ({ kind: 'photo', photo, photoIndex: index }));
+    const list = props.photos.map((photo, index) => ({ kind: 'photo', photo, lightboxIndex: index }));
 
     if (props.map) {
-        list.push({ kind: 'map' });
+        list.push({ kind: 'map', lightboxIndex: props.photos.length });
     }
 
     return list;
@@ -60,7 +58,7 @@ function goTo(index) {
 </script>
 
 <template>
-    <div class="relative mt-3 w-full max-w-lg">
+    <div class="focus-frame relative mt-3 w-full max-w-lg rounded-lg">
         <div
             ref="track"
             class="no-scrollbar flex snap-x snap-mandatory overflow-x-auto rounded-lg"
@@ -71,28 +69,19 @@ function goTo(index) {
                 :key="index"
                 class="relative aspect-video w-full shrink-0 snap-center overflow-hidden border border-neutral-50"
             >
-                <component
-                    :is="url ? Link : 'div'"
-                    v-if="slide.kind === 'map'"
-                    :href="url || undefined"
-                    :tabindex="url ? -1 : undefined"
-                    :aria-hidden="url ? 'true' : undefined"
-                    class="block size-full"
-                >
-                    <img :src="map" alt="" class="size-full object-cover" :class="mapDark ? 'dark:hidden' : ''">
-                    <img v-if="mapDark" :src="mapDark" alt="" class="hidden size-full object-cover dark:block">
-                </component>
-
                 <button
-                    v-else
                     type="button"
-                    class="group/zoom block size-full cursor-zoom-in transition-opacity hover:opacity-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-accent-500"
-                    aria-label="View photo"
-                    @click="emit('open', slide.photoIndex)"
+                    class="focus-frame-target group/zoom block size-full cursor-zoom-in transition-opacity hover:opacity-95"
+                    :aria-label="slide.kind === 'map' ? 'View map' : 'View photo'"
+                    @click="emit('open', slide.lightboxIndex)"
                 >
+                    <template v-if="slide.kind === 'map'">
+                        <img :src="map" alt="" class="size-full object-cover" :class="mapDark ? 'dark:hidden' : ''">
+                        <img v-if="mapDark" :src="mapDark" alt="" class="hidden size-full object-cover dark:block">
+                    </template>
                     <!-- Who is in it, on the same hover that offers the zoom,
                          so a card answers it without opening the lightbox. -->
-                    <PhotoTagLayer v-if="hasTags(slide.photo)" :photo="slide.photo" static class="size-full">
+                    <PhotoTagLayer v-else-if="hasTags(slide.photo)" :photo="slide.photo" static class="size-full">
                         <img :src="slide.photo.src" :srcset="slide.photo.srcset || undefined" sizes="100vw" alt="" class="size-full object-cover">
                     </PhotoTagLayer>
                     <img v-else :src="slide.photo.src" :srcset="slide.photo.srcset || undefined" sizes="100vw" alt="" class="size-full object-cover">
@@ -113,7 +102,7 @@ function goTo(index) {
                     :key="index"
                     type="button"
                     :aria-label="`Go to slide ${index + 1}`"
-                    class="size-1.5 rounded-full transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
+                    class="size-1.5 rounded-full transition-colors focus-visible:outline-white"
                     :class="index === active ? 'bg-white' : 'bg-white/50 hover:bg-white/80'"
                     @click="goTo(index)"
                 />
@@ -121,14 +110,3 @@ function goTo(index) {
         </div>
     </div>
 </template>
-
-<style scoped>
-/* Swipe carousel with no visible scrollbar (the dots convey position). */
-.no-scrollbar {
-    scrollbar-width: none;
-}
-
-.no-scrollbar::-webkit-scrollbar {
-    display: none;
-}
-</style>

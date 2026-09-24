@@ -2,9 +2,11 @@
 
 namespace App\Actions\Notes;
 
+use App\Enums\EntryStatus;
 use App\Models\Note;
-use App\Support\EntryInstant;
 use App\Support\PortableText;
+use App\Support\TimelineUrlSlug;
+use Illuminate\Validation\ValidationException;
 
 class CreateNote
 {
@@ -16,17 +18,32 @@ class CreateNote
      * string from a client that only knows how to send one (Shortcuts,
      * Micropub); a string is wrapped into a single block.
      *
-     * @param  array{content: string|array<int, mixed>, occurred_at?: string|null, slug?: string|null, timezone?: string|null, tags?: list<string>}  $attributes
+     * @param  array{content?: string|array<int, mixed>|null, occurred_at?: string|null, slug?: string|null, timezone?: string|null, tags?: list<string>, response_kind?: string|null, response_url?: string|null, rsvp_value?: string|null, response_quote?: string|null, status?: string, password?: string|null}  $attributes
      */
     public function __invoke(array $attributes): Note
     {
+        $content = is_string($attributes['content'] ?? null)
+            ? PortableText::fromPlainText($attributes['content'])
+            : ($attributes['content'] ?? []);
+
+        $slug = $attributes['slug'] ?? null;
+        $candidate = $slug !== null && $slug !== '' ? $slug : Note::slugFrom($content);
+
+        if (TimelineUrlSlug::isReserved($candidate)) {
+            throw ValidationException::withMessages(['slug' => [TimelineUrlSlug::reservationMessage($candidate)]]);
+        }
+
         $note = Note::create([
-            'content' => is_string($attributes['content'])
-                ? PortableText::fromPlainText($attributes['content'])
-                : $attributes['content'],
-            'occurred_at' => $attributes['occurred_at'] ?? EntryInstant::nowLocal(),
-            'slug' => $attributes['slug'] ?? null,
+            'content' => $content,
+            'occurred_at' => $attributes['occurred_at'] ?? null,
+            'slug' => $slug,
             'timezone' => $attributes['timezone'] ?? config('app.home_timezone'),
+            'response_kind' => $attributes['response_kind'] ?? null,
+            'response_url' => $attributes['response_url'] ?? null,
+            'rsvp_value' => $attributes['rsvp_value'] ?? null,
+            'response_quote' => $attributes['response_quote'] ?? null,
+            'status' => $attributes['status'] ?? EntryStatus::Published,
+            'password' => $attributes['password'] ?? null,
         ]);
 
         if (array_key_exists('tags', $attributes)) {

@@ -6,8 +6,10 @@ use App\Data\PhotoTagData;
 use App\Enums\ReviewKind;
 use App\Models\Appearance;
 use App\Models\Attachment;
+use App\Models\Book;
 use App\Models\Concerns\Timelineable;
-use App\Models\Media as MediaEntry;
+use App\Models\Film;
+use App\Models\TvEpisode;
 use App\Presenters\PhotoCaption;
 use App\Timeline\TypeRegistry;
 use Illuminate\Database\Eloquent\Model;
@@ -26,28 +28,30 @@ class GalleryPhotos
      *
      * @var list<class-string>
      */
-    public const ENRICHMENT_MODELS = [Appearance::class, MediaEntry::class];
+    public const ENRICHMENT_MODELS = [Appearance::class, Film::class, TvEpisode::class, Book::class];
 
     /**
-     * Model types whose photos reach the gallery, for a query that must filter
-     * before it can hydrate. Derived from the timeline registry rather than
-     * listed, so this states the same rule contributesPhotos() applies at
-     * runtime: every timeline type, minus the enrichment art.
+     * Dataset aliases (the morph column value) whose photos reach the gallery,
+     * for a query that must filter before it can hydrate. Derived from the
+     * timeline registry rather than listed, so this states the same rule
+     * contributesPhotos() applies at runtime: every timeline type, minus the
+     * enrichment art.
      *
-     * @return list<class-string>
+     * @return list<string>
      */
     public static function includedModels(): array
     {
         return collect(TypeRegistry::all())
             ->pluck('model')
             ->reject(fn (string $model): bool => in_array($model, self::ENRICHMENT_MODELS, true))
+            ->map(fn (string $model): string => (new $model)->getMorphClass())
             ->values()
             ->all();
     }
 
     /**
      * Whether a model's cover/photos are real photographs. Non-timeline models
-     * (a Series poster, say) are excluded too, hence the Timelineable guard
+     * (a TvShow poster, say) are excluded too, hence the Timelineable guard
      * rather than a null check.
      */
     public static function contributesPhotos(?Model $model): bool

@@ -1,6 +1,6 @@
 <?php
 
-use App\Actions\SyncStravaPhotos;
+use App\Actions\Strava\SyncStravaPhotos;
 use App\Models\Activity;
 use App\Presenters\CardPresenter;
 use Illuminate\Support\Facades\Cache;

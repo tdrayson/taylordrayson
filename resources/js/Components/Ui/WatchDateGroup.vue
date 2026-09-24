@@ -1,9 +1,9 @@
 <script setup>
-import EpisodeRow from './EpisodeRow.vue';
+import TvEpisodeRow from './TvEpisodeRow.vue';
 import { dateLongFromYmd } from '../../lib/format.js';
 
 defineProps({
-    // Matches SeriesController::groupByWatchDate()'s "watch-{date}" anchor,
+    // Matches TvShowData::groupByWatchDate()'s "watch-{date}" anchor,
     // the target the collapsed timeline binge-card links to.
     anchor: { type: String, required: true },
     date: { type: String, required: true }, // Y-m-d
@@ -13,9 +13,9 @@ defineProps({
 
 <template>
     <section :id="anchor" class="mt-8 first:mt-0">
-        <p class="text-caption font-medium text-neutral-500">{{ dateLongFromYmd(date) }}</p>
+        <p class="text-xs font-medium text-neutral-500">{{ dateLongFromYmd(date) }}</p>
         <div class="mt-2">
-            <EpisodeRow
+            <TvEpisodeRow
                 v-for="episode in episodes"
                 :key="episode.id"
                 :season="episode.season"

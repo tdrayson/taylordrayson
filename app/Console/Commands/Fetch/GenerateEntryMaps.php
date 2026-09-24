@@ -7,15 +7,15 @@ use App\Actions\GenerateLocationMap;
 use App\Actions\GenerateStaticMap;
 use App\Exceptions\MapGenerationFailed;
 use App\Models\Activity;
-use App\Models\Checkin;
 use App\Models\Flight;
 use App\Models\Fuel;
+use App\Models\Place;
 use App\Support\TypeColors;
 use Illuminate\Console\Attributes\Description;
 use Illuminate\Console\Attributes\Signature;
 use Illuminate\Console\Command;
 
-#[Signature('maps:generate {type : activity|flight|fuel|checkin} {--limit=0 : Max entries to process (0 = all)} {--force : Regenerate maps that already exist}')]
+#[Signature('maps:generate {type : activity|flight|fuel|place} {--limit=0 : Max entries to process (0 = all)} {--force : Regenerate maps that already exist}')]
 #[Description('Generate and store static timeline maps for a located entry type')]
 class GenerateEntryMaps extends Command
 {
@@ -29,14 +29,14 @@ class GenerateEntryMaps extends Command
         // activities, almost all of them to discover there was nothing to do.
         [$query, $generate] = match ($type) {
             'fuel' => [Fuel::query()->whereNotNull('latitude')->with('media'), fn ($m) => $pin($m, TypeColors::hex('fuel'))],
-            'checkin' => [Checkin::query()->whereNotNull('latitude')->with('media'), fn ($m) => $pin($m, TypeColors::hex('checkin'))],
+            'place' => [Place::query()->whereNotNull('latitude')->with('media'), fn ($m) => $pin($m, TypeColors::hex('place'))],
             'activity' => [Activity::query()->with('media'), fn ($m) => $route($m)],
             'flight' => [Flight::query()->with(['origin', 'destination', 'media']), fn ($m) => $arc($m)],
             default => [null, null],
         };
 
         if ($query === null) {
-            $this->error("Unknown type: {$type}. Use activity, flight, fuel, or checkin.");
+            $this->error("Unknown type: {$type}. Use activity, flight, fuel, or place.");
 
             return self::FAILURE;
         }

@@ -84,7 +84,7 @@ function select(value) {
 
 function facetClasses(isActive) {
     return cn(
-        'rounded-full px-3 py-1.5 text-meta font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500',
+        'rounded-full px-3 py-1.5 text-sm font-medium transition-colors',
         isActive ? 'bg-accent-500 text-neutral-0' : 'bg-neutral-25 text-neutral-700 hover:bg-accent-50 hover:text-accent-700',
     );
 }
@@ -94,7 +94,7 @@ function facetClasses(isActive) {
     <AppHead :og="og" />
 
     <header>
-        <h1 class="font-display text-display">{{ kind }}</h1>
+        <h1 class="font-display text-5xl font-extrabold tracking-tight">{{ kind }}</h1>
     </header>
 
     <div v-if="hasCategories" class="mt-6 flex flex-wrap gap-2">
@@ -126,7 +126,7 @@ function facetClasses(isActive) {
             v-for="subject in visible"
             :key="subject.slug"
             :href="subject.url"
-            class="group relative block aspect-square overflow-hidden rounded-lg border border-neutral-50 bg-neutral-25 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500"
+            class="group relative block aspect-square overflow-hidden rounded-lg border border-neutral-50 bg-neutral-25"
             :class="subject.span"
         >
             <img
@@ -142,12 +142,12 @@ function facetClasses(isActive) {
 
             <!-- Fixed black, not the neutral ramp: an intentional dark surface in both themes. -->
             <span class="pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/75 to-transparent p-3 pt-8 opacity-0 transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100">
-                <span class="block truncate text-meta font-medium text-white">{{ subject.name }}</span>
+                <span class="block truncate text-sm font-medium text-white">{{ subject.name }}</span>
             </span>
         </Link>
     </TransitionGroup>
 
-    <p v-else class="mt-10 text-meta text-neutral-500">Nothing here yet.</p>
+    <p v-else class="mt-10 text-sm text-neutral-500">Nothing here yet.</p>
 </template>
 
 <style scoped>

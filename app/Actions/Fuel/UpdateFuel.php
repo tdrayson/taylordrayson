@@ -6,7 +6,7 @@ use App\Models\Fuel;
 
 class UpdateFuel
 {
-    public function __construct(private DeriveFuelFigures $derive) {}
+    public function __construct(private DeriveFuelFigures $derive, private QueueMissingBrandLogo $queueBrandLogo) {}
 
     /**
      * @param  array<string, mixed>  $attributes
@@ -17,6 +17,8 @@ class UpdateFuel
         $attributes = ($this->derive)($attributes, $fuel->only(['litres', 'cost', 'price_per_litre']));
 
         $fuel->fill($attributes)->save();
+
+        ($this->queueBrandLogo)($fuel);
 
         return $fuel->refresh();
     }

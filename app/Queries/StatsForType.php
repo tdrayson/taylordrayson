@@ -4,6 +4,7 @@ namespace App\Queries;
 
 use App\Enums\ActivityDiscipline;
 use App\Models\Activity;
+use App\Support\DisplayFormat;
 use App\Support\Distance;
 use App\Support\SqlDate;
 use Illuminate\Support\Carbon;
@@ -76,6 +77,7 @@ final class StatsForType
     private function days(Carbon $start, Carbon $end): array
     {
         $rows = Activity::query()
+            ->listed()
             ->toBase()
             ->selectRaw('DATE(occurred_at) AS d')
             ->selectRaw('COUNT(*) AS sessions')
@@ -208,8 +210,8 @@ final class StatsForType
     private function bucketKey(Carbon $date, string $unit, bool $multiYear): array
     {
         return match ($unit) {
-            'Day' => [$date->format('Y-m-d'), $date->format('j M')],
-            'Week' => [$date->format('o-W'), $date->format('j M')],
+            'Day' => [$date->format('Y-m-d'), app(DisplayFormat::class)->date($date, weekday: false, year: false)],
+            'Week' => [$date->format('o-W'), app(DisplayFormat::class)->date($date, weekday: false, year: false)],
             'Year' => [$date->format('Y'), $date->format('Y')],
             default => [$date->format('Y-m'), $date->format($multiYear ? "M 'y" : 'M')],
         };
@@ -293,6 +295,7 @@ final class StatsForType
     private function byType(Carbon $start, Carbon $end): array
     {
         return Activity::query()
+            ->listed()
             ->toBase()
             ->selectRaw('type, COUNT(*) AS total')
             ->whereBetween('occurred_at', [$start, $end])
@@ -316,6 +319,7 @@ final class StatsForType
         $hour = SqlDate::hour('occurred_at');
 
         $rows = Activity::query()
+            ->listed()
             ->toBase()
             ->selectRaw("{$dow} AS dow, {$hour} AS hr, COUNT(*) AS total")
             ->whereBetween('occurred_at', [$start, $end])
@@ -342,9 +346,9 @@ final class StatsForType
     private function records(Carbon $start, Carbon $end): array
     {
         $between = fn ($query) => $query->whereBetween('occurred_at', [$start, $end]);
-        $longestRun = (int) $between(Activity::query()->where('type', ActivityDiscipline::Run->value))->max('distance');
-        $longestRide = (int) $between(Activity::query()->whereIn('type', [ActivityDiscipline::Ride->value, ActivityDiscipline::EbikeRide->value]))->max('distance');
-        $longestSession = (int) $between(Activity::query())->max('duration');
+        $longestRun = (int) $between(Activity::query()->listed()->where('type', ActivityDiscipline::Run->value))->max('distance');
+        $longestRide = (int) $between(Activity::query()->listed()->whereIn('type', [ActivityDiscipline::Ride->value, ActivityDiscipline::EbikeRide->value]))->max('distance');
+        $longestSession = (int) $between(Activity::query()->listed())->max('duration');
 
         return [
             ['label' => 'Longest run', 'distanceM' => $longestRun, 'precision' => 1],
@@ -361,6 +365,7 @@ final class StatsForType
     private function routePolylines(Carbon $start, Carbon $end): array
     {
         return Activity::query()
+            ->listed()
             ->whereRaw("json_extract(meta, '$.polyline') IS NOT NULL")
             ->whereBetween('occurred_at', [$start, $end])
             ->latest('occurred_at')
@@ -405,14 +410,6 @@ final class StatsForType
 
     private function rangeLabel(Carbon $start, Carbon $end): string
     {
-        if ($start->isSameDay($end)) {
-            return $start->format('j M Y');
-        }
-
-        if ($start->year === $end->year) {
-            return $start->format('j M').' - '.$end->format('j M Y');
-        }
-
-        return $start->format('j M Y').' - '.$end->format('j M Y');
+        return app(DisplayFormat::class)->range($start, $end);
     }
 }

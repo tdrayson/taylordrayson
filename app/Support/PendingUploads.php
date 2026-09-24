@@ -46,6 +46,24 @@ final class PendingUploads
     }
 
     /**
+     * Park fetched bytes the same way as an upload, and return the token.
+     */
+    public static function storeContents(string $contents, string $filename): string
+    {
+        self::prune();
+
+        $token = Str::random(40);
+        $path = self::directory().'/'.$token.'/'.basename($filename);
+
+        File::ensureDirectoryExists(dirname($path));
+        File::put($path, $contents);
+
+        app(PrepareImage::class)($path);
+
+        return $token;
+    }
+
+    /**
      * The parked file for a token, or null when there is none. Tokens are
      * checked against the alphabet they are minted from, so a token can never
      * address anything outside the pending directory.

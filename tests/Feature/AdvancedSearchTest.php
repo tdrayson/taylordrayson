@@ -4,8 +4,8 @@ use App\Models\Activity;
 use App\Models\Airline;
 use App\Models\Airport;
 use App\Models\Article;
-use App\Models\Checkin;
 use App\Models\Flight;
+use App\Models\Place;
 use App\Models\User;
 use App\Search\SearchPresets;
 use App\Support\Distance;
@@ -149,16 +149,26 @@ it('filters between two months and before a year', function () {
         ->assertInertia(fn ($page) => $page->where('total', 1));
 });
 
-it('exposes enum options in the client schema', function () {
+it('exposes enum options in the client schema as labelled pairs', function () {
     Activity::factory()->create(['type' => 'walk', 'occurred_at' => now()]);
-    Activity::factory()->create(['type' => 'run', 'occurred_at' => now()]);
+    Activity::factory()->create(['type' => 'weight-training', 'occurred_at' => now()]);
+
+    $optionsFor = fn (mixed $schema, string $type, string $key): ?array => collect(
+        collect($schema)->firstWhere('type', $type)['fields'] ?? []
+    )->firstWhere('key', $key)['options'] ?? null;
 
     get('/search')->assertInertia(fn ($page) => $page
-        ->where('schema', fn ($schema) => collect($schema)
-            ->firstWhere('type', 'activity')['fields']
-            ? collect(collect($schema)->firstWhere('type', 'activity')['fields'])
-                ->firstWhere('key', 'kind')['options'] === ['run', 'walk']
-            : false)
+        // 'walk' has an ActivityDiscipline case behind it, 'weight-training' does not.
+        ->where('schema', fn ($schema) => $optionsFor($schema, 'activity', 'kind') === [
+            ['value' => 'walk', 'label' => 'Walk'],
+            ['value' => 'weight-training', 'label' => 'Weight training'],
+        ])
+        ->where('schema', fn ($schema) => $optionsFor($schema, 'note', 'status') === [
+            ['value' => 'draft', 'label' => 'Draft'],
+            ['value' => 'published', 'label' => 'Published'],
+            ['value' => 'unlisted', 'label' => 'Unlisted'],
+            ['value' => 'private', 'label' => 'Private'],
+        ])
     );
 });
 
@@ -176,7 +186,7 @@ it('searches an expanded field (activity name contains)', function () {
 
 it('filters Anything by a date range across types', function () {
     Activity::factory()->create(['type' => 'run', 'occurred_at' => '2026-03-10 08:00:00']);
-    Checkin::factory()->create(['venue_name' => 'Cafe', 'occurred_at' => '2026-03-12 09:00:00']);
+    Place::factory()->create(['venue_name' => 'Cafe', 'occurred_at' => '2026-03-12 09:00:00']);
     Activity::factory()->create(['type' => 'run', 'occurred_at' => '2026-04-10 08:00:00']);
 
     $url = searchUrl([[
@@ -188,7 +198,7 @@ it('filters Anything by a date range across types', function () {
 });
 
 it('filters Anything by free text across types', function () {
-    Checkin::factory()->create(['venue_name' => 'Zephyr Lounge', 'occurred_at' => now()->subDay()]);
+    Place::factory()->create(['venue_name' => 'Zephyr Lounge', 'occurred_at' => now()->subDay()]);
     Activity::factory()->create(['name' => 'Zephyr ride', 'type' => 'cycle', 'occurred_at' => now()->subDays(2)]);
     Activity::factory()->create(['name' => 'Plain run', 'type' => 'run', 'occurred_at' => now()->subDays(3)]);
 
@@ -311,7 +321,7 @@ it('filters Anything that has photos across types', function () {
     Storage::fake('public');
 
     attachPhotos(Activity::factory()->create(['type' => 'run', 'occurred_at' => now()->subDay()]), 2);
-    Checkin::factory()->create(['venue_name' => 'Cafe', 'occurred_at' => now()->subDays(2)]);
+    Place::factory()->create(['venue_name' => 'Cafe', 'occurred_at' => now()->subDays(2)]);
 
     get(searchUrl([['type' => 'any', 'conditions' => [['field' => 'photos', 'operator' => 'gt', 'value' => 0]]]]))
         ->assertOk()->assertInertia(fn ($page) => $page->where('total', 1));
@@ -352,14 +362,14 @@ it('orders results newest or oldest first', function () {
     );
 });
 
-it('never surfaces a stale unpublished article to a guest via the advanced search filter', function () {
-    $article = Article::factory()->create(['published' => true, 'title' => 'Now hidden post', 'occurred_at' => now()]);
+it('never surfaces a stale unlisted article to a guest via the advanced search filter', function () {
+    $article = Article::factory()->create(['status' => 'published', 'title' => 'Now hidden post', 'occurred_at' => now()]);
 
     // A mass update via the query builder bypasses the TimelineEntryObserver,
     // so the timeline_entries row is left behind stale (not deleted) even
-    // though the article is now unpublished. guardPublished() is the only
+    // though the article is now unlisted. guardStatus() is the only
     // thing standing between this stale row and a guest search result.
-    Article::query()->where('id', $article->id)->update(['published' => false]);
+    Article::query()->where('id', $article->id)->update(['status' => 'unlisted']);
 
     $url = searchUrl([[
         'type' => 'article',

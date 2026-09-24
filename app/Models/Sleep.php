@@ -3,6 +3,8 @@
 namespace App\Models;
 
 use App\Models\Concerns\HasAttachments;
+use App\Models\Concerns\HasSpan;
+use App\Models\Concerns\HasStatus;
 use App\Models\Concerns\HasSubjects;
 use App\Models\Concerns\HasTimelineEntry;
 use App\Models\Concerns\Timelineable;
@@ -16,8 +18,7 @@ use Spatie\MediaLibrary\HasMedia;
 #[ObservedBy(TimelineEntryObserver::class)]
 #[Fillable([
     'occurred_at',
-    'bedtime',
-    'wake_time',
+    'started_at',
     'duration',
     'awake',
     'rem',
@@ -29,10 +30,12 @@ use Spatie\MediaLibrary\HasMedia;
     'duration_score',
     'bedtime_score',
     'interruption_score',
+    'status',
+    'password',
 ])]
 class Sleep extends Model implements HasMedia, Timelineable
 {
-    use HasAttachments, HasFactory, HasSubjects, HasTimelineEntry;
+    use HasAttachments, HasFactory, HasSpan, HasStatus, HasSubjects, HasTimelineEntry;
 
     protected $table = 'sleep';
 
@@ -43,8 +46,7 @@ class Sleep extends Model implements HasMedia, Timelineable
     {
         return [
             'occurred_at' => 'datetime',
-            'bedtime' => 'datetime',
-            'wake_time' => 'datetime',
+            'started_at' => 'datetime',
             'stages' => 'array',
         ];
     }
@@ -74,14 +76,17 @@ class Sleep extends Model implements HasMedia, Timelineable
      */
     public function isNap(): bool
     {
-        if ($this->bedtime === null || $this->wake_time === null) {
+        $start = $this->spanStart();
+        $end = $this->spanEnd();
+
+        if ($start === null || $end === null) {
             return false;
         }
 
-        return $this->bedtime->hour >= 8
-            && $this->bedtime->hour < self::NAP_LATEST_START
+        return $start->hour >= 8
+            && $start->hour < self::NAP_LATEST_START
             && $this->duration < self::NAP_LONGEST
-            && $this->bedtime->isSameDay($this->wake_time);
+            && $start->isSameDay($end);
     }
 
     /** A nap is not the night's sleep, so the timeline leaves it out. */

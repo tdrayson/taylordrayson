@@ -52,7 +52,7 @@ const label = computed(() => `${props.used.toLocaleString()} of ${props.max.toLo
         <!-- Tabular figures, or the count jogs left and right as it climbs. -->
         <span
             v-if="counting"
-            class="text-label tabular-nums"
+            class="text-2xs font-semibold tabular-nums"
             :class="over ? 'font-semibold' : ''"
             aria-hidden="true"
         >{{ used.toLocaleString() }} / {{ max.toLocaleString() }}</span>
@@ -71,10 +71,16 @@ const label = computed(() => `${props.used.toLocaleString()} of ${props.max.toLo
                         stroke-linecap="round"
                         :stroke-dasharray="CIRCUMFERENCE"
                         :stroke-dashoffset="dashOffset"
-                        class="transition-[stroke-dashoffset] duration-200"
+                        class="progress"
                     />
                 </svg>
             </span>
         </Tooltip>
     </div>
 </template>
+
+<style scoped>
+.progress {
+    transition: stroke-dashoffset 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+</style>

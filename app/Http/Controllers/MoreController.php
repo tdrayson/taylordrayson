@@ -17,22 +17,23 @@ class MoreController extends Controller
     public function __invoke(): Response
     {
         $counts = TimelineEntry::query()
-            ->selectRaw('timelineable_type, count(*) as total')
-            ->groupBy('timelineable_type')
-            ->pluck('total', 'timelineable_type');
+            ->selectRaw('dataset, count(*) as total')
+            ->groupBy('dataset')
+            ->pluck('total', 'dataset');
 
         $tracked = collect(TypeRegistry::all())
             ->map(fn (array $type, string $key): array => [
                 'type' => $key,
                 'label' => $type['label'],
                 'href' => '/'.$type['slug'],
-                'count' => (int) ($counts[$type['model']] ?? 0),
+                'count' => (int) ($counts[$key] ?? 0),
             ])
             ->values()
             ->all();
 
         return Inertia::render('More', [
             'tracked' => $tracked,
+            'total' => (int) $counts->sum(),
             'og' => OgMeta::more(),
         ]);
     }

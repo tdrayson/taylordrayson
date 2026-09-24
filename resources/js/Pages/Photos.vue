@@ -6,6 +6,7 @@ import AppLayout from '../Layouts/AppLayout.vue';
 import PhotoGrid from '../Components/Ui/PhotoGrid.vue';
 import PhotoGridSkeleton from '../Components/Ui/PhotoGridSkeleton.vue';
 import Lightbox from '../Components/Overlays/Lightbox.vue';
+import Heading from '../Components/Ui/Heading.vue';
 import { cn } from '../lib/cn.js';
 
 defineOptions({ layout: AppLayout, inheritAttrs: false });
@@ -35,7 +36,7 @@ const lightboxIndex = ref(null);
 // same control.
 function facetClasses(active) {
     return cn(
-        'rounded-full px-3 py-1.5 text-meta font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500',
+        'rounded-full px-3 py-1.5 text-sm font-medium transition-colors',
         active ? 'bg-accent-500 text-neutral-0' : 'bg-neutral-25 text-neutral-700 hover:bg-accent-50 hover:text-accent-700',
     );
 }
@@ -45,8 +46,8 @@ function facetClasses(active) {
     <AppHead :og="og" />
 
     <header>
-        <h1 class="font-display text-display">Photos</h1>
-        <p class="mt-2 text-meta text-neutral-500">
+        <Heading as="h1" size="display">Photos</Heading>
+        <p class="mt-2 text-sm text-neutral-500">
             {{ total }} photos from everything I've logged, newest first.
         </p>
     </header>
@@ -58,7 +59,7 @@ function facetClasses(active) {
             :href="option.value ? `/photos?filter=${option.value}` : '/photos'"
             :class="facetClasses(filter === option.value)"
         >
-            {{ option.label }} <span class="tnum">{{ option.count }}</span>
+            {{ option.label }} <span class="tabular-nums">{{ option.count }}</span>
         </Link>
     </div>
 
@@ -74,8 +75,8 @@ function facetClasses(active) {
             </template>
         </InfiniteScroll>
 
-        <p v-else-if="filter" class="text-meta text-neutral-500">Nothing needs this right now.</p>
-        <p v-else class="text-meta text-neutral-500">No photos yet.</p>
+        <p v-else-if="filter" class="text-sm text-neutral-500">Nothing needs this right now.</p>
+        <p v-else class="text-sm text-neutral-500">No photos yet.</p>
     </div>
 
     <Lightbox v-model:index="lightboxIndex" :photos="photos" tags />

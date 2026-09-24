@@ -13,7 +13,7 @@ defineProps({
         target="_blank"
         rel="noopener noreferrer"
         :aria-label="`${label}, opens in a new tab`"
-        class="group inline-flex items-center gap-1.5 rounded-sm text-meta font-semibold text-neutral-700 transition-colors hover:text-accent-500 focus-visible:text-accent-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500 focus-visible:ring-offset-2"
+        class="group inline-flex items-center gap-1.5 rounded-sm text-sm font-semibold text-neutral-700 transition-colors hover:text-accent-500 focus-visible:text-accent-500"
     >
         {{ label }}
         <Icon

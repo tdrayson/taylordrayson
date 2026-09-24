@@ -3,6 +3,7 @@
 namespace App\Queries;
 
 use App\Actions\BuildTimelineFeed;
+use App\Enums\EntryStatus;
 use App\Http\Controllers\TagController;
 use App\Models\Article;
 use App\Models\Attachment;
@@ -14,8 +15,8 @@ use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
 
 /**
- * Cross-type feed of every timeline entry a subject is on (its own direct
- * tags union its tagged photographs' owners), resolved the way {@see TagController} does.
+ * Cross-type feed of every timeline entry a subject is on (its own direct tags union
+ * its tagged photographs' owners), resolved the way {@see TagController} does.
  */
 final class SubjectFeed
 {
@@ -67,12 +68,12 @@ final class SubjectFeed
             ->where(function (Builder $query) use ($targets): void {
                 foreach ($targets->groupBy('type') as $type => $group) {
                     $query->orWhere(fn (Builder $q): Builder => $q
-                        ->where('timelineable_type', $type)
-                        ->whereIn('timelineable_id', $group->pluck('id')));
+                        ->where('dataset', $type)
+                        ->whereIn('entry_id', $group->pluck('id')));
                 }
             })
             ->get()
-            ->filter(fn (TimelineEntry $entry): bool => $entry->timelineable !== null);
+            ->filter(fn (TimelineEntry $entry): bool => $entry->entry !== null);
 
         if (Auth::check()) {
             $entries = $entries->concat($this->unpublishedArticlePreviews($targets));
@@ -114,7 +115,7 @@ final class SubjectFeed
     }
 
     /**
-     * Build transient (unsaved) timeline entries for unpublished, subject-tagged
+     * Build transient (unsaved) timeline entries for draft, subject-tagged
      * articles so an authenticated preview sees them despite there being no
      * spine row to resolve through, mirroring TagController's own fallback.
      *
@@ -123,7 +124,7 @@ final class SubjectFeed
      */
     private function unpublishedArticlePreviews(Collection $targets): Collection
     {
-        $articleIds = $targets->where('type', Article::class)->pluck('id');
+        $articleIds = $targets->where('type', (new Article)->getMorphClass())->pluck('id');
 
         if ($articleIds->isEmpty()) {
             return collect();
@@ -131,11 +132,11 @@ final class SubjectFeed
 
         return Article::query()
             ->whereIn('id', $articleIds)
-            ->where('published', false)
+            ->where('status', EntryStatus::Draft->value)
             ->get()
             ->map(function (Article $article): TimelineEntry {
                 $entry = new TimelineEntry(['occurred_at' => $article->occurred_at]);
-                $entry->setRelation('timelineable', $article);
+                $entry->setRelation('entry', $article);
 
                 return $entry;
             });

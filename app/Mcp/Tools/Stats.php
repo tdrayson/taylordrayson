@@ -2,9 +2,9 @@
 
 namespace App\Mcp\Tools;
 
+use App\Datasets\Datasets;
 use App\Queries\PeriodStats;
 use App\Queries\StatsForType;
-use App\Timeline\TypeRegistry;
 use Illuminate\Contracts\JsonSchema\JsonSchema;
 use Illuminate\Support\Carbon;
 use Laravel\Mcp\Request;
@@ -35,11 +35,13 @@ class Stats extends Tool
             return Response::json(($this->forPeriod)($start, $end));
         }
 
-        if (TypeRegistry::find($input['type']) === null) {
+        $dataset = Datasets::for($input['type']);
+
+        if ($dataset === null) {
             return Response::error("No type called {$input['type']}. Call data_freshness to list them.");
         }
 
-        return Response::json(($this->forType)($input['type'], $start, $end, 'previous-period'));
+        return Response::json(($this->forType)($dataset->type()->value, $start, $end, 'previous-period'));
     }
 
     /**

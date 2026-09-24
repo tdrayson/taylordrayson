@@ -92,7 +92,7 @@ final class SubjectStats
     private function distance(Subject $subject): int
     {
         $ids = $this->feed->targets($subject)
-            ->where('type', Activity::class)
+            ->where('type', (new Activity)->getMorphClass())
             ->pluck('id');
 
         return $ids->isEmpty() ? 0 : (int) Activity::query()->whereIn('id', $ids)->sum('distance');

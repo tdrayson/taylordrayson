@@ -152,6 +152,18 @@ it('toggles whether a link opens in a new tab', function () {
     $page->assertScript("document.querySelector('.prose-editor .editor-link').getAttribute('data-target')", '_self');
 });
 
+it('offers to expand a pasted URL to its full address', function () {
+    $page = visit('/new/article');
+
+    $page->click('.prose-editor')->type('.prose-editor', 'https://github.com/tdrayson ');
+    $page->click('.prose-editor .editor-link');
+    $page->click('[aria-label="Edit link"]');
+    $page->click('[aria-label="Shows the domain only"]');
+    $page->click('[aria-label="Apply link"]');
+
+    $page->assertScript("document.querySelector('.prose-editor .editor-link').hasAttribute('data-expanded')", true);
+});
+
 it('keeps existing links when the editor content is pasted back in', function () {
     $page = visit('/new/article');
 

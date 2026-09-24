@@ -5,7 +5,7 @@ import Button from '../Ui/Button.vue';
 import Icon from '../Ui/Icon.vue';
 import { CONTROL } from '../../lib/editor/control.js';
 import { readCookie } from '../../lib/cookies.js';
-import { useDismissable } from '../../lib/editor/dismissable.js';
+import { useDismissable } from '../../composables/useDismissable.js';
 import { useListNavigation } from '../../lib/editor/listNavigation.js';
 
 /**
@@ -165,7 +165,7 @@ const { active, onKeydown: onListKeydown } = useListNavigation(listItems, {
             <span
                 v-for="subject in subjects"
                 :key="subject.id"
-                class="inline-flex items-center gap-1 rounded-md bg-accent-50 py-0.5 pl-2 pr-1 text-meta text-accent-700"
+                class="inline-flex items-center gap-1 rounded-md bg-accent-50 py-0.5 pl-2 pr-1 text-sm text-accent-700"
             >
                 {{ subject.name }}
                 <Button
@@ -184,7 +184,7 @@ const { active, onKeydown: onListKeydown } = useListNavigation(listItems, {
                 :value="query"
                 type="text"
                 placeholder="Tag a person, pet, spot or thing"
-                class="min-w-40 flex-1 border-none bg-transparent p-0 text-meta text-neutral-900 placeholder:text-neutral-500 focus:outline-none"
+                class="min-w-40 flex-1 border-none bg-transparent p-0 text-sm text-neutral-900 placeholder:text-neutral-500 focus:outline-none"
                 autocomplete="off"
                 role="combobox"
                 :aria-expanded="open"
@@ -206,7 +206,7 @@ const { active, onKeydown: onListKeydown } = useListNavigation(listItems, {
             </Button>
         </div>
 
-        <p v-if="createError" class="mt-1.5 text-caption text-red-600">{{ createError }}</p>
+        <p v-if="createError" class="mt-1.5 text-xs text-red-600">{{ createError }}</p>
 
         <!-- One-tap suggestions from the prose, never auto-attached: naming
         someone in a sentence isn't the same claim as tagging them here. -->
@@ -234,12 +234,12 @@ const { active, onKeydown: onListKeydown } = useListNavigation(listItems, {
                     type="button"
                     role="option"
                     :aria-selected="index === active"
-                    class="flex w-full items-baseline justify-between gap-3 px-3 py-1.5 text-left text-meta transition-colors"
+                    class="flex w-full items-baseline justify-between gap-3 px-3 py-1.5 text-left text-sm transition-colors"
                     :class="index === active ? 'bg-accent-50 text-accent-700' : 'text-neutral-900 hover:bg-accent-50 hover:text-accent-700'"
                     @mousedown.prevent="select(item)"
                 >
                     <span class="min-w-0 truncate">{{ item.label }}</span>
-                    <span v-if="item.detail" class="shrink-0 text-caption text-neutral-500">{{ item.detail }}</span>
+                    <span v-if="item.detail" class="shrink-0 text-xs text-neutral-500">{{ item.detail }}</span>
                 </button>
             </li>
         </ul>

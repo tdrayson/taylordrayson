@@ -1,13 +1,16 @@
 <?php
 
+use App\Enums\ResponseKind;
 use App\Models\Activity;
 use App\Models\Article;
-use App\Models\Checkin;
+use App\Models\Citation;
 use App\Models\Event;
 use App\Models\Note;
 use App\Models\Page;
+use App\Models\Place;
 use App\Models\User;
 use App\Search\SearchSchema;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 use function Pest\Laravel\get;
@@ -27,15 +30,38 @@ it('returns matching entries with a navigable url', function () {
 });
 
 it('searches across multiple types and orders by recency', function () {
-    Checkin::factory()->create(['venue_name' => 'Coffee Lab', 'occurred_at' => '2026-01-10 09:00:00']);
+    Place::factory()->create(['venue_name' => 'Coffee Lab', 'occurred_at' => '2026-01-10 09:00:00']);
     Note::factory()->create(['content' => 'Thinking about coffee roasting', 'occurred_at' => '2026-05-01 09:00:00']);
 
     getJson('/search/suggest?q=coffee')->assertOk()->assertJson(fn ($json) => $json
         ->has('results', 2)
         ->where('results.0.type', 'note')
-        ->where('results.1.type', 'checkin')
+        ->where('results.1.type', 'place')
         ->etc()
     );
+});
+
+it('does not add a query per reply note to fetch the citation the card reads', function () {
+    foreach (range(0, 4) as $i) {
+        $citation = Citation::factory()->create(['url' => "https://example.com/cited-{$i}"]);
+
+        Note::factory()->create([
+            'content' => "Distinctivewebmention note {$i}",
+            'response_kind' => ResponseKind::Reply,
+            'response_url' => $citation->url,
+        ]);
+    }
+
+    DB::enableQueryLog();
+    getJson('/search/suggest?q=distinctivewebmention')->assertOk()->assertJson(fn ($json) => $json->has('results', 5)->etc());
+    $citationQueries = collect(DB::getQueryLog())
+        ->filter(fn (array $entry): bool => str_contains($entry['query'], 'citations'))
+        ->count();
+    DB::disableQueryLog();
+
+    // One query for all five citations, eager loaded with the notes: not one
+    // per reply, which is what a lazy-loaded relation would cost here.
+    expect($citationQueries)->toBe(1);
 });
 
 it('ignores queries shorter than two characters', function () {
@@ -59,7 +85,7 @@ it('suggests taxonomy destination pages drawn live from the registry', function 
 });
 
 it('labels tag destinations as tags, not the owning type', function () {
-    $article = Article::factory()->create(['published' => true, 'occurred_at' => now()]);
+    $article = Article::factory()->create(['status' => 'published', 'occurred_at' => now()]);
     $article->syncTagNames(['Fluent Forms']);
 
     $destinations = getJson('/search/suggest?q=fluent')->assertOk()->json('destinations');
@@ -69,7 +95,7 @@ it('labels tag destinations as tags, not the owning type', function () {
 });
 
 it('suggests standalone pages as destinations', function () {
-    Page::factory()->create(['published' => true, 'title' => 'Sleep score', 'slug' => 'sleep-score']);
+    Page::factory()->create(['status' => 'published', 'title' => 'Sleep score', 'slug' => 'sleep-score']);
 
     $destinations = getJson('/search/suggest?q=Sleep score')->assertOk()->json('destinations');
 
@@ -77,8 +103,8 @@ it('suggests standalone pages as destinations', function () {
         ->toMatchArray(['label' => 'Sleep score', 'section' => 'Page', 'type' => 'page', 'tag' => false]);
 });
 
-it('hides an unpublished page from guests, and shows it to the authenticated user', function () {
-    Page::factory()->create(['published' => false, 'title' => 'Draft colophon', 'slug' => 'draft-colophon']);
+it('hides an unlisted page from guests, and shows it to the owner', function () {
+    Page::factory()->create(['status' => 'unlisted', 'title' => 'Draft colophon', 'slug' => 'draft-colophon']);
 
     $urls = fn (array $json): array => collect($json)->pluck('url')->all();
 
@@ -94,24 +120,26 @@ it('hides an unpublished page from guests, and shows it to the authenticated use
 });
 
 it('hides unpublished articles from guest search suggestions', function () {
-    Article::factory()->create(['published' => false, 'title' => 'Secret draft thoughts', 'occurred_at' => now()]);
+    Article::factory()->create(['status' => 'draft', 'title' => 'Secret draft thoughts', 'occurred_at' => now()]);
 
     getJson('/search/suggest?q=Secret draft')
         ->assertOk()
         ->assertJsonMissing(['title' => 'Secret draft thoughts']);
 });
 
-it('shows unpublished articles in suggestions to the authenticated user', function () {
-    Article::factory()->create(['published' => false, 'title' => 'Secret draft thoughts', 'occurred_at' => now()]);
+it('shows unlisted articles in suggestions to the owner, but never drafts', function () {
+    Article::factory()->create(['status' => 'unlisted', 'title' => 'Secret unlisted thoughts', 'occurred_at' => now()]);
+    Article::factory()->create(['status' => 'draft', 'title' => 'Secret draft thoughts', 'occurred_at' => now()]);
 
     $this->actingAs(User::factory()->create())
-        ->getJson('/search/suggest?q=Secret draft')
+        ->getJson('/search/suggest?q=Secret')
         ->assertOk()
-        ->assertJsonFragment(['title' => 'Secret draft thoughts']);
+        ->assertJsonFragment(['title' => 'Secret unlisted thoughts'])
+        ->assertJsonMissing(['title' => 'Secret draft thoughts']);
 });
 
 it('shows published articles in suggestions to guests', function () {
-    Article::factory()->create(['published' => true, 'title' => 'Public announcement post', 'occurred_at' => now()]);
+    Article::factory()->create(['status' => 'published', 'title' => 'Public announcement post', 'occurred_at' => now()]);
 
     getJson('/search/suggest?q=Public announcement')
         ->assertOk()

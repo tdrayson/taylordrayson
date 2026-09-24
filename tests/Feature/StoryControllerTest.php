@@ -1,7 +1,7 @@
 <?php
 
-use App\Models\Calorie;
 use App\Models\Flight;
+use App\Models\Food;
 use App\Models\Fuel;
 use App\Support\Distance;
 
@@ -21,8 +21,8 @@ it('renders a registered story by slug', function (string $slug, Closure $seed, 
         Fuel::factory()->create(['occurred_at' => '2024-02-01 09:00:00', 'odometer' => 10300, 'litres' => 40]);
     }, 'Stories/Fuel'],
     'food' => ['food', function () {
-        Calorie::factory()->create(['occurred_at' => '2024-01-01 00:00:00', 'calories' => 600]);
-        Calorie::factory()->create(['occurred_at' => '2024-01-02 00:00:00', 'calories' => 700]);
+        Food::factory()->create(['occurred_at' => '2024-01-01 00:00:00', 'calories' => 600]);
+        Food::factory()->create(['occurred_at' => '2024-01-02 00:00:00', 'calories' => 700]);
     }, 'Stories/Food'],
     'flights' => ['flights', function () {
         Flight::factory()->create(['occurred_at' => '2023-05-15 09:00:00', 'distance' => Distance::fromMiles(600)]);

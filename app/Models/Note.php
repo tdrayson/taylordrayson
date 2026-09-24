@@ -2,7 +2,12 @@
 
 namespace App\Models;
 
+use App\Actions\Notes\NameResponseSlug;
+use App\Enums\ResponseKind;
+use App\Enums\RsvpValue;
 use App\Models\Concerns\HasAttachments;
+use App\Models\Concerns\HasResponse;
+use App\Models\Concerns\HasStatus;
 use App\Models\Concerns\HasSubjects;
 use App\Models\Concerns\HasTags;
 use App\Models\Concerns\HasTimelineEntry;
@@ -15,6 +20,7 @@ use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Str;
 use Spatie\MediaLibrary\HasMedia;
 
@@ -22,8 +28,15 @@ use Spatie\MediaLibrary\HasMedia;
 #[Fillable([
     'occurred_at',
     'content',
+    'response_kind',
+    'response_url',
+    'rsvp_value',
     'slug',
     'timezone',
+    'citation_id',
+    'response_quote',
+    'status',
+    'password',
 ])]
 class Note extends Model implements HasMedia, Timelineable
 {
@@ -39,10 +52,23 @@ class Note extends Model implements HasMedia, Timelineable
      */
     public const MAX_LENGTH = 750;
 
-    /** How much of the note the derived slug uses. */
-    private const SLUG_WORDS = 6;
+    /** How much of the note, or of what a response answers, the derived slug uses. */
+    public const SLUG_WORDS = 6;
 
-    use HasAttachments, HasFactory, HasSubjects, HasTags, HasTimelineEntry;
+    use HasAttachments, HasFactory, HasResponse, HasStatus, HasSubjects, HasTags, HasTimelineEntry;
+
+    /**
+     * A response's slug is stored when it is created, after HasResponse has linked
+     * any citation, so a title fetched later cannot move a URL already sent out.
+     */
+    protected static function booted(): void
+    {
+        static::creating(function (self $note): void {
+            if (blank($note->getAttributes()['slug'] ?? null) && $note->isResponse()) {
+                $note->setAttribute('slug', app(NameResponseSlug::class)($note));
+            }
+        });
+    }
 
     /**
      * @return array<string, string>
@@ -51,6 +77,8 @@ class Note extends Model implements HasMedia, Timelineable
     {
         return [
             'occurred_at' => 'datetime',
+            'response_kind' => ResponseKind::class,
+            'rsvp_value' => RsvpValue::class,
         ];
     }
 
@@ -97,5 +125,11 @@ class Note extends Model implements HasMedia, Timelineable
         $words = Str::words(PortableText::plainText($content), self::SLUG_WORDS, '');
 
         return Str::slug($words) ?: self::FALLBACK_SLUG;
+    }
+
+    /** @return BelongsTo<Citation, $this> */
+    public function citation(): BelongsTo
+    {
+        return $this->belongsTo(Citation::class);
     }
 }

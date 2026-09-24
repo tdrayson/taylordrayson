@@ -71,7 +71,7 @@ function remove(index) {
 
             <button
                 type="button"
-                class="flex h-11 shrink-0 items-center justify-center rounded-md px-2 text-neutral-500 transition-colors hover:text-red-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500"
+                class="flex h-11 shrink-0 items-center justify-center rounded-md px-2 text-neutral-500 transition-colors hover:text-red-600"
                 :aria-label="`Remove row ${index + 1}`"
                 @click="remove(index)"
             ><Icon name="Delete02Icon" class="size-4" /></button>
@@ -79,7 +79,7 @@ function remove(index) {
 
         <button
             type="button"
-            class="flex items-center gap-1.5 self-start rounded-md px-1 py-1 text-meta text-accent-500 transition-colors hover:text-accent-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500"
+            class="flex items-center gap-1.5 self-start rounded-md px-1 py-1 text-sm text-accent-500 transition-colors hover:text-accent-700"
             @click="add"
         >
             <Icon name="PlusSignIcon" class="size-4" /> Add

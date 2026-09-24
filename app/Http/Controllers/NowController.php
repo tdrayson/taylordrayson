@@ -2,9 +2,15 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Podcast;
+use App\Data\ExportData;
 use App\Models\Sleep;
 use App\Models\TimelineEntry;
+use App\Presenters\Exports\Formats\Format;
+use App\Presenters\Exports\Formats\Formats;
+use App\Presenters\Exports\NowExport;
+use App\Queries\CurrentlyReading;
+use App\Queries\LastNightSleep;
+use App\Queries\LatestEpisode;
 use App\Queries\PhotoStream;
 use App\Support\OgMeta;
 use Illuminate\Support\Carbon;
@@ -21,11 +27,13 @@ class NowController extends Controller
     public function index(): Response
     {
         return Inertia::render('Now', [
-            'og' => OgMeta::now(),
-            'episode' => $this->latestEpisode(),
-            'sleep' => $this->recentSleep(),
-            'entryCounts' => $this->entryCounts(),
-            'photos' => $this->recentPhotos(),
+            'og' => fn (): array => OgMeta::now(),
+            'episode' => fn (): ?array => $this->latestEpisode(),
+            'sleep' => fn (): array => $this->recentSleep(),
+            'entryDays' => fn (): array => $this->entryDays(),
+            'photos' => fn (): array => $this->recentPhotos(),
+            'reading' => fn (): ?array => app(CurrentlyReading::class)()?->toArray(),
+            'formats' => fn (): array => $this->formats((new NowExport)->present()),
         ]);
     }
 
@@ -36,7 +44,7 @@ class NowController extends Controller
      */
     private function latestEpisode(): ?array
     {
-        $episode = Podcast::query()->latest('occurred_at')->first();
+        $episode = app(LatestEpisode::class)();
 
         if ($episode === null) {
             return null;
@@ -82,6 +90,7 @@ class NowController extends Controller
         $start = $today->copy()->subDays(6);
 
         $byDate = Sleep::query()
+            ->listed()
             ->where('occurred_at', '>=', $start)
             ->get()
             ->keyBy(fn (Sleep $night): string => $night->occurred_at->toDateString());
@@ -98,10 +107,9 @@ class NowController extends Controller
             })
             ->all();
 
-        // The night just gone, or the one before it. Beyond that there is
-        // nothing recent enough to call last night, and the widget says so.
-        $headline = $byDate->get($today->toDateString())
-            ?? $byDate->get($today->copy()->subDay()->toDateString());
+        // The same headline the export publishes: both read LastNightSleep
+        // rather than each picking their own row when a date has more than one.
+        $headline = app(LastNightSleep::class)();
 
         return [
             'nights' => $nights,
@@ -119,23 +127,31 @@ class NowController extends Controller
     }
 
     /**
-     * Per-day timeline entry counts for the trailing 30 days, oldest first with
-     * today last, for the "Last 30 days" widget. Days with no entries are zero.
+     * Per-day timeline entry counts for four Monday-to-Sunday weeks ending this
+     * week, oldest first. Days after today carry a null count.
      *
-     * @return array<int, int>
+     * @return array<int, array{date: string, count: int|null}>
      */
-    private function entryCounts(): array
+    private function entryDays(): array
     {
-        $today = Carbon::today();
-        $start = $today->copy()->subDays(29);
+        $today = Carbon::today((string) config('app.home_timezone'));
+        $start = $today->copy()->startOfWeek(Carbon::MONDAY)->subWeeks(3);
 
         $countsByDay = TimelineEntry::query()
             ->where('occurred_at', '>=', $start)
+            ->where('occurred_at', '<', $today->copy()->addDay())
             ->get(['occurred_at'])
             ->countBy(fn (TimelineEntry $entry): string => $entry->occurred_at->toDateString());
 
-        return collect(range(0, 29))
-            ->map(fn (int $offset): int => $countsByDay->get($start->copy()->addDays($offset)->toDateString(), 0))
+        return collect(range(0, 27))
+            ->map(function (int $offset) use ($start, $today, $countsByDay): array {
+                $day = $start->copy()->addDays($offset);
+
+                return [
+                    'date' => $day->toDateString(),
+                    'count' => $day->gt($today) ? null : $countsByDay->get($day->toDateString(), 0),
+                ];
+            })
             ->all();
     }
 
@@ -156,5 +172,23 @@ class NowController extends Controller
                 'caption' => $photo['caption'] ?? null,
             ])
             ->all();
+    }
+
+    /**
+     * Every format the /now export supports, shaped for AppHead's alternate links.
+     *
+     * @return list<array{extension: string, type: string, label: string, url: string}>
+     */
+    private function formats(ExportData $export): array
+    {
+        return array_values(array_map(
+            fn (Format $format): array => [
+                'extension' => $format->format()->value,
+                'type' => $format->format()->contentType(),
+                'label' => $format->format()->label(),
+                'url' => $export->url.'.'.$format->format()->value,
+            ],
+            Formats::for($export),
+        ));
     }
 }

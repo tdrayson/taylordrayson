@@ -4,19 +4,23 @@
    positional meaning: low = surface, high = ink. Values are a tuned starting
    point; refine during the visual audit (Task 10). */
 .dark {
-    /* Neutral ramp — 0 = base surface (not pure black), 900 = near-white ink. */
-    --color-neutral-0: #191919;
-    --color-neutral-25: #1e1e1e;
-    --color-neutral-50: #242424;
-    --color-neutral-100: #2e2e2e;
-    --color-neutral-200: #3a3a3a;
-    --color-neutral-300: #4d4d4d;
-    --color-neutral-400: #6f6f6f;
-    --color-neutral-500: #909090;
-    --color-neutral-600: #b0b0b0;
-    --color-neutral-700: #cccccc;
-    --color-neutral-800: #e5e5e5;
-    --color-neutral-900: #f2f2f2;
+    /* Neutral ramp — 0 = base surface (not pure black), 900 = near-white ink.
+       Primer's blue-slate cast, because an achromatic grey reads warm beside
+       the blue accent. The text stops are Primer's verbatim; the surface and
+       border stops are spaced wider than Primer's, which relies on layered
+       chrome we don't have to separate a hairline from the canvas. */
+    --color-neutral-0: #141a23;
+    --color-neutral-25: #1a212a;
+    --color-neutral-50: #222933;
+    --color-neutral-100: #2d353f;
+    --color-neutral-200: #3a434e;
+    --color-neutral-300: #484f58;
+    --color-neutral-400: #6e7681;
+    --color-neutral-500: #8b949e;
+    --color-neutral-600: #b1bac4;
+    --color-neutral-700: #c9d1d9;
+    --color-neutral-800: #e6edf3;
+    --color-neutral-900: #f0f6fc;
 
     /* Accent ramp — inverted so low = dark tint, high = light; 500 brightened to pop. */
     --color-accent-50: #171f3d;
@@ -36,20 +40,25 @@
     --color-heat-3: var(--color-accent-400);
     --color-heat-4: var(--color-accent-600);
 
-    /* 13 data-type hues — lightened to read on dark. */
+    /* Data-type hues — lightened to read on dark. */
     --color-activity: hsl(152 48% 55%);
     --color-sleep: hsl(245 60% 70%);
     --color-food: hsl(25 85% 62%);
-    --color-media: hsl(340 65% 65%);
+    --color-film: hsl(340 65% 65%);
+    --color-tv-episode: hsl(95 45% 56%);
+    --color-book: hsl(290 50% 68%);
     --color-event: hsl(270 60% 68%);
     --color-appearance: hsl(320 60% 66%);
-    --color-podcast: hsl(210 70% 62%);
+    --color-this-week-with: hsl(210 70% 62%);
     --color-flight: hsl(200 80% 62%);
-    --color-checkin: hsl(170 50% 52%);
+    --color-place: hsl(170 50% 52%);
     --color-fuel: hsl(45 85% 58%);
     --color-project: hsl(185 55% 55%);
     --color-article: hsl(215 20% 62%);
     --color-note: hsl(36 45% 62%);
+
+    /* The editor's caution callout, split off the old media hue */
+    --color-caution: hsl(340 65% 65%);
 
     /* Sleep stages */
     --color-sleep-awake: hsl(0 65% 68%);

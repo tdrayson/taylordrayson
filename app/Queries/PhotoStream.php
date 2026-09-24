@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
+use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Pagination\Paginator;
 use Illuminate\Support\Collection;
@@ -116,8 +117,9 @@ final class PhotoStream
      * How many photos the gallery holds, counted in the database rather than by
      * hydrating the stream.
      *
-     * Non-timeline owners (a Series poster, a Page cover) are excluded by the
+     * Non-timeline owners (a TvShow poster, a Page cover) are excluded by the
      * same rule contributesPhotos() applies, expressed here as model types.
+     * Only listed owners count.
      */
     public function count(): int
     {
@@ -157,15 +159,21 @@ final class PhotoStream
     }
 
     /**
-     * The gallery's attachments, narrowed to the facet if one is set.
+     * Cover and photo attachments whose owning entry is listed, so a draft cover or an
+     * unlisted entry's photos never reach the gallery, narrowed to the facet if one is set.
      *
      * @return Builder<Attachment>
      */
     private function attachments(): Builder
     {
+        $owners = array_map(
+            fn (string $alias): string => Relation::getMorphedModel($alias) ?? $alias,
+            GalleryPhotos::includedModels(),
+        );
+
         return Attachment::query()
             ->whereIn('collection_name', ['cover', 'photos'])
-            ->whereIn('model_type', GalleryPhotos::includedModels())
+            ->whereHasMorph('model', $owners, fn (Builder $owner) => $owner->listed())
             ->when($this->filter, fn (Builder $query, PhotoFilter $filter): Builder => $filter->apply($query));
     }
 
@@ -176,7 +184,7 @@ final class PhotoStream
      * types still routed through a card presenter read their own attachments;
      * left lazy that is two queries per entry.
      *
-     * Types the gallery then filters out (a Series poster, a Page cover) reach
+     * Types the gallery then filters out (a TvShow poster, a Page cover) reach
      * here too, and only Timelineable models have a timeline entry to load.
      *
      * @param  EloquentCollection<int, Attachment>  $attachments
@@ -187,7 +195,8 @@ final class PhotoStream
         return $attachments
             ->pluck('model_type')
             ->unique()
-            ->filter(fn (string $type): bool => class_exists($type))
+            ->map(fn (string $type): ?string => Relation::getMorphedModel($type))
+            ->filter(fn (?string $type): bool => $type !== null && class_exists($type))
             ->mapWithKeys(fn (string $type): array => [
                 $type => is_a($type, Timelineable::class, true)
                     ? ['media', 'timelineEntry']

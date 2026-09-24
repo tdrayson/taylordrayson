@@ -1,24 +1,26 @@
 <script setup>
 import { computed } from 'vue';
 import { setLayoutProps, usePage, Link } from '@inertiajs/vue3';
+import Conversation from '../Components/Conversation/Conversation.vue';
 import AppHead from '../Components/AppHead.vue';
 import AppLayout from '../Layouts/AppLayout.vue';
 import BlockContent from '../Components/Ui/BlockContent.vue';
+import PasswordPrompt from '../Components/Entry/PasswordPrompt.vue';
 import EntryEditor from '../Components/Editor/EntryEditor.vue';
 import { valuesFor } from '../lib/editor/defaults.js';
 import { provideLinkContext } from '../lib/linkContext.js';
-import Pill from '../Components/Ui/Pill.vue';
 
 defineOptions({ layout: AppLayout, inheritAttrs: false });
 
 const props = defineProps({
     id: { type: Number, default: null },
+    // One ConversationData, server-rendered so the responses read without JS.
+    conversation: { type: Object, default: null },
     title: { type: String, required: true },
     excerpt: { type: String, default: null },
     // { src, srcset, full, alt } or null, the same shape an article's cover takes.
     cover: { type: Object, default: null },
     content: { type: [Object, Array, String], default: null },
-    published: { type: Boolean, default: true },
     editing: { type: Boolean, default: false },
     // Field definitions from FieldRegistry, driving the properties panel.
     fields: { type: Array, default: () => [] },
@@ -28,6 +30,10 @@ const props = defineProps({
     // Map of href -> preview data for internal content links.
     linkPreviews: { type: Object, default: () => ({}) },
     linkFavicons: { type: Object, default: () => ({}) },
+    locked: { type: Boolean, default: false },
+    unlockUrl: { type: String, default: null },
+    // [{ extension, type, label, url }] this page can be exported as.
+    formats: { type: Array, default: () => [] },
 });
 
 provideLinkContext(computed(() => ({ previews: props.linkPreviews, favicons: props.linkFavicons })));
@@ -43,7 +49,7 @@ const editorValues = computed(() => valuesFor(props.fields, props.values));
 </script>
 
 <template>
-    <AppHead :og="og" />
+    <AppHead :og="og" :formats="formats" />
 
     <!-- Editing uses the same surface as every other type, so the page does
          not drift into having its own editor. -->
@@ -63,16 +69,12 @@ const editorValues = computed(() => valuesFor(props.fields, props.values));
          nested elements cannot reach the named columns. -->
     <article v-else class="full-width content-grid">
         <header>
-            <h1 v-twemoji class="max-w-2xl font-display text-display">{{ title }}</h1>
-            <p v-if="excerpt" v-twemoji class="mt-3 max-w-prose text-body text-lg text-neutral-700">{{ excerpt }}</p>
+            <h1 v-twemoji class="max-w-2xl font-display text-5xl font-extrabold tracking-tight">{{ title }}</h1>
+            <p v-if="excerpt" v-twemoji class="mt-3 max-w-prose text-lg text-neutral-700">{{ excerpt }}</p>
 
-            <!-- Both only mean anything to the owner, so they sit together
-                 below the page rather than the badge interrupting the title.
-                 Unpublished pages are visible to nobody else. -->
-            <div v-if="signedIn || !published" class="mt-3 flex items-center gap-3">
-                <Pill v-if="!published" label="Draft" variant="accent" />
-
-                <Link v-if="signedIn" :href="`?edit`" class="text-meta text-accent-500 underline underline-offset-2 transition-colors hover:text-accent-700">
+            <!-- Owner-only, so it sits below the page rather than interrupting the title. -->
+            <div v-if="signedIn" class="mt-3 flex flex-wrap items-center gap-3">
+                <Link :href="`?edit`" class="text-sm text-accent-500 underline underline-offset-2 transition-colors hover:text-accent-700">
                     Edit this page
                 </Link>
             </div>
@@ -86,6 +88,11 @@ const editorValues = computed(() => valuesFor(props.fields, props.values));
             <img :src="cover.full" :alt="cover.alt || ''" class="size-full object-cover">
         </div>
 
-        <BlockContent :document="content" class="mt-8" />
+        <BlockContent v-if="! locked" :document="content" class="mt-8" />
+        <PasswordPrompt v-else :action="unlockUrl" class="mt-8" />
+
+        <div v-if="conversation" class="mt-10 space-y-10 border-t border-neutral-50 pt-6">
+            <Conversation :conversation="conversation" :og="og" />
+        </div>
     </article>
 </template>

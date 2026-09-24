@@ -249,7 +249,7 @@ watch(() => props.index, (idx) => preloadNeighbours(idx));
 
 <template>
     <Teleport v-if="mounted" to="body">
-        <Transition name="lightbox">
+        <Transition name="fade">
             <div
                 v-if="isOpen"
                 ref="panelEl"
@@ -270,7 +270,7 @@ watch(() => props.index, (idx) => preloadNeighbours(idx));
                     <Link
                         v-if="link && current?.url"
                         :href="current.url"
-                        class="flex items-center gap-1.5 rounded-full bg-white/10 py-2 pl-4 pr-3 text-meta text-white transition-colors hover:bg-white/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
+                        class="flex items-center gap-1.5 rounded-full bg-white/10 py-2 pl-4 pr-3 text-sm text-white transition-colors hover:bg-white/20 focus-visible:outline-white"
                         :aria-label="current?.caption ? `View ${current.caption}` : current?.date ? `View entry from ${current.date}` : 'View entry'"
                     >
                         <span>View entry</span>
@@ -280,7 +280,7 @@ watch(() => props.index, (idx) => preloadNeighbours(idx));
 
                     <button
                         type="button"
-                        class="flex size-10 items-center justify-center rounded-full bg-white/10 text-white transition-colors hover:bg-white/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
+                        class="flex size-10 items-center justify-center rounded-full bg-white/10 text-white transition-colors hover:bg-white/20 focus-visible:outline-white"
                         aria-label="Close"
                         @click="close"
                     >
@@ -291,10 +291,11 @@ watch(() => props.index, (idx) => preloadNeighbours(idx));
                 <!-- Image region: fills the space between the bars, the panel
                      (signed in) riding alongside it. -->
                 <div class="relative flex min-h-0 flex-1 gap-3" :class="showPanel ? 'flex-col overflow-y-auto sm:flex-row sm:overflow-visible' : ''">
-                    <!-- Photo area: clicking its empty edge closes. -->
+                    <!-- Photo area. Every dark surface closes on a click and says so
+                         with the zoom-out cursor; only a carousel photo overrides it, to grab. -->
                     <div
-                        class="relative flex min-h-0 flex-1 touch-none overflow-hidden"
-                        :class="hasMultiple ? 'cursor-grab active:cursor-grabbing' : 'cursor-zoom-out items-center justify-center'"
+                        class="relative flex min-h-0 flex-1 cursor-zoom-out touch-none overflow-hidden"
+                        :class="{ 'items-center justify-center': ! hasMultiple }"
                         @click.self="closeUnlessDrag"
                     >
                         <div v-if="hasMultiple" class="flex h-full shrink-0" :style="trackStyle">
@@ -316,9 +317,9 @@ watch(() => props.index, (idx) => preloadNeighbours(idx));
                                     @hover="hoveredTagId = $event"
                                     @unhover="hoveredTagId = null"
                                 >
-                                    <img :src="slide.full" draggable="false" :alt="slide.alt || ''" class="max-h-full max-w-full select-none rounded-2xl object-contain shadow-card">
+                                    <img :src="slide.full" draggable="false" :alt="slide.alt || ''" class="max-h-full max-w-full select-none rounded-2xl object-contain shadow-card" :class="placing ? '' : 'cursor-grab active:cursor-grabbing'">
                                 </PhotoTagLayer>
-                                <img v-else :src="slide.full" draggable="false" :alt="slide.alt || ''" class="max-h-full max-w-full select-none rounded-2xl object-contain shadow-card">
+                                <img v-else :src="slide.full" draggable="false" :alt="slide.alt || ''" class="max-h-full max-w-full cursor-grab select-none rounded-2xl object-contain shadow-card active:cursor-grabbing">
                             </div>
                         </div>
 
@@ -332,14 +333,14 @@ watch(() => props.index, (idx) => preloadNeighbours(idx));
                             @hover="hoveredTagId = $event"
                             @unhover="hoveredTagId = null"
                         >
-                            <img :src="current.full" draggable="false" :alt="current.alt || ''" class="max-h-full max-w-full select-none rounded-2xl object-contain shadow-card">
+                            <img :src="current.full" draggable="false" :alt="current.alt || ''" class="max-h-full max-w-full select-none rounded-2xl object-contain shadow-card" @click="placing || closeUnlessDrag()">
                         </PhotoTagLayer>
-                        <img v-else-if="current" :src="current.full" draggable="false" :alt="current.alt || ''" class="max-h-full max-w-full select-none rounded-2xl object-contain shadow-card">
+                        <img v-else-if="current" :src="current.full" draggable="false" :alt="current.alt || ''" class="max-h-full max-w-full select-none rounded-2xl object-contain shadow-card" @click="closeUnlessDrag">
 
                         <button
                             v-if="hasMultiple"
                             type="button"
-                            class="absolute left-0 top-1/2 flex size-10 -translate-y-1/2 items-center justify-center rounded-full bg-white/10 text-white transition-colors hover:bg-white/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
+                            class="absolute left-0 top-1/2 flex size-10 -translate-y-1/2 items-center justify-center rounded-full bg-white/10 text-white transition-colors hover:bg-white/20 focus-visible:outline-white"
                             aria-label="Previous photo"
                             @click="slideTo(-1)"
                         >
@@ -348,7 +349,7 @@ watch(() => props.index, (idx) => preloadNeighbours(idx));
                         <button
                             v-if="hasMultiple"
                             type="button"
-                            class="absolute right-0 top-1/2 flex size-10 -translate-y-1/2 items-center justify-center rounded-full bg-white/10 text-white transition-colors hover:bg-white/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
+                            class="absolute right-0 top-1/2 flex size-10 -translate-y-1/2 items-center justify-center rounded-full bg-white/10 text-white transition-colors hover:bg-white/20 focus-visible:outline-white"
                             aria-label="Next photo"
                             @click="slideTo(1)"
                         >
@@ -371,9 +372,9 @@ watch(() => props.index, (idx) => preloadNeighbours(idx));
                     v-if="(caption && current?.caption) || (counter && hasMultiple) || (showTags && (current.tags.some((tag) => tag.role === 'subject') || current.tags.some((tag) => tag.role === 'camera')))"
                     class="relative flex shrink-0 flex-col items-center gap-1 text-center"
                 >
-                    <p v-if="caption && current?.caption" class="max-w-prose truncate text-meta font-medium text-white">{{ current.caption }}</p>
-                    <p v-if="caption && current?.date" class="text-caption text-white/70">{{ current.date }}</p>
-                    <span v-if="counter && hasMultiple" class="mt-1 text-caption text-white/60 tnum">{{ index + 1 }} / {{ photos.length }}</span>
+                    <p v-if="caption && current?.caption" class="max-w-prose truncate text-sm font-medium text-white">{{ current.caption }}</p>
+                    <p v-if="caption && current?.date" class="text-xs text-white/70">{{ current.date }}</p>
+                    <span v-if="counter && hasMultiple" class="mt-1 text-xs text-white/60 tabular-nums">{{ index + 1 }} / {{ photos.length }}</span>
 
                     <!-- The accessible counterpart to the on-image labels: every
                          name as a real link, hover/focus mirroring the marker. -->
@@ -381,7 +382,7 @@ watch(() => props.index, (idx) => preloadNeighbours(idx));
                         <li v-for="tag in current.tags.filter((tag) => tag.role === 'subject')" :key="tag.subjectId">
                             <Link
                                 :href="tag.url"
-                                class="rounded text-caption text-white/70 underline decoration-white/30 underline-offset-2 transition-colors hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
+                                class="rounded text-xs text-white/70 underline decoration-white/30 underline-offset-2 transition-colors hover:text-white focus-visible:outline-white"
                                 :class="{ 'text-white': hoveredTagId === tag.subjectId }"
                                 @mouseenter="hoveredTagId = tag.subjectId"
                                 @mouseleave="hoveredTagId = null"
@@ -391,12 +392,12 @@ watch(() => props.index, (idx) => preloadNeighbours(idx));
                         </li>
                     </ul>
 
-                    <p v-if="showTags && current.tags.some((tag) => tag.role === 'camera')" class="text-caption text-white/60">
+                    <p v-if="showTags && current.tags.some((tag) => tag.role === 'camera')" class="text-xs text-white/60">
                         Taken with
                         <template v-for="(tag, tagIndex) in current.tags.filter((tag) => tag.role === 'camera')" :key="tag.subjectId">
                             <span v-if="tagIndex > 0">, </span><Link
                                 :href="tag.url"
-                                class="text-white/70 underline decoration-white/30 underline-offset-2 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
+                                class="text-white/70 underline decoration-white/30 underline-offset-2 hover:text-white focus-visible:outline-white"
                             >{{ tag.name }}</Link>
                         </template>
                     </p>
@@ -405,22 +406,3 @@ watch(() => props.index, (idx) => preloadNeighbours(idx));
         </Transition>
     </Teleport>
 </template>
-
-<style scoped>
-.lightbox-enter-active,
-.lightbox-leave-active {
-    transition: opacity 0.2s ease;
-}
-
-.lightbox-enter-from,
-.lightbox-leave-to {
-    opacity: 0;
-}
-
-@media (prefers-reduced-motion: reduce) {
-    .lightbox-enter-active,
-    .lightbox-leave-active {
-        transition: none;
-    }
-}
-</style>

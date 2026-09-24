@@ -17,6 +17,8 @@ enum Source: string
     case Iphone = 'iphone';
     case Rovi = 'rovi';
     case Setgraph = 'setgraph';
+    case Kindle = 'kindle';
+    case Manual = 'manual';
 
     public function label(): string
     {
@@ -29,6 +31,21 @@ enum Source: string
             self::Iphone => 'iPhone',
             self::Rovi => 'Rovi',
             self::Setgraph => 'Setgraph',
+            self::Kindle => 'Kindle',
+            self::Manual => 'Manual',
+        };
+    }
+
+    /**
+     * The site a platform's responses are left on, whose favicon marks them.
+     * Null for a source nobody responds on.
+     */
+    public function host(): ?string
+    {
+        return match ($this) {
+            self::Strava => 'strava.com',
+            self::Swarm => 'swarmapp.com',
+            default => null,
         };
     }
 }

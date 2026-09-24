@@ -1,7 +1,7 @@
 <?php
 
 use App\Models\Activity;
-use App\Models\Checkin;
+use App\Models\Place;
 use App\Models\Subject;
 use App\Models\User;
 use App\Queries\Lookups\SubjectLookup;
@@ -20,7 +20,7 @@ it('tags a synced entry that has no authoring fields', function (string $type, C
     expect($entry->fresh()->subjects)->toHaveCount(1);
 })->with([
     'a Strava activity' => ['activity', fn () => Activity::factory()->create()],
-    'a Swarm check-in' => ['checkin', fn () => Checkin::factory()->create()],
+    'a Swarm check-in' => ['place', fn () => Place::factory()->create()],
 ]);
 
 it('replaces an entry\'s subjects wholesale', function () {

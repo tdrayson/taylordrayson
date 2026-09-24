@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\Storage;
 it('renders a page cover and offers it back to the editor', function () {
     Storage::fake('public');
 
-    $page = Page::factory()->create(['slug' => 'colophon', 'title' => 'Colophon', 'published' => true]);
+    $page = Page::factory()->create(['slug' => 'colophon', 'title' => 'Colophon', 'status' => 'published']);
     $page->addMediaFromString(fakeJpeg())->usingFileName('cover.jpg')->toMediaCollection('cover');
 
     $this->get('/colophon')
@@ -23,7 +23,7 @@ it('renders a page cover and offers it back to the editor', function () {
 });
 
 it('has no cover to render when none is attached', function () {
-    Page::factory()->create(['slug' => 'plain', 'published' => true]);
+    Page::factory()->create(['slug' => 'plain', 'status' => 'published']);
 
     $this->get('/plain')
         ->assertOk()

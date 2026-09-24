@@ -1,8 +1,8 @@
 <script setup>
 import { computed, ref } from 'vue';
-import { CONTROL } from '../../lib/editor/control.js';
+import { CONTROL, FOCUS_WITHIN, READONLY } from '../../lib/editor/control.js';
 import { tagName } from '../../lib/editor/defaults.js';
-import { useDismissable } from '../../lib/editor/dismissable.js';
+import { useDismissable } from '../../composables/useDismissable.js';
 import { useListNavigation } from '../../lib/editor/listNavigation.js';
 
 /**
@@ -13,6 +13,7 @@ import { useListNavigation } from '../../lib/editor/listNavigation.js';
 const props = defineProps({
     modelValue: { type: Array, default: () => [] },
     id: { type: String, default: null },
+    readonly: { type: Boolean, default: false },
 });
 
 const emit = defineEmits(['update:modelValue']);
@@ -112,14 +113,22 @@ function onBackspace() {
 
 <template>
     <div ref="root" class="relative">
-        <div :class="[CONTROL, 'flex flex-wrap items-center gap-1.5 border-neutral-100 focus-within:border-accent-500']">
+        <div
+            :class="[
+                CONTROL,
+                'flex flex-wrap items-center gap-1.5',
+                readonly ? [READONLY, 'border-neutral-100'] : ['border-neutral-100 focus-within:border-accent-500', FOCUS_WITHIN],
+            ]"
+        >
             <span
                 v-for="tag in tags"
                 :key="tag"
-                class="inline-flex items-center gap-1 rounded bg-accent-50 py-0.5 pl-2 pr-1 text-meta text-accent-700"
+                class="inline-flex items-center gap-1 rounded bg-accent-50 py-0.5 pl-2 pr-1 text-sm text-accent-700"
+                :class="readonly && 'pr-2'"
             >
                 {{ tag }}
                 <button
+                    v-if="! readonly"
                     type="button"
                     class="rounded px-1 leading-none text-accent-700/70 transition-colors hover:text-accent-700"
                     :aria-label="`Remove ${tag}`"
@@ -128,11 +137,12 @@ function onBackspace() {
             </span>
 
             <input
+                v-if="! readonly"
                 :id="id"
                 :value="query"
                 type="text"
                 :placeholder="tags.length ? '' : 'Add a tag'"
-                class="min-w-24 flex-1 border-none bg-transparent p-0 text-meta text-neutral-900 placeholder:text-neutral-500 focus:outline-none"
+                class="min-w-24 flex-1 border-none bg-transparent p-0 text-sm text-neutral-900 placeholder:text-neutral-500 focus:outline-none"
                 autocomplete="off"
                 @input="onInput($event.target.value)"
                 @focus="search"
@@ -145,7 +155,7 @@ function onBackspace() {
         </div>
 
         <ul
-            v-if="open && offered.length"
+            v-if="! readonly && open && offered.length"
             class="absolute z-30 mt-1 max-h-56 w-full overflow-y-auto rounded-lg border border-neutral-100 bg-neutral-0 py-1 shadow-lg"
             role="listbox"
         >
@@ -154,12 +164,12 @@ function onBackspace() {
                     type="button"
                     role="option"
                     :aria-selected="index === active"
-                    class="flex w-full items-baseline justify-between gap-3 px-3 py-1.5 text-left text-meta transition-colors"
+                    class="flex w-full items-baseline justify-between gap-3 px-3 py-1.5 text-left text-sm transition-colors"
                     :class="index === active ? 'bg-accent-50 text-accent-700' : 'text-neutral-900 hover:bg-accent-50 hover:text-accent-700'"
                     @mousedown.prevent="pick(suggestion)"
                 >
                     <span class="min-w-0 truncate">{{ suggestion.label }}</span>
-                    <span v-if="suggestion.detail" class="shrink-0 text-caption text-neutral-500">{{ suggestion.detail }}</span>
+                    <span v-if="suggestion.detail" class="shrink-0 text-xs text-neutral-500">{{ suggestion.detail }}</span>
                 </button>
             </li>
         </ul>

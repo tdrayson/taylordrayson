@@ -1,5 +1,7 @@
 <script setup>
 import { computed, ref } from 'vue';
+import { formatTime } from '../../lib/time.js';
+import { useFormat } from '../../composables/useFormat';
 
 const props = defineProps({
     stages: { type: Array, required: true },
@@ -16,14 +18,22 @@ const STAGE_META = {
 
 const LANE_COUNT = 4;
 
+const { measure, exactMeasure } = useFormat();
+
 function formatDuration(seconds) {
     const minutes = Math.round(seconds / 60);
 
     return `${Math.floor(minutes / 60)}h ${minutes % 60}m`;
 }
 
+// Stage times are local wall-clock strings, so they're read and written as UTC
+// to keep the browser's own zone and DST out of it.
+function wallClock(value) {
+    return Date.parse(`${value.replace(' ', 'T')}Z`);
+}
+
 function formatClock(milliseconds) {
-    return new Date(milliseconds).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+    return formatTime('UTC', new Date(milliseconds));
 }
 
 /** Shared timeline bounds so segments and the cursor map the same x-axis. */
@@ -31,8 +41,8 @@ const bounds = computed(() => {
     const parsed = props.stages
         .map((segment) => ({
             meta: STAGE_META[segment.stage] ?? { lane: 2, label: segment.stage, color: 'var(--color-neutral-500)' },
-            start: new Date(segment.start).getTime(),
-            end: new Date(segment.end).getTime(),
+            start: wallClock(segment.start),
+            end: wallClock(segment.end),
         }))
         .filter((segment) => !Number.isNaN(segment.start) && segment.end > segment.start);
 
@@ -69,7 +79,7 @@ const totals = computed(() => {
 
     props.stages.forEach((segment) => {
         const meta = STAGE_META[segment.stage];
-        const seconds = (new Date(segment.end).getTime() - new Date(segment.start).getTime()) / 1000;
+        const seconds = (wallClock(segment.end) - wallClock(segment.start)) / 1000;
 
         if (!meta || Number.isNaN(seconds) || seconds <= 0) {
             return;
@@ -82,7 +92,12 @@ const totals = computed(() => {
 
     return [...byLane.values()]
         .sort((a, b) => a.lane - b.lane)
-        .map((entry) => ({ label: entry.label, color: entry.color, duration: formatDuration(entry.seconds) }));
+        .map((entry) => ({
+            label: entry.label,
+            color: entry.color,
+            duration: measure('duration', entry.seconds, formatDuration(entry.seconds)),
+            exact: exactMeasure('duration', entry.seconds, formatDuration(entry.seconds)),
+        }));
 });
 
 const track = ref(null);
@@ -170,17 +185,39 @@ const cursor = computed(() => {
                 :style="{ left: `${Math.min(90, Math.max(10, cursor.x))}%` }"
             >
                 <span class="size-2 rounded-full" :style="{ background: cursor.color }" />
-                <span class="tnum">{{ cursor.time }}</span>
+                <span class="tabular-nums">{{ cursor.time }}</span>
                 <span class="text-white/80">{{ cursor.label }}</span>
-                <span class="text-white/60 tnum">{{ cursor.duration }}</span>
+                <span class="text-white/60 tabular-nums">{{ cursor.duration }}</span>
             </div>
         </div>
 
         <div class="mt-4 flex flex-wrap gap-x-6 gap-y-2">
-            <div v-for="total in totals" :key="total.label" class="flex items-center gap-2 text-meta text-neutral-700">
+            <div v-for="total in totals" :key="total.label" class="flex items-center gap-2 text-sm text-neutral-700">
                 <span class="size-2.5 rounded-full" :style="{ background: total.color }" />
-                {{ total.label }} <span class="text-neutral-500 tnum">{{ total.duration }}</span>
+                {{ total.label }} <span :title="total.exact" class="text-neutral-500 tabular-nums">{{ total.duration }}</span>
             </div>
         </div>
     </div>
 </template>
+
+<style scoped>
+@keyframes seg-in {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+.hypnogram-seg {
+    animation: seg-in 0.45s ease both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .hypnogram-seg {
+        animation: none;
+    }
+}
+</style>

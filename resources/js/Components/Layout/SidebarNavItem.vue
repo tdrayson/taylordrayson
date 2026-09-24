@@ -9,6 +9,8 @@ defineProps({
     // String values are icon-registry names (e.g. from entryTypes / navigation).
     icon: { type: [Array, Object, String], default: null },
     active: { type: Boolean, default: false },
+    // Something is waiting behind this link. Unlabelled: the page itself counts.
+    dot: { type: Boolean, default: false },
 });
 </script>
 
@@ -21,5 +23,6 @@ defineProps({
     >
         <Icon v-if="icon" :icon="icon" class="size-5 flex-none" :class="active ? 'text-accent-500' : 'text-neutral-500'" />
         {{ label }}
+        <span v-if="dot" class="ml-auto size-2 flex-none rounded-full bg-accent-500" aria-hidden="true" />
     </Link>
 </template>

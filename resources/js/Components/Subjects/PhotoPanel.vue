@@ -107,20 +107,20 @@ const subjectPickerHint = computed(() => (
 <template>
     <div class="flex w-full shrink-0 flex-col gap-4 overflow-y-auto rounded-2xl bg-neutral-0 p-4 sm:max-h-full sm:w-72 sm:self-start">
         <div class="flex flex-col gap-2">
-            <label class="text-caption font-medium text-neutral-700" :for="`photo-alt-${photo.id}`">Alt text</label>
+            <label class="text-xs font-medium text-neutral-700" :for="`photo-alt-${photo.id}`">Alt text</label>
             <Input :id="`photo-alt-${photo.id}`" v-model="form.alt" placeholder="Describe the photo" />
 
-            <label class="text-caption font-medium text-neutral-700" :for="`photo-caption-${photo.id}`">Caption</label>
+            <label class="text-xs font-medium text-neutral-700" :for="`photo-caption-${photo.id}`">Caption</label>
             <Input :id="`photo-caption-${photo.id}`" v-model="form.caption" placeholder="Caption" />
 
         </div>
 
         <div class="flex flex-col gap-2">
-            <p class="text-caption font-medium text-neutral-700">Tagged</p>
+            <p class="text-xs font-medium text-neutral-700">Tagged</p>
 
             <ul v-if="subjectTags.length" class="flex flex-wrap gap-1.5">
                 <li v-for="tag in subjectTags" :key="tag.subjectId">
-                    <span class="inline-flex items-center gap-1 rounded-md bg-accent-50 py-0.5 pl-2 pr-1 text-meta text-accent-700">
+                    <span class="inline-flex items-center gap-1 rounded-md bg-accent-50 py-0.5 pl-2 pr-1 text-sm text-accent-700">
                         {{ tag.name }}
                         <Button
                             variant="ghost"
@@ -150,11 +150,11 @@ const subjectPickerHint = computed(() => (
         </div>
 
         <div class="flex flex-col gap-2">
-            <p class="text-caption font-medium text-neutral-700">Taken with</p>
+            <p class="text-xs font-medium text-neutral-700">Taken with</p>
 
             <ul v-if="cameraTags.length" class="flex flex-wrap gap-1.5">
                 <li v-for="tag in cameraTags" :key="tag.subjectId">
-                    <span class="inline-flex items-center gap-1 rounded-md bg-neutral-25 py-0.5 pl-2 pr-1 text-meta text-neutral-700">
+                    <span class="inline-flex items-center gap-1 rounded-md bg-neutral-25 py-0.5 pl-2 pr-1 text-sm text-neutral-700">
                         {{ tag.name }}
                         <Button
                             variant="ghost"
@@ -184,7 +184,7 @@ const subjectPickerHint = computed(() => (
         </div>
 
         <label class="flex items-center justify-between gap-4">
-            <span class="text-caption font-medium text-neutral-700">Reviewed</span>
+            <span class="text-xs font-medium text-neutral-700">Reviewed</span>
             <Switch :model-value="reviewed" @update:model-value="toggleReviewed" />
         </label>
 

@@ -2,11 +2,14 @@
 
 namespace App\Search;
 
+use App\Enums\EntryStatus;
 use App\Models\Page;
-use App\Models\Series;
 use App\Models\Subject;
 use App\Models\Tag;
+use App\Models\TimelineEntry;
+use App\Models\TvShow;
 use App\Presenters\CardPresenter;
+use App\Support\DisplayFormat;
 use App\Timeline\TypeRegistry;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Carbon;
@@ -23,7 +26,7 @@ final class SuggestSearch
     private const DESTINATION_LIMIT = 6;
 
     /** A show's share of that limit, so shows never crowd out taxonomy jumps. */
-    private const SERIES_LIMIT = 3;
+    private const TV_SHOW_LIMIT = 3;
 
     /** And a page's share, on the same reasoning. */
     private const PAGE_LIMIT = 3;
@@ -41,23 +44,23 @@ final class SuggestSearch
      */
     private const SEARCHABLE = [
         'activity' => ['name'],
-        'calorie' => ['name', 'meal'],
-        'media' => ['title'],
+        'food' => ['name', 'meal'],
+        'film' => ['title'],
+        'tv-episode' => ['title'],
+        'book' => ['title'],
         'event' => ['name', 'venue_name', 'city', 'country'],
         'appearance' => ['title', 'show_name', 'description'],
-        'podcast' => ['topic', 'show_notes'],
+        'this-week-with' => ['topic', 'show_notes'],
         'flight' => ['flight_number', 'origin_iata', 'destination_iata', 'reason'],
-        'checkin' => ['venue_name', 'category', 'city', 'description'],
+        'place' => ['venue_name', 'type', 'city', 'description'],
         'fuel' => ['station_name', 'city'],
-        'project' => ['title', 'description', 'status'],
+        'project' => ['title', 'description', 'stage'],
         'note' => ['content'],
         'article' => ['title', 'excerpt', 'content'],
     ];
 
     /**
-     * @param  SearchCompiler  $compiler  Only its guardPublished() gate is used here,
-     *                                    so an unpublished article never surfaces in
-     *                                    the palette for a guest.
+     * @param  SearchCompiler  $compiler  Only its guardStatus() gate is used here.
      */
     public function __construct(private readonly SearchCompiler $compiler) {}
 
@@ -65,7 +68,7 @@ final class SuggestSearch
      * Match the term against the palette's free-text hits and taxonomy destinations.
      *
      * @param  string  $term  The free-text query (already length-checked by the caller).
-     * @return array{results: array<int, array{title: string, subtitle: ?string, type: string, url: string, date: string}>, destinations: array<int, array{label: string, section: string, type: string, tag: bool, url: string}>}
+     * @return array{results: array<int, array{title: string, subtitle: ?string, type: string, url: string, date: string, statusLabel: ?string}>, destinations: array<int, array{label: string, section: string, type: string, tag: bool, url: string}>}
      */
     public function __invoke(string $term): array
     {
@@ -85,7 +88,8 @@ final class SuggestSearch
                 'subtitle' => $result['subtitle'],
                 'type' => $result['type'],
                 'url' => $result['url'],
-                'date' => $result['occurred_at']->format('j M Y'),
+                'date' => app(DisplayFormat::class)->date($result['occurred_at'], weekday: false),
+                'statusLabel' => $result['statusLabel'],
             ])
             ->values()
             ->all();
@@ -93,7 +97,7 @@ final class SuggestSearch
         return [
             'results' => $results,
             'destinations' => array_slice(
-                [...$this->matchSeries($term), ...$this->matchSubjects($term), ...$this->matchPages($term), ...$this->matchDestinations($term)],
+                [...$this->matchTvShows($term), ...$this->matchSubjects($term), ...$this->matchPages($term), ...$this->matchDestinations($term)],
                 0,
                 self::DESTINATION_LIMIT,
             ),
@@ -105,27 +109,27 @@ final class SuggestSearch
      *
      * A show is not a taxonomy value, so the registry sweep below cannot see
      * it: episodes are rows whose own titles name the episode, leaving no way
-     * to reach a series page by typing the series name. Listed first, since a
+     * to reach a show page by typing the show name. Listed first, since a
      * show is a more specific destination than a category.
      *
      * @param  string  $term  The free-text query.
      * @return array<int, array{label: string, section: string, type: string, tag: bool, url: string}>
      */
-    private function matchSeries(string $term): array
+    private function matchTvShows(string $term): array
     {
-        return Series::query()
-            ->whereHas('episodes')
+        return TvShow::query()
+            ->whereHas('episodes', fn ($episodes) => $episodes->listed())
             ->where('title', 'like', '%'.$term.'%')
             ->orderByRaw('CASE WHEN title LIKE ? THEN 0 ELSE 1 END', [$term.'%'])
             ->orderByRaw('LENGTH(title)')
-            ->limit(self::SERIES_LIMIT)
+            ->limit(self::TV_SHOW_LIMIT)
             ->get(['title', 'slug'])
-            ->map(fn (Series $series): array => [
-                'label' => $series->title,
+            ->map(fn (TvShow $tvShow): array => [
+                'label' => $tvShow->title,
                 'section' => 'TV',
-                'type' => 'media',
+                'type' => 'tv-episode',
                 'tag' => false,
-                'url' => $series->url(),
+                'url' => $tvShow->url(),
             ])
             ->all();
     }
@@ -145,7 +149,7 @@ final class SuggestSearch
     {
         $query = Page::query();
 
-        $this->compiler->guardPublished($query, Page::class);
+        $this->compiler->guardStatus($query);
 
         return $query
             ->where('title', 'like', '%'.$term.'%')
@@ -246,13 +250,13 @@ final class SuggestSearch
      *
      * @param  class-string  $model
      * @param  array<int, string>  $columns
-     * @return array<int, array{title: string, subtitle: ?string, type: string, url: string, occurred_at: Carbon}>
+     * @return array<int, array{title: string, subtitle: ?string, type: string, url: string, occurred_at: Carbon, statusLabel: ?string}>
      */
     private function searchType(string $model, string $type, array $columns, string $term): array
     {
         $query = $model::query();
 
-        $this->compiler->guardPublished($query, $model);
+        $this->compiler->guardStatus($query);
 
         $query->where(function (Builder $builder) use ($columns, $term): void {
             foreach ($columns as $column) {
@@ -262,8 +266,12 @@ final class SuggestSearch
             ->orderByDesc('occurred_at')
             ->limit(self::PER_TYPE);
 
-        if ($type === 'flight') {
-            $query->with(['origin', 'destination', 'airline']);
+        // The same relations a card reads elsewhere (e.g. a reply's citation),
+        // so the palette never lazy-loads one per row on every keystroke.
+        $relations = TimelineEntry::cardRelations()[$model] ?? [];
+
+        if ($relations !== []) {
+            $query->with($relations);
         }
 
         return $query->get()
@@ -276,6 +284,7 @@ final class SuggestSearch
                     'type' => $card->type->value,
                     'url' => $entry->url(),
                     'occurred_at' => $entry->occurred_at,
+                    'statusLabel' => $entry->status === EntryStatus::Published ? null : $entry->status->label(),
                 ];
             })
             ->all();

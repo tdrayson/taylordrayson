@@ -4,12 +4,11 @@ namespace App\Actions\Og;
 
 use App\Data\CardData;
 use App\Data\SegmentData;
-use App\Enums\MediaType;
 use App\Enums\TimelineType;
 use App\Models\Concerns\Timelineable;
 use App\Models\Flight;
-use App\Models\Media;
 use App\Models\TimelineEntry;
+use App\Models\TvEpisode;
 use App\Presenters\CardPresenter;
 use App\Queries\DayFoodTotals;
 use App\Support\OgPhrases;
@@ -34,17 +33,17 @@ final class BuildEntryOgData
     /**
      * Build the card view data for a single entry from its real data: type accent,
      * eyebrow, title, date, and a contextual image. Returns null when the entry has
-     * no timelineable model.
+     * no resolved model.
      *
      * $cutout is resolved lazily (only once the entry is known to render a card),
      * matching the original controller's behaviour of skipping the data-uri read
-     * entirely for entries with no timelineable model.
+     * entirely for entries with no resolved model.
      *
      * @return array<string, mixed>|null
      */
     public function __invoke(TimelineEntry $entry, Closure $cutout): ?array
     {
-        $model = $entry->timelineable;
+        $model = $entry->entry;
 
         if (! $model instanceof Timelineable) {
             return null;
@@ -76,13 +75,13 @@ final class BuildEntryOgData
     }
 
     /**
-     * The entry's last-updated timestamp (the timelineable model's, falling back
+     * The entry's last-updated timestamp (the underlying model's, falling back
      * to the entry's), used to key the cache, seed the wording, and bust the
      * card's URL when the entry it describes changes.
      */
     public static function entryTimestamp(TimelineEntry $entry): int
     {
-        return $entry->timelineable?->updated_at?->timestamp ?? $entry->updated_at?->timestamp ?? 0;
+        return $entry->entry?->updated_at?->timestamp ?? $entry->updated_at?->timestamp ?? 0;
     }
 
     /**
@@ -123,37 +122,22 @@ final class BuildEntryOgData
     {
         $phrase = match ($card->type) {
             TimelineType::Sleep => OgPhrases::pick('sleep', ['duration' => Units::humanDuration($model->duration)], $seed),
-            TimelineType::Calorie => OgPhrases::pick('food', ['kcal' => number_format(app(DayFoodTotals::class)->for($model->occurred_at->toDateString())['calories'])], $seed),
+            TimelineType::Food => OgPhrases::pick('food', ['kcal' => number_format(app(DayFoodTotals::class)->for($model->occurred_at->toDateString())['calories'])], $seed),
             TimelineType::Fuel => OgPhrases::pick('fuel', ['cost' => number_format((float) $model->cost, 2), 'litres' => $model->litres], $seed),
-            TimelineType::Podcast => $model->season_number && $model->episode_number
-                ? OgPhrases::pick('podcast', ['season' => $model->season_number, 'episode' => $model->episode_number], $seed)
+            TimelineType::ThisWeekWith => $model->season_number && $model->episode_number
+                ? OgPhrases::pick('this-week-with', ['season' => $model->season_number, 'episode' => $model->episode_number], $seed)
                 : null,
-            TimelineType::Media => $this->mediaTitle($model),
+            TimelineType::Film => "I watched {$model->title}",
+            TimelineType::TvEpisode => 'I watched '.$this->episodeSubject($model),
+            TimelineType::Book => "I read {$model->title}",
             default => null,
         };
 
-        return Str::limit($phrase ?? trim($card->title), 160, '');
-    }
-
-    /**
-     * What was watched or read, said the way the card says it. The card title is
-     * the work's own name, which on its own reads as a caption rather than as
-     * something I did.
-     *
-     * An episode names its show and where in it, so a day of one programme does
-     * not share four identical cards.
-     */
-    private function mediaTitle(Media $model): string
-    {
-        $verb = $model->type === MediaType::Book ? 'read' : 'watched';
-
-        return "I {$verb} ".($model->type === MediaType::TvEpisode
-            ? $this->episodeSubject($model)
-            : $model->title);
+        return Str::limit($phrase ?? trim(CardPresenter::publicTitle($model, $card)), 160, '');
     }
 
     /** "season 4 episode 4 of Ted Lasso", falling back to whatever is known. */
-    private function episodeSubject(Media $model): string
+    private function episodeSubject(TvEpisode $model): string
     {
         $show = ShowTitle::for($model);
         $where = $model->meta->season !== null && $model->meta->episode !== null
@@ -204,7 +188,7 @@ final class BuildEntryOgData
             }
         }
 
-        if ($type === TimelineType::Checkin) {
+        if ($type === TimelineType::Place) {
             $latitude = $this->floatOrNull($model->latitude);
             $longitude = $this->floatOrNull($model->longitude);
 

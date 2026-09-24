@@ -1,12 +1,12 @@
 <script setup>
 import { computed } from 'vue';
 import BackToTop from './BackToTop.vue';
-import QuickAdd from './QuickAdd.vue';
+import OwnerMenu from './OwnerMenu.vue';
 import { player } from '../../lib/player.js';
 
 /**
  * The bottom-right stack. Owning the edge offset here is what keeps back-to-top
- * above the add button whether or not that button is drawn: signed out, the
+ * above the menu button whether or not that button is drawn: signed out, the
  * column simply has one row in it.
  */
 defineProps({
@@ -26,6 +26,6 @@ const playing = computed(() => player.mode === 'audio' && Boolean(player.track))
         :class="playing ? 'bottom-28' : 'bottom-6'"
     >
         <BackToTop />
-        <QuickAdd />
+        <OwnerMenu />
     </div>
 </template>

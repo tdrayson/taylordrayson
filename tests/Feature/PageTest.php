@@ -4,7 +4,7 @@ use App\Models\Page;
 use App\Models\User;
 
 it('renders a published page at its slug', function () {
-    Page::factory()->create(['slug' => 'about', 'title' => 'About me', 'published' => true]);
+    Page::factory()->create(['slug' => 'about', 'title' => 'About me', 'status' => 'published']);
 
     $this->get('/about')
         ->assertSuccessful()

@@ -34,8 +34,8 @@ const all = computed(() => [...props.facts, ...props.rows].map((row) => {
              breaks the row. Wrapping the whole value onto its own line keeps
              both halves intact. -->
         <div v-for="row in all" :key="row.label" class="flex flex-wrap items-baseline justify-between gap-x-6 py-2.5">
-            <dt class="whitespace-nowrap text-meta text-neutral-500">{{ row.label }}</dt>
-            <dd class="ml-auto whitespace-nowrap text-right text-meta font-medium text-neutral-900 tnum">{{ row.value }}</dd>
+            <dt class="whitespace-nowrap text-sm text-neutral-500">{{ row.label }}</dt>
+            <dd class="ml-auto whitespace-nowrap text-right text-sm font-medium text-neutral-900 tabular-nums">{{ row.value }}</dd>
         </div>
     </dl>
 </template>

@@ -1,20 +1,30 @@
 <script setup>
-import { ref, onBeforeUnmount } from 'vue';
-import { Link } from '@inertiajs/vue3';
+import { ref, onBeforeUnmount, computed } from 'vue';
+import { Link, usePage } from '@inertiajs/vue3';
 import Avatar from './Avatar.vue';
+import Heading from '../Ui/Heading.vue';
 import { identityProfiles } from '../../lib/identity.js';
 import { useMounted } from '../../composables/useMounted';
 
 const mounted = useMounted();
+const page = usePage();
 
-defineProps({
-    name: { type: String, default: 'Taylor Drayson' },
-    bio: {
-        type: String,
-        default: 'I build stuff on the internet, track everything, and drink too much coffee.',
-    },
-    avatar: { type: String, default: '/taylor-cutout.png' },
+const props = defineProps({
+    name: { type: String, default: null },
+    bio: { type: String, default: null },
+    avatar: { type: String, default: null },
 });
+
+// Falls back to the site's own identity when a caller doesn't override
+// these, so the card matches the config everything else reads from.
+const name = computed(() => props.name ?? page.props.identity.name);
+const bio = computed(() => props.bio ?? page.props.identity.bio);
+const avatar = computed(() => props.avatar ?? page.props.identity.avatar);
+
+// The flattened crop, not the transparent one on screen. A parser takes the
+// URL and renders it on somebody else's page, where our accent disc behind it
+// does not follow, so a cutout would land edgeless on their background.
+const photo = computed(() => props.avatar ?? page.props.identity.photo);
 
 // Tuning for the gravity simulation. All in px and seconds so the maths reads
 // physically; the loop is frame-rate independent (dt-based) so it looks the
@@ -186,14 +196,18 @@ onBeforeUnmount(() => {
                 ref="avatarEl"
                 :src="avatar"
                 :alt="name"
-                img-class="u-photo"
                 :class="['group-hover:animate-avatar-boop', { 'opacity-0': flying }]"
             />
         </Link>
-        <p class="mb-2 font-display text-name">
+
+        <!-- Carried separately from the visible avatar so each can be the crop
+             it needs: that one sits on our own accent disc, this one travels. -->
+        <data class="u-photo" :value="photo" />
+
+        <Heading as="p" size="title" class="mb-2">
             <Link href="/" class="p-name u-url u-uid">{{ name }}</Link>
-        </p>
-        <p class="mb-4 max-w-50 p-note text-caption text-neutral-500">{{ bio }}</p>
+        </Heading>
+        <p class="mb-4 max-w-50 p-note text-xs text-neutral-500">{{ bio }}</p>
 
         <!-- Hidden, not dropped: microformats and IndieAuth read the DOM and
              ignore CSS, so identity survives without the icons being on screen. -->

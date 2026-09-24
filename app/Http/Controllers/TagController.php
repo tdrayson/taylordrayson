@@ -3,15 +3,14 @@
 namespace App\Http\Controllers;
 
 use App\Actions\BuildTimelineFeed;
-use App\Models\Article;
 use App\Models\Tag;
 use App\Models\Taggable;
 use App\Models\TimelineEntry;
 use App\Queries\TagUsage;
+use App\Support\FeedInteractions;
 use App\Support\OgMeta;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
-use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -34,9 +33,9 @@ class TagController extends Controller
     /**
      * Cross-type tag feed: every article, note, and project carrying this tag,
      * shaped identically to the timeline. 404s for an unknown slug, and also
-     * when nothing resolves for the current requester (e.g. a tag that only
-     * lives on an unpublished article, viewed by a guest) so a probing URL
-     * cannot distinguish "no such tag" from "nothing visible to you".
+     * when nothing resolves for the current requester (a tag that only lives
+     * on unlisted entries) so a probing URL cannot distinguish "no such tag"
+     * from "nothing visible to you".
      */
     public function show(string $slug): Response
     {
@@ -52,15 +51,12 @@ class TagController extends Controller
             'og' => OgMeta::tag($tag->name, $entries->count()),
             'name' => $tag->name,
             'groups' => $this->feed->groupByDay($entries),
+            'interactions' => FeedInteractions::defer($entries),
         ]);
     }
 
     /**
-     * Resolve every timeline entry for models carrying this tag, through the
-     * spine so unpublished articles are naturally hidden from guests (they
-     * have no spine row for anyone to resolve through). An authenticated
-     * request additionally previews unpublished tagged articles directly,
-     * mirroring EntryController's own-preview fallback.
+     * Every listed timeline entry for models carrying this tag.
      *
      * @return Collection<int, TimelineEntry>
      */
@@ -77,45 +73,13 @@ class TagController extends Controller
             ->where(function (Builder $query) use ($taggables): void {
                 foreach ($taggables->groupBy('taggable_type') as $type => $group) {
                     $query->orWhere(fn (Builder $q): Builder => $q
-                        ->where('timelineable_type', $type)
-                        ->whereIn('timelineable_id', $group->pluck('taggable_id')));
+                        ->where('dataset', $type)
+                        ->whereIn('entry_id', $group->pluck('taggable_id')));
                 }
             })
             ->get()
-            ->filter(fn (TimelineEntry $entry): bool => $entry->timelineable !== null);
-
-        if (Auth::check()) {
-            $entries = $entries->concat($this->unpublishedArticlePreviews($taggables));
-        }
+            ->filter(fn (TimelineEntry $entry): bool => $entry->entry !== null);
 
         return $entries->sortByDesc(fn (TimelineEntry $entry): int => $entry->occurred_at->getTimestamp())->values();
-    }
-
-    /**
-     * Build transient (unsaved) timeline entries for unpublished, tagged
-     * articles so an authenticated preview sees them despite there being no
-     * spine row to resolve through.
-     *
-     * @param  Collection<int, Taggable>  $taggables
-     * @return Collection<int, TimelineEntry>
-     */
-    private function unpublishedArticlePreviews(Collection $taggables): Collection
-    {
-        $articleIds = $taggables->where('taggable_type', Article::class)->pluck('taggable_id');
-
-        if ($articleIds->isEmpty()) {
-            return collect();
-        }
-
-        return Article::query()
-            ->whereIn('id', $articleIds)
-            ->where('published', false)
-            ->get()
-            ->map(function (Article $article): TimelineEntry {
-                $entry = new TimelineEntry(['occurred_at' => $article->occurred_at]);
-                $entry->setRelation('timelineable', $article);
-
-                return $entry;
-            });
     }
 }

@@ -1,11 +1,10 @@
 <?php
 
-use App\Enums\MediaType;
 use App\Models\Activity;
-use App\Models\Checkin;
-use App\Models\Media;
-use App\Models\Podcast;
+use App\Models\Film;
+use App\Models\Place;
 use App\Models\Sleep;
+use App\Models\ThisWeekWith;
 use Illuminate\Support\Facades\Storage;
 use Inertia\Testing\AssertableInertia as Assert;
 
@@ -18,7 +17,7 @@ it('renders the now page via Inertia', function () {
 });
 
 it('passes the latest podcast episode to the widget', function () {
-    Podcast::factory()->create(['occurred_at' => now()->subDay()]);
+    ThisWeekWith::factory()->create(['occurred_at' => now()->subDay()]);
 
     get('/now')->assertInertia(fn ($page) => $page
         ->has('episode.season')
@@ -48,14 +47,21 @@ it('passes recent sleep nights and last-night stage hours', function () {
     );
 });
 
-it('counts timeline entries from the trailing 30 days', function () {
-    // Each timelineable model spawns a timeline entry dated to occurred_at.
-    Sleep::factory()->create(['occurred_at' => now()->subDay()]);
-    Podcast::factory()->create(['occurred_at' => now()->subDays(2)]);
+it('counts timeline entries across four Monday-first weeks', function () {
+    // A Wednesday, so the current week has both past and future days.
+    $this->travelTo('2026-09-16 12:00:00');
+
+    // Each Timelineable model spawns a timeline entry dated to occurred_at.
+    Sleep::factory()->create(['occurred_at' => '2026-09-15 07:00:00']);
+    ThisWeekWith::factory()->create(['occurred_at' => '2026-08-24 18:00:00']);
 
     get('/now')->assertInertia(fn ($page) => $page
-        ->has('entryCounts', 30)
-        ->where('entryCounts', fn ($counts) => collect($counts)->sum() >= 2)
+        ->has('entryDays', 28)
+        ->where('entryDays.0', ['date' => '2026-08-24', 'count' => 1])
+        ->where('entryDays.22.count', 1)
+        ->where('entryDays.23', ['date' => '2026-09-16', 'count' => 0])
+        ->where('entryDays.24', ['date' => '2026-09-17', 'count' => null])
+        ->where('entryDays.27.date', '2026-09-20')
     );
 });
 
@@ -75,14 +81,14 @@ it('orders the deck newest first and excludes posters, matching /photos', functi
     Storage::fake('public');
 
     // An older personal photo and a newer one, on different entry types.
-    $checkin = Checkin::factory()->create(['occurred_at' => now()->subYears(5)]);
-    $checkin->addMediaFromString(fakeJpeg())->usingFileName('old.jpg')->toMediaCollection('photos');
+    $place = Place::factory()->create(['occurred_at' => now()->subYears(5)]);
+    $place->addMediaFromString(fakeJpeg())->usingFileName('old.jpg')->toMediaCollection('photos');
 
     $activity = Activity::factory()->create(['occurred_at' => now()->subDay()]);
     $activity->addMediaFromString(fakeJpeg())->usingFileName('new.jpg')->toMediaCollection('cover');
 
-    // A film poster (Media cover) is enrichment art, not a photo taken.
-    Media::factory()->create(['type' => MediaType::Film])
+    // A film poster (cover) is enrichment art, not a photo taken.
+    Film::factory()->create()
         ->addMediaFromString(fakeJpeg())->usingFileName('poster.jpg')->toMediaCollection('cover');
 
     get('/now')->assertInertia(fn (Assert $page) => $page
@@ -91,6 +97,6 @@ it('orders the deck newest first and excludes posters, matching /photos', functi
         // Newest entry (yesterday's activity) leads, not the recently-imported
         // but five-year-old check-in.
         ->where('photos.0.url', $activity->url())
-        ->where('photos.1.url', $checkin->url())
+        ->where('photos.1.url', $place->url())
     );
 });

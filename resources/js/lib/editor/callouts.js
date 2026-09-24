@@ -16,5 +16,5 @@ export const CALLOUT_VARIANTS = {
     tip: { label: 'Tip', panel: 'bg-activity/10', chip: 'bg-activity text-neutral-0', code: 'color-mix(in oklab, var(--color-activity) 22%, transparent)' },
     important: { label: 'Important', panel: 'bg-accent-50', chip: 'bg-accent-500 text-neutral-0', code: 'color-mix(in oklab, var(--color-accent-500) 18%, transparent)' },
     warning: { label: 'Warning', panel: 'bg-fuel/10', chip: 'bg-fuel text-neutral-900', code: 'color-mix(in oklab, var(--color-fuel) 24%, transparent)' },
-    caution: { label: 'Caution', panel: 'bg-media/10', chip: 'bg-media text-neutral-0', code: 'color-mix(in oklab, var(--color-media) 22%, transparent)' },
+    caution: { label: 'Caution', panel: 'bg-caution/10', chip: 'bg-caution text-neutral-0', code: 'color-mix(in oklab, var(--color-caution) 22%, transparent)' },
 };

@@ -1,7 +1,7 @@
 @layer base {
+    /* No smooth scroll-behavior: it animates Inertia's reset to the top, and
+       Safari abandons that animation when the new page's content loads in. */
     html {
-        scroll-behavior: smooth;
-
         /* Hold the scrollbar's column whether or not the page scrolls, so a
            short day view and a long one place their content identically. No
            effect where the OS draws overlay scrollbars. */
@@ -82,6 +82,38 @@
         cursor: help;
     }
 
+    /* The one focus ring. An outline follows the element's own border-radius, so
+       every control gets a ring its own shape; components only adjust the offset
+       (inset where a neighbour or overflow would cut it) or the colour. */
+    :focus-visible {
+        outline: 2px solid var(--color-accent-500);
+        outline-offset: 2px;
+    }
+
+    /* A control with square corners of its own (a text link, a bare icon)
+       still gets softened ring corners. Zero specificity, so any rounded-*
+       utility, rounded-none included, keeps its shape. */
+    :where(a, button, summary, [tabindex]):focus-visible {
+        border-radius: var(--radius-xs, 2px);
+    }
+
+    /* A full-bleed control inside a clipped, rounded frame (a photo, a video
+       poster) hands its ring to the frame, which the overflow cannot cut. */
+    .focus-frame:has(.focus-frame-target:focus-visible) {
+        outline: 2px solid var(--color-accent-500);
+        outline-offset: 2px;
+    }
+
+    .focus-frame-target:focus-visible {
+        outline: none;
+    }
+
+    /* Script-focused containers (dialogs, skip-link targets) take focus to move
+       the reading position, not to be pressed. */
+    [tabindex='-1']:focus {
+        outline: none;
+    }
+
     /* Colour changes on interactive elements always ease rather than snap. */
     a,
     button,
@@ -107,27 +139,17 @@
     }
 }
 
-@layer utilities {
-    .font-display {
-        font-family: var(--font-display);
-    }
-
-    .tnum {
-        font-variant-numeric: tabular-nums;
-    }
-}
-
 /* iOS Safari zooms the page when a focused control's font-size is under 16px.
    Hold a 16px floor on touch devices; unlayered so it beats text-size utilities.
 
-   `data-text-size` opts an input out. It is a floor, not a cap: a control that
+   `data-text-size` opts a control out. It is a floor, not a cap: a control that
    is deliberately far larger than 16px has no zoom problem to solve, and
    clamping it makes a display-sized title render smaller than the body text
    under it. Only use it where the size is unambiguously above the floor. */
 @media (pointer: coarse) {
     input:not([data-text-size]),
     select,
-    textarea,
+    textarea:not([data-text-size]),
     [contenteditable]:not([data-text-size]) {
         font-size: 16px;
     }

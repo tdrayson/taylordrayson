@@ -4,8 +4,11 @@ namespace App\Fields;
 
 use App\Data\FieldData;
 use App\Enums\FieldType;
+use App\Rules\NotReservedSlug;
+use App\Rules\RequiredUnless;
 use App\Rules\TextOrDocument;
 use Illuminate\Contracts\Validation\ValidationRule;
+use Illuminate\Database\Eloquent\Model;
 
 /**
  * Validation derived from the field definitions.
@@ -21,15 +24,23 @@ final class FieldRules
 
     /**
      * @param  list<FieldData>  $fields
-     * @return array<string, array<int, string>>
+     * @param  Model|null  $stored  The row an update applies to, read for any condition the request leaves out.
+     * @return array<string, array<int, string|ValidationRule>>
      */
-    public static function for(array $fields, bool $creating): array
+    public static function for(array $fields, bool $creating, ?Model $stored = null): array
     {
         $rules = [];
 
         foreach ($fields as $field) {
+            if ($field->readOnly) {
+                $rules[$field->name] = ['exclude'];
+
+                continue;
+            }
+
             if ($field->type->isMedia()) {
-                $rules[$field->name.'.*'] = ['string', 'max:100'];
+                // A `url:` item carries a full URL rather than an attached uuid.
+                $rules[$field->name.'.*'] = ['string', 'max:2048'];
             }
 
             if ($field->type === FieldType::Tags) {
@@ -37,15 +48,38 @@ final class FieldRules
             }
 
             $rules[$field->name] = [
-                // Only the genuinely mandatory fields are required, and only on
-                // create: an update may touch one field and leave the rest
-                // alone. Visibility (primary) is a separate question.
-                $creating && $field->required ? 'required' : 'sometimes',
+                ...self::presenceRules($field, $creating, $stored),
                 ...self::typeRules($field),
             ];
         }
 
         return $rules;
+    }
+
+    /**
+     * Whether a field must be filled.
+     *
+     * Only the genuinely mandatory fields are required, and only on create: an
+     * update may touch one field and leave the rest alone. A date stamped at
+     * save is left empty by a draft. A conditionally required field is also held
+     * to its condition on update whenever it is sent, so an edit cannot blank it.
+     *
+     * @return list<string|ValidationRule>
+     */
+    private static function presenceRules(FieldData $field, bool $creating, ?Model $stored): array
+    {
+        if (! $field->required) {
+            return ['sometimes'];
+        }
+
+        $unless = $field->requiredUnless === null ? [] : [new RequiredUnless($field->requiredUnless, $stored)];
+
+        return match (true) {
+            ! $creating => ['sometimes', ...$unless],
+            $field->defaultsToNow => ['required_unless:status,draft'],
+            $unless !== [] => $unless,
+            default => ['required'],
+        };
     }
 
     /**
@@ -76,21 +110,27 @@ final class FieldRules
             // Blocks from the editor, or a plain string from anything that only
             // has one; the model normalises a string into a single block.
             FieldType::Prose => ['nullable', new TextOrDocument($field->max)],
-            FieldType::Slug => ['nullable', 'string', 'max:100', 'regex:/^[a-z0-9]+(-[a-z0-9]+)*$/'],
+            FieldType::Slug => [
+                'nullable', 'string', 'max:100', 'regex:/^[a-z0-9]+(-[a-z0-9]+)*$/',
+                ...($field->checksReservedSlug ? [new NotReservedSlug] : []),
+            ],
             FieldType::Url => ['nullable', 'url', 'max:500'],
             FieldType::DateTime => ['nullable', 'date'],
             FieldType::Number, FieldType::Duration, FieldType::Distance => ['nullable', 'numeric'],
-            FieldType::Boolean, FieldType::Published => ['boolean'],
+            FieldType::Rating => ['nullable', 'integer', 'between:1,10'],
+            FieldType::Boolean => ['boolean'],
             FieldType::Tags => ['array'],
             FieldType::Select => ['nullable', 'string', self::in($field)],
+            FieldType::Status => ['string', self::in($field)],
             // Both resolve to a name the lookup filled in, which stays
             // editable afterwards, so neither is constrained to what the
             // source returned.
             FieldType::Lookup, FieldType::Location => ['nullable', 'string', 'max:255'],
-            // An ordered list of media uuids and `pending:` upload tokens; the
-            // items themselves are checked by itemRules() below.
-            FieldType::Image => ['nullable', 'array', 'max:1'],
+            // An ordered list of media uuids, `pending:` upload tokens and
+            // `url:` items; the items themselves are checked by itemRules() below.
+            FieldType::Image, FieldType::BookCover => ['nullable', 'array', 'max:1'],
             FieldType::Gallery => ['nullable', 'array', 'max:'.self::MAX_GALLERY],
+            FieldType::Citation => ['nullable', 'string', 'max:600'],
         };
     }
 

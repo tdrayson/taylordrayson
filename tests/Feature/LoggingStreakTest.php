@@ -1,6 +1,6 @@
 <?php
 
-use App\Models\Calorie;
+use App\Models\Food;
 use App\Queries\LoggingStreak;
 use Illuminate\Support\Carbon;
 
@@ -8,7 +8,7 @@ use function Pest\Laravel\get;
 
 function logDay(string $date): void
 {
-    Calorie::factory()->create(['occurred_at' => $date.' 12:00:00']);
+    Food::factory()->create(['occurred_at' => $date.' 12:00:00']);
 }
 
 it('counts consecutive days back from today', function () {
@@ -27,6 +27,28 @@ it('holds the streak on a day not yet logged', function () {
     // Nothing eaten yet today: the run through yesterday still stands, rather
     // than resetting to zero every midnight.
     foreach (['2026-08-22', '2026-08-23'] as $date) {
+        logDay($date);
+    }
+
+    expect(app(LoggingStreak::class)())->toBe(2);
+});
+
+it('holds the streak when the sync is several days behind', function () {
+    Carbon::setTestNow('2026-08-24 09:00:00');
+
+    // Nothing has arrived since the 21st. The run in the table is intact, so
+    // the badge must show it rather than dropping to zero.
+    foreach (['2026-08-19', '2026-08-20', '2026-08-21'] as $date) {
+        logDay($date);
+    }
+
+    expect(app(LoggingStreak::class)())->toBe(3);
+});
+
+it('ignores a future-dated day', function () {
+    Carbon::setTestNow('2026-08-24 09:00:00');
+
+    foreach (['2026-08-22', '2026-08-23', '2026-08-29'] as $date) {
         logDay($date);
     }
 

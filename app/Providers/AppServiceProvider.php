@@ -2,22 +2,24 @@
 
 namespace App\Providers;
 
+use App\Datasets\Datasets;
 use App\Http\Controllers\ArchiveController;
 use App\Listeners\AlertOnFailedJob;
 use App\Listeners\AlertOnScheduledTaskFailure;
 use App\Queries\DayFoodTotals;
 use App\Support\AmbientZone;
 use App\Support\ApiHttp;
-use App\Support\FeedDiscovery;
+use App\Support\DisplayFormat;
 use App\Support\OptimisingFileAdder;
 use App\Support\ZoneHistory;
 use App\Timeline\TypeRegistry;
+use Illuminate\Console\Events\ScheduledBackgroundTaskFinished;
 use Illuminate\Console\Events\ScheduledTaskFailed;
+use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Queue\Events\JobFailed;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Route;
-use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
 use Inertia\Inertia;
 use Laravel\Passport\Passport;
@@ -44,11 +46,13 @@ class AppServiceProvider extends ServiceProvider
         // the day totals.
         $this->app->scoped(DayFoodTotals::class);
 
+        $this->app->bind(DisplayFormat::class, fn ($app): DisplayFormat => DisplayFormat::for($app['request']));
+
         $this->registerArchiveRoutes();
     }
 
     /**
-     * `Route::archives()`, registering each type's archive page, its /stats
+     * `Route::archives()`, registering each type's archive index, its /stats
      * redirect and its taxonomy sub-route.
      *
      * A macro so routes/web.php stays a flat list of controllers rather than
@@ -56,9 +60,9 @@ class AppServiceProvider extends ServiceProvider
      * than boot(), because the route files are loaded during the framework's
      * own boot and the macro has to exist before web.php is evaluated.
      *
-     * Order inside is load-bearing and matches what the loop did: the /stats
-     * redirect is registered before the taxonomy route, so "stats" is not
-     * matched as a taxonomy value.
+     * Order is load-bearing within each type: the /stats redirect is
+     * registered before the taxonomy route, so "stats" isn't matched as a
+     * taxonomy value.
      */
     private function registerArchiveRoutes(): void
     {
@@ -87,6 +91,9 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        // Morph columns store dataset keys; an unmapped model throws instead of writing a class path.
+        Relation::enforceMorphMap(Datasets::morphMap());
+
         // Passport ships no consent screen, so the OAuth flow 500s without one.
         // Rendered through Inertia to match the rest of the site; the approve
         // and deny controls inside it are plain forms, because completing the
@@ -101,19 +108,16 @@ class AppServiceProvider extends ServiceProvider
             'csrf' => csrf_token(),
         ]));
 
-        View::composer('app', function (\Illuminate\View\View $view): void {
-            $view->with('contextualFeeds', FeedDiscovery::forRoute(request()->route()));
-        });
-
         // Failures that otherwise only ever reached the log.
         Event::listen(ScheduledTaskFailed::class, AlertOnScheduledTaskFailure::class);
+        Event::listen(ScheduledBackgroundTaskFinished::class, AlertOnScheduledTaskFailure::class);
         Event::listen(JobFailed::class, AlertOnFailedJob::class);
 
         // Say who we are on every outbound request: an unidentified default
         // Guzzle agent is a common thing for a bot filter to challenge.
         Http::globalRequestMiddleware(fn ($request) => $request->withHeader(
             'User-Agent',
-            config('app.name').' (+'.config('app.url').')',
+            config('identity.name').' (+'.config('app.url').')',
         ));
 
         // Shared retry policy for third-party clients. See ApiHttp.

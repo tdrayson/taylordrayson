@@ -3,7 +3,7 @@ import { computed } from 'vue';
 import { Link } from '@inertiajs/vue3';
 import Icon from '../Ui/Icon.vue';
 import { useFormat } from '../../composables/useFormat';
-import { duration, dateShort, titleCase } from '../../lib/format.js';
+import { duration as clockDuration, dateShort, titleCase } from '../../lib/format.js';
 
 /**
  * One row in the flight globe map's list: a keyboard-reachable button so the
@@ -21,7 +21,7 @@ const props = defineProps({
 
 const emit = defineEmits(['select', 'hover']);
 
-const { distance } = useFormat();
+const { distance, exactDistance, duration, exactMeasure } = useFormat();
 
 const airline = computed(() => props.entry.airline);
 
@@ -45,7 +45,7 @@ const cabinLabel = computed(() => (props.entry.cabinClass ? titleCase(props.entr
     <div>
         <button
             type="button"
-            class="w-full px-4 py-3 text-left transition-colors hover:bg-neutral-25 focus-visible:bg-neutral-25 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-accent-500"
+            class="w-full px-4 py-3 text-left transition-colors hover:bg-neutral-25 focus-visible:bg-neutral-25 focus-visible:-outline-offset-2"
             :class="selected ? 'bg-accent-50' : ''"
             :aria-expanded="selected"
             @click="emit('select', entry.id)"
@@ -57,19 +57,19 @@ const cabinLabel = computed(() => (props.entry.cabinClass ? titleCase(props.entr
             <!-- Route and its two figures. Both sides are short, fixed-shape and
                  tabular, so this is the one row that can safely be two columns. -->
             <div class="flex items-baseline justify-between gap-3">
-                <div class="flex items-center gap-1.5 text-meta font-semibold text-neutral-900 tnum">
+                <div class="flex items-center gap-1.5 text-sm font-semibold text-neutral-900 tabular-nums">
                     <span>{{ entry.origin.iata }}</span>
                     <Icon name="ArrowRight01Icon" class="size-3.5 text-neutral-400" />
                     <span>{{ entry.destination.iata }}</span>
                 </div>
-                <span v-if="distanceLabel" class="shrink-0 text-label text-neutral-500 tnum">{{ distanceLabel }}</span>
+                <span v-if="distanceLabel" :title="exactDistance(entry.distance)" class="shrink-0 text-2xs font-semibold text-neutral-500 tabular-nums">{{ distanceLabel }}</span>
             </div>
 
             <!-- Place names get the full width and truncate. Sitting them beside
                  the date left both to wrap mid-phrase in a panel this narrow. -->
-            <p v-if="places" class="mt-1 truncate text-label text-neutral-500">{{ places }}</p>
+            <p v-if="places" class="mt-1 truncate text-2xs font-semibold text-neutral-500">{{ places }}</p>
 
-            <div class="mt-1.5 flex items-baseline justify-between gap-3 text-label text-neutral-500">
+            <div class="mt-1.5 flex items-baseline justify-between gap-3 text-2xs font-semibold text-neutral-500">
                 <span class="flex min-w-0 items-center gap-1.5">
                     <!-- The logo replaces the name rather than joining it, so
                          without a title the airline is only readable to whoever
@@ -82,16 +82,16 @@ const cabinLabel = computed(() => (props.entry.cabinClass ? titleCase(props.entr
                         class="h-4 w-auto shrink-0 object-contain"
                     >
                     <span v-else-if="airline?.name" class="truncate">{{ airline.name }}</span>
-                    <span class="shrink-0 tnum">{{ flightNumberLabel }}</span>
+                    <span class="shrink-0 tabular-nums">{{ flightNumberLabel }}</span>
                 </span>
-                <span class="shrink-0 tnum">{{ dateLabel }}</span>
+                <span class="shrink-0 tabular-nums">{{ dateLabel }}</span>
             </div>
         </button>
 
-        <div v-if="selected" class="space-y-1.5 border-t border-neutral-50 bg-accent-50 px-4 py-3 text-label text-neutral-500">
+        <div v-if="selected" class="space-y-1.5 border-t border-neutral-50 bg-accent-50 px-4 py-3 text-2xs font-semibold text-neutral-500">
             <div v-if="durationLabel" class="flex items-baseline justify-between gap-3">
                 <span class="uppercase text-neutral-400">Duration</span>
-                <span class="text-neutral-700 tnum">{{ durationLabel }}</span>
+                <span :title="exactMeasure('duration', entry.duration, clockDuration(entry.duration))" class="text-neutral-700 tabular-nums">{{ durationLabel }}</span>
             </div>
             <div v-if="aircraftLabel" class="flex items-baseline justify-between gap-3">
                 <span class="uppercase text-neutral-400">Aircraft</span>
@@ -103,7 +103,7 @@ const cabinLabel = computed(() => (props.entry.cabinClass ? titleCase(props.entr
             </div>
             <Link
                 :href="entry.href"
-                class="inline-block pt-1 font-semibold text-accent-700 underline-offset-2 hover:underline focus-visible:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500"
+                class="inline-block pt-1 font-semibold text-accent-700 underline-offset-2 hover:underline focus-visible:underline"
             >
                 View flight
             </Link>

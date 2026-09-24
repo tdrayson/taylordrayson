@@ -2,6 +2,8 @@
 
 namespace App\Search;
 
+use App\Datasets\Datasets;
+
 /**
  * Decodes and validates a URL-encoded advanced-search filter against the
  * SearchSchema, dropping any unknown type, field, or operator so only safe,
@@ -48,6 +50,10 @@ final class FilterValidator
     private function validateGroup(array $schema, mixed $group): ?array
     {
         $type = is_array($group) ? ($group['type'] ?? null) : null;
+
+        if (is_string($type) && $type !== 'any') {
+            $type = Datasets::for($type)?->type()->value;
+        }
 
         if (! isset($schema[$type]) || ! isset($group['conditions']) || ! is_array($group['conditions'])) {
             return null;
