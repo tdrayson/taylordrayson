@@ -5,6 +5,7 @@ namespace App\Observers;
 use App\Models\Food;
 use App\Models\Scopes\ListedScope;
 use App\Models\TimelineEntry;
+use App\Queries\CoffeesThisYear;
 use App\Queries\LoggingStreak;
 use App\Support\EntryInstant;
 use App\Support\TimelineUrlSlug;
@@ -13,9 +14,10 @@ class FoodTimelineObserver
 {
     public function saved(Food $food): void
     {
-        // The streak is cached until midnight, so the first log of a new day
-        // would otherwise not show up until tomorrow.
+        // The streak and coffee count are cached until midnight, so the first
+        // log of a new day would otherwise not show up until tomorrow.
         LoggingStreak::forget();
+        CoffeesThisYear::forget();
 
         $date = $food->occurred_at->toDateString();
 
@@ -50,6 +52,7 @@ class FoodTimelineObserver
     public function deleted(Food $food): void
     {
         LoggingStreak::forget();
+        CoffeesThisYear::forget();
 
         $date = $food->occurred_at->toDateString();
 
