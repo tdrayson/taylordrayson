@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Cache;
 
 /**
- * How many coffees I have logged since 1 January, counting every food item named like one.
+ * How many coffees I have logged since 1 January: food rows (not quantities) CoffeeDrink matches.
  */
 final class CoffeesThisYear
 {
@@ -35,6 +35,11 @@ final class CoffeesThisYear
             ->where(function (Builder $query): void {
                 foreach (CoffeeDrink::terms() as $term) {
                     $query->orWhereRaw('LOWER(name) LIKE ?', ["%{$term}%"]);
+                }
+            })
+            ->where(function (Builder $query): void {
+                foreach (CoffeeDrink::exclusions() as $term) {
+                    $query->whereRaw('LOWER(name) NOT LIKE ?', ["%{$term}%"]);
                 }
             })
             ->count();

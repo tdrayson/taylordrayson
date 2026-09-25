@@ -6,7 +6,8 @@ use Illuminate\Support\Str;
 
 /**
  * Reference enum of the words that mark a food log item as a coffee, NOT a cast.
- * Food names are free text, so an item is a coffee when its name contains any value.
+ * Food names are free text, so an item is a coffee when its name contains a value
+ * and none of the exclusions.
  */
 enum CoffeeDrink: string
 {
@@ -19,6 +20,11 @@ enum CoffeeDrink: string
     case Macchiato = 'macchiato';
     case Mocha = 'mocha';
     case Cortado = 'cortado';
+
+    // Logged foods that name a coffee without being one: BBQ Americano pizzas,
+    // latte cake, Matchmakers, espresso martinis, shakes, protein drinks, Lion's
+    // Mane. 'mane' not 'lion', which would drop Millionaire's Latte.
+    private const EXCLUSIONS = ['bbq', 'pizza', 'cake', 'matchmakers', 'martini', 'shake', 'protein', 'mane'];
 
     public function label(): string
     {
@@ -36,12 +42,24 @@ enum CoffeeDrink: string
     }
 
     /**
+     * Lowercase terms that disqualify a name even when it contains a coffee term.
+     *
+     * @return list<string>
+     */
+    public static function exclusions(): array
+    {
+        return self::EXCLUSIONS;
+    }
+
+    /**
      * Whether a food name reads as a coffee.
      *
      * @param  string  $name  A food log item's name, in any case.
      */
     public static function matches(string $name): bool
     {
-        return Str::contains(strtolower($name), self::terms());
+        $name = mb_strtolower($name);
+
+        return Str::contains($name, self::terms()) && ! Str::contains($name, self::EXCLUSIONS);
     }
 }
