@@ -9,6 +9,10 @@ it('reads real logged coffees as coffee', function (string $name) {
     'Millionaire’s Latte',
     'White Americano Skimmed milk',
     'Oat Milk Dirty Chai Latte',
+    'Strawberries And Cream Frappuccino, Grande, Whole Milk',
+    'Caramel Frappuccino 250ml Glass Bottle',
+    'White Chocolate Frappucino',
+    'Tropical Mango Bubble Frappé',
 ]);
 
 it('leaves out foods that only name a coffee', function (string $name) {
@@ -20,4 +24,5 @@ it('leaves out foods that only name a coffee', function (string $name) {
     'Espresso Martini',
     'Coffee Milkshake',
     'Lion’s Mane Latte',
+    'Frappe, Mint Milkshake, With Cream & Chocolate Sprinkles',
 ]);

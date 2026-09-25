@@ -20,6 +20,7 @@ enum CoffeeDrink: string
     case Macchiato = 'macchiato';
     case Mocha = 'mocha';
     case Cortado = 'cortado';
+    case Frappe = 'frapp';
 
     // Logged foods that name a coffee without being one: BBQ Americano pizzas,
     // latte cake, Matchmakers, espresso martinis, shakes, protein drinks, Lion's
@@ -28,7 +29,10 @@ enum CoffeeDrink: string
 
     public function label(): string
     {
-        return ucfirst($this->value);
+        return match ($this) {
+            self::Frappe => 'Frappe',
+            default => ucfirst($this->value),
+        };
     }
 
     /**
