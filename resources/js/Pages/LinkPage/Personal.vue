@@ -56,7 +56,7 @@ const format = (count) => count.toLocaleString('en-GB');
 
             <section v-if="card.socials.length || card.detailsHref" class="mt-8 flex flex-col gap-3">
                 <SectionHeading>{{ card.socialHeading }}</SectionHeading>
-                <div v-if="card.socials.length" class="grid auto-cols-fr grid-flow-col gap-2.5">
+                <div v-if="card.socials.length" class="grid grid-cols-4 gap-2.5">
                     <ActionTile
                         v-for="social in card.socials"
                         :key="social.icon"

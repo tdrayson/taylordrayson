@@ -12,7 +12,14 @@ defineProps({
     ariaLabel: { type: String, default: null },
     external: { type: Boolean, default: false },
     variant: { type: String, default: 'personal' },
+    // 'square' fits four across; 'compact' is a short tile for three across.
+    shape: { type: String, default: 'square' },
 });
+
+const SHAPES = {
+    square: 'aspect-square gap-1.5 p-2 text-xs',
+    compact: 'gap-1 px-2 py-3 text-sm',
+};
 
 const LABELS = {
     personal: 'font-display font-semibold',
@@ -26,9 +33,9 @@ const LABELS = {
         :target="external ? '_blank' : undefined"
         :rel="external ? 'noopener noreferrer' : undefined"
         :aria-label="ariaLabel ? `${ariaLabel}${external ? ', opens in a new tab' : ''}` : undefined"
-        :class="cn('flex flex-col items-center justify-center gap-1.5 rounded-lg px-2 py-4 transition-colors hover:border-neutral-200', SURFACE)"
+        :class="cn('flex flex-col items-center justify-center rounded-lg transition-colors hover:border-neutral-200', SHAPES[shape], SURFACE)"
     >
-        <Icon :name="icon" :class="iconClass" class="size-6" />
+        <Icon :name="icon" :class="[iconClass, shape === 'square' ? 'size-6' : 'size-5']" class="shrink-0" />
         <span :class="LABELS[variant]" class="text-neutral-900">{{ label }}</span>
         <span v-if="external && !ariaLabel" class="sr-only">, opens in a new tab</span>
     </a>

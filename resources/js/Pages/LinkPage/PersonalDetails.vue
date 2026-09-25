@@ -14,10 +14,10 @@ defineProps({
 });
 
 const FIELDS = [
-    { name: 'name', label: 'Your name', required: true, autocomplete: 'name', pattern: '.*\\S.*' },
-    { name: 'phone', label: 'Phone', type: 'tel', required: true, autocomplete: 'tel', pattern: '\\+?[\\d\\s\\(\\)\\-]{7,}' },
-    { name: 'email', label: 'Email', type: 'email', autocomplete: 'email' },
-    { name: 'met', label: 'Where did we meet?', multiline: true, placeholder: "Padel, a friend's party, a coffee shop…" },
+    { name: 'name', label: 'Your name', required: true, autocomplete: 'name', pattern: '.*\\S.*', placeholder: 'Marty McFly' },
+    { name: 'phone', label: 'Phone', type: 'tel', required: true, autocomplete: 'tel', pattern: '\\+?[\\d\\s\\(\\)\\-]{7,}', placeholder: '+44 7121 881 955' },
+    { name: 'email', label: 'Email', type: 'email', autocomplete: 'email', placeholder: 'marty@hillvalley.com' },
+    { name: 'met', label: 'Where did we meet?', multiline: true, placeholder: 'Padel, a coffee shop, the Enchantment Under the Sea dance…' },
 ];
 
 const sent = ref(false);

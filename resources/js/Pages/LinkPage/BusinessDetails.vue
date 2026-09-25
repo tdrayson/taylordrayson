@@ -13,11 +13,11 @@ defineProps({
 });
 
 const FIELDS = [
-    { name: 'name', label: 'Your name', required: true, autocomplete: 'name', pattern: '.*\\S.*' },
-    { name: 'phone', label: 'Phone', type: 'tel', required: true, autocomplete: 'tel', pattern: '\\+?[\\d\\s\\(\\)\\-]{7,}' },
-    { name: 'email', label: 'Email', type: 'email', required: true, autocomplete: 'email' },
-    { name: 'business', label: 'Business name', autocomplete: 'organization' },
-    { name: 'met', label: 'Where did we meet?', multiline: true, placeholder: 'BNI, an event, a coffee shop…' },
+    { name: 'name', label: 'Your name', required: true, autocomplete: 'name', pattern: '.*\\S.*', placeholder: 'Emmett Brown' },
+    { name: 'phone', label: 'Phone', type: 'tel', required: true, autocomplete: 'tel', pattern: '\\+?[\\d\\s\\(\\)\\-]{7,}', placeholder: '+44 7121 881 955' },
+    { name: 'email', label: 'Email', type: 'email', required: true, autocomplete: 'email', placeholder: 'doc@hillvalley.com' },
+    { name: 'business', label: 'Business name', autocomplete: 'organization', placeholder: 'Doc Brown Enterprises' },
+    { name: 'met', label: 'Where did we meet?', multiline: true, placeholder: 'BNI, an event, under the Hill Valley clock tower…' },
 ];
 
 const sent = ref(false);
@@ -34,7 +34,7 @@ async function show(isSent) {
 <template>
     <TinkerLayout title="Send me your details">
         <TinkerBanner compact>
-            <nav class="relative mx-auto flex h-full max-w-md items-center px-6">
+            <nav class="relative mx-auto flex h-full max-w-md items-center px-7">
                 <Link :href="backHref" class="flex items-center gap-2 text-lg font-semibold text-white hover:underline">
                     <Icon name="ArrowLeft01Icon" class="size-5" />
                     Back
@@ -42,7 +42,7 @@ async function show(isSent) {
             </nav>
         </TinkerBanner>
 
-        <div class="mx-auto flex max-w-md flex-col px-6 py-10">
+        <div class="mx-auto flex max-w-md flex-col px-7 py-10">
             <template v-if="!sent">
                 <h1 ref="heading" tabindex="-1" class="font-montserrat text-3xl font-extrabold tracking-tight text-neutral-900">Send me your details</h1>
                 <p class="mt-2 text-lg/relaxed text-neutral-600">I'll save your number and get in touch.</p>
