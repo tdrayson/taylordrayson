@@ -26,7 +26,12 @@ function applyClass() {
         return;
     }
 
-    document.documentElement.classList.toggle('dark', resolved.value === 'dark');
+    // WebKit leaves a mid-transition colour stuck when its token flips under it,
+    // so the swap happens with transitions off for one frame.
+    const root = document.documentElement;
+    root.classList.add('theme-swapping');
+    root.classList.toggle('dark', resolved.value === 'dark');
+    requestAnimationFrame(() => requestAnimationFrame(() => root.classList.remove('theme-swapping')));
     // Tell the server what 'system' resolved to, so the next request renders
     // the right class rather than guessing light.
     writeCookie(SCHEME_COOKIE, resolved.value);
