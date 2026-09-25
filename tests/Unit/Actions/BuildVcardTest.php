@@ -3,17 +3,18 @@
 use App\Actions\LinkPage\BuildVcard;
 use App\Data\LinkPage\ContactCard;
 
-it('writes a business contact with every field and CRLF endings', function () {
+it('writes a business contact with work labels and CRLF endings', function () {
     $vcard = (new BuildVcard)(new ContactCard(
         name: 'Taylor Drayson',
         givenName: 'Taylor',
         familyName: 'Drayson',
         organisation: 'The Creative Tinker',
-        title: 'Web Designer',
+        title: 'Web Developer',
         phone: '+447700900000',
         email: 'hello@example.com',
         website: 'https://thecreativetinker.com',
-        profiles: ['LinkedIn' => 'https://www.linkedin.com/in/example'],
+        work: true,
+        profiles: ['LinkedIn' => 'https://www.linkedin.com/in/example', 'WhatsApp' => 'https://wa.me/447700900000'],
     ));
 
     expect(explode("\r\n", $vcard))->toBe([
@@ -22,24 +23,44 @@ it('writes a business contact with every field and CRLF endings', function () {
         'N:Drayson;Taylor;;;',
         'FN:Taylor Drayson',
         'ORG:The Creative Tinker',
-        'TITLE:Web Designer',
-        'TEL;TYPE=CELL,VOICE:+447700900000',
-        'EMAIL;TYPE=INTERNET:hello@example.com',
-        'URL:https://thecreativetinker.com',
+        'TITLE:Web Developer',
+        'TEL;TYPE=WORK,VOICE;waid=447700900000:+447700900000',
+        'EMAIL;TYPE=INTERNET,WORK:hello@example.com',
+        'URL;TYPE=WORK:https://thecreativetinker.com',
         'item1.URL:https://www.linkedin.com/in/example',
         'item1.X-ABLabel:LinkedIn',
+        'item2.URL:https://wa.me/447700900000',
+        'item2.X-ABLabel:WhatsApp',
         'END:VCARD',
         '',
     ])->and(substr_count($vcard, "\n"))->toBe(substr_count($vcard, "\r\n"));
 });
 
-it('leaves out the organisation, title and anything unset on a personal card', function () {
+it('labels a personal contact as mobile and home, with a birthday', function () {
+    $vcard = (new BuildVcard)(new ContactCard(
+        name: 'Taylor Drayson',
+        givenName: 'Taylor',
+        familyName: 'Drayson',
+        phone: '+447700900000',
+        email: 'me@example.com',
+        website: 'https://taylordrayson.com',
+        birthday: '1990-01-31',
+    ));
+
+    expect($vcard)->toContain("TEL;TYPE=CELL,VOICE;waid=447700900000:+447700900000\r\n")
+        ->toContain("EMAIL;TYPE=INTERNET,HOME:me@example.com\r\n")
+        ->toContain("URL;TYPE=HOME:https://taylordrayson.com\r\n")
+        ->toContain("BDAY:1990-01-31\r\n");
+});
+
+it('leaves out anything unset', function () {
     $vcard = (new BuildVcard)(new ContactCard(name: 'Taylor Drayson', givenName: 'Taylor', familyName: 'Drayson'));
 
     expect($vcard)->not->toContain('ORG:')
         ->not->toContain('TITLE:')
         ->not->toContain('TEL')
         ->not->toContain('EMAIL')
+        ->not->toContain('BDAY')
         ->not->toContain('PHOTO');
 });
 

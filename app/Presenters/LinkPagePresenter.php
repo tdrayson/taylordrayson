@@ -45,7 +45,7 @@ final class LinkPagePresenter
             detailsHref: config('profile.details_form') ? route('link-page.details', $page, absolute: false) : null,
             phoneHref: $phone === null ? null : "tel:{$phone}",
             emailHref: filled($email) ? "mailto:{$email}" : null,
-            whatsappHref: $phone === null ? null : 'https://wa.me/'.ltrim($phone, '+'),
+            whatsappHref: $phone === null ? null : $this->whatsapp($phone),
             sections: array_map($this->section(...), $config['sections']),
             socialHeading: $config['social_heading'],
             socials: $this->socials($config['socials']),
@@ -62,6 +62,7 @@ final class LinkPagePresenter
         $config = $this->config($page);
         $name = (string) config('identity.name');
         $photo = public_path(ltrim((string) config('identity.photo'), '/'));
+        $phone = $this->dialable($config['phone'] ?? null);
 
         return new ContactCard(
             name: $name,
@@ -69,11 +70,14 @@ final class LinkPagePresenter
             familyName: Str::contains($name, ' ') ? Str::afterLast($name, ' ') : '',
             organisation: $config['organisation'],
             title: $config['title'],
-            phone: $this->dialable($config['phone'] ?? null),
+            phone: $phone,
             email: filled($config['email'] ?? null) ? $config['email'] : null,
             website: $config['website'],
+            work: $page === LinkPage::Business,
+            birthday: filled($config['birthday'] ?? null) ? $config['birthday'] : null,
             profiles: collect($this->socials($config['socials']))
                 ->mapWithKeys(fn (LinkItem $profile): array => [$profile->icon => $profile->href])
+                ->when($phone !== null, fn ($profiles) => $profiles->put('WhatsApp', $this->whatsapp($phone)))
                 ->all(),
             photoPath: is_file($photo) ? $photo : null,
         );
@@ -125,6 +129,12 @@ final class LinkPagePresenter
     }
 
     /** A phone number with only its digits and leading +, e.g. +447700900000, or null when unset. */
+    /** A wa.me chat link for a dialable number. */
+    private function whatsapp(string $phone): string
+    {
+        return 'https://wa.me/'.ltrim($phone, '+');
+    }
+
     private function dialable(?string $phone): ?string
     {
         $number = preg_replace('/[^\d+]/', '', (string) $phone);

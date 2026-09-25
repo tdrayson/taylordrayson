@@ -47,20 +47,29 @@ it('shows the details row only while the form is switched on', function (bool $e
     'on' => [true, '/td/details'],
 ]);
 
-it('hands out the business card with its organisation and the personal one without', function () {
+it('hands out work details on the business card and personal ones on the personal card', function () {
+    config([
+        'profile.pages.tct.phone' => '+44 7700 900001',
+        'profile.pages.td.phone' => '+44 7700 900000',
+        'profile.pages.td.birthday' => '1990-01-31',
+    ]);
+
     get(profileUrl('/tct/contact'))
         ->assertOk()
         ->assertHeader('Content-Type', 'text/vcard; charset=utf-8')
         ->assertHeader('Content-Disposition', 'attachment; filename=taylor-drayson-the-creative-tinker.vcf')
         ->assertHeader('X-Robots-Tag', 'noindex, nofollow')
         ->assertSee('ORG:The Creative Tinker')
-        ->assertSee('URL:https://thecreativetinker.com');
+        ->assertSee('TITLE:Web Developer')
+        ->assertSee('TEL;TYPE=WORK,VOICE;waid=447700900001:+447700900001')
+        ->assertSee('URL;TYPE=WORK:https://thecreativetinker.com')
+        ->assertSee('.URL:https://wa.me/447700900001')
+        ->assertDontSee('BDAY');
 
-    $personal = get(profileUrl('/td/contact'))
+    get(profileUrl('/td/contact'))
         ->assertOk()
         ->assertHeader('Content-Disposition', 'attachment; filename=taylor-drayson.vcf')
-        ->assertSee('FN:Taylor Drayson')
-        ->getContent();
-
-    expect($personal)->not->toContain('ORG:')->not->toContain('TITLE:');
+        ->assertSee('ORG:The Creative Tinker')
+        ->assertSee('TEL;TYPE=CELL,VOICE;waid=447700900000:+447700900000')
+        ->assertSee('BDAY:1990-01-31');
 });

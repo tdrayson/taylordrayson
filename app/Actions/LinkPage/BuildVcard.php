@@ -22,15 +22,32 @@ final class BuildVcard
             'FN:'.$this->escape($card->name),
             ...$this->optional('ORG', $card->organisation),
             ...$this->optional('TITLE', $card->title),
-            ...($card->phone === null ? [] : ['TEL;TYPE=CELL,VOICE:'.$card->phone]),
-            ...($card->email === null ? [] : ['EMAIL;TYPE=INTERNET:'.$card->email]),
-            ...($card->website === null ? [] : ['URL:'.$card->website]),
+            ...$this->phone($card),
+            ...($card->email === null ? [] : ['EMAIL;TYPE=INTERNET,'.($card->work ? 'WORK' : 'HOME').':'.$card->email]),
+            ...($card->website === null ? [] : ['URL;TYPE='.($card->work ? 'WORK' : 'HOME').':'.$card->website]),
+            ...($card->birthday === null ? [] : ['BDAY:'.$card->birthday]),
             ...$this->profiles($card->profiles),
             ...($card->photoPath === null ? [] : ['PHOTO;ENCODING=b;TYPE=JPEG:'.base64_encode((string) file_get_contents($card->photoPath))]),
             'END:VCARD',
         ];
 
         return implode(self::EOL, array_map($this->fold(...), $lines)).self::EOL;
+    }
+
+    /**
+     * A mobile, or a work number. `waid` is WhatsApp's own parameter, so the contact opens straight into a chat there.
+     *
+     * @return list<string>
+     */
+    private function phone(ContactCard $card): array
+    {
+        if ($card->phone === null) {
+            return [];
+        }
+
+        $type = $card->work ? 'WORK,VOICE' : 'CELL,VOICE';
+
+        return ["TEL;TYPE={$type};waid=".ltrim($card->phone, '+').':'.$card->phone];
     }
 
     /**
