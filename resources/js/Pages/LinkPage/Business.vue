@@ -6,6 +6,7 @@ import BezierMark from '../../Components/LinkPage/BezierMark.vue';
 import ContactActions from '../../Components/LinkPage/ContactActions.vue';
 import LinkRow from '../../Components/LinkPage/LinkRow.vue';
 import SectionHeading from '../../Components/LinkPage/SectionHeading.vue';
+import TinkerMark from '../../Components/LinkPage/TinkerMark.vue';
 import ThemeToggle from '../../Components/LinkPage/ThemeToggle.vue';
 import TinkerBanner from '../../Components/LinkPage/TinkerBanner.vue';
 import { SOCIALS } from '../../Components/LinkPage/shared.js';
@@ -42,7 +43,11 @@ const page = usePage();
                     :description="link.description"
                     :logo="link.logo"
                     variant="business"
-                />
+                >
+                    <template v-if="link.icon === 'tinker'" #media>
+                        <TinkerMark />
+                    </template>
+                </LinkRow>
             </section>
 
             <section v-if="card.socials.length || card.detailsHref" class="mt-9 flex flex-col gap-3">

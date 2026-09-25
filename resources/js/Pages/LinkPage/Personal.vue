@@ -9,6 +9,7 @@ import LevelSquares from '../../Components/LinkPage/LevelSquares.vue';
 import LinkRow from '../../Components/LinkPage/LinkRow.vue';
 import SectionHeading from '../../Components/LinkPage/SectionHeading.vue';
 import SiteMark from '../../Components/LinkPage/SiteMark.vue';
+import TinkerMark from '../../Components/LinkPage/TinkerMark.vue';
 import { SOCIALS } from '../../Components/LinkPage/shared.js';
 
 defineProps({
@@ -46,6 +47,9 @@ const format = (count) => count.toLocaleString('en-GB');
                 >
                     <template v-if="link.icon === 'site'" #media>
                         <SiteMark />
+                    </template>
+                    <template v-else-if="link.icon === 'tinker'" #media>
+                        <TinkerMark />
                     </template>
                 </LinkRow>
             </section>

@@ -39,7 +39,7 @@ return [
                 [
                     'heading' => 'Work and side quests',
                     'links' => [
-                        ['label' => 'The Creative Tinker', 'description' => 'My web design studio', 'href' => 'https://thecreativetinker.com', 'logo' => '/logos/the-creative-tinker.png'],
+                        ['label' => 'The Creative Tinker', 'description' => 'My web design studio', 'href' => 'https://thecreativetinker.com', 'icon' => 'tinker'],
                         ['label' => 'WP Extended', 'description' => 'Our all-in-one WordPress plugin', 'href' => 'https://wpextended.io', 'logo' => '/logos/wp-extended.png'],
                         ['label' => 'This Week With', 'description' => 'Weekly podcast with my dad, :episodes episodes and counting', 'href' => 'https://thisweekwith.co.uk', 'logo' => '/logos/this-week-with.jpg'],
                     ],
@@ -61,7 +61,7 @@ return [
                 [
                     'heading' => 'My website',
                     'links' => [
-                        ['label' => 'See my work', 'description' => 'thecreativetinker.com', 'href' => 'https://thecreativetinker.com', 'logo' => '/logos/the-creative-tinker.png'],
+                        ['label' => 'See my work', 'description' => 'thecreativetinker.com', 'href' => 'https://thecreativetinker.com', 'icon' => 'tinker'],
                     ],
                 ],
                 [
