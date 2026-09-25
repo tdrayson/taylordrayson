@@ -74,9 +74,6 @@ const page = usePage();
 
             <footer class="mt-10 flex flex-col items-center gap-3 text-center">
                 <BezierMark class="text-tinker-500" />
-                <p class="text-sm text-neutral-500">
-                    <strong class="font-semibold text-neutral-600">{{ card.coffees.toLocaleString('en-GB') }}</strong> coffees this year
-                </p>
                 <a :href="page.props.appUrl" class="text-sm font-semibold text-neutral-600 transition-colors hover:text-tinker-600">
                     Off the clock: taylordrayson.com
                 </a>
