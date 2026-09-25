@@ -32,8 +32,11 @@ return [
 
     'bio' => 'I build stuff on the internet, track everything, and drink too much coffee.',
 
-    'profiles' => [
+    // A profile whose URL is not set yet is dropped, never linked as '#'.
+    'profiles' => array_values(array_filter([
         ['label' => 'GitHub', 'href' => 'https://github.com/tdrayson'],
-    ],
+        ['label' => 'LinkedIn', 'href' => env('IDENTITY_LINKEDIN_URL')],
+        ['label' => 'Strava', 'href' => env('IDENTITY_STRAVA_URL')],
+    ], fn (array $profile): bool => filled($profile['href']))),
 
 ];
