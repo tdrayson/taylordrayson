@@ -19,7 +19,7 @@ const afterToggle = computed(() => props.levels.slice(4));
 
 <template>
     <div class="grid grid-cols-7 gap-2.5">
-        <Avatar :src="avatar" :alt="name" size="size-full" class="col-span-2 row-span-2 rounded-lg" />
+        <Avatar :src="avatar" :alt="name" size="size-full" class="col-span-2 row-span-2 rounded-lg border border-accent-200 shadow-sm" />
         <span v-for="(level, day) in beforeToggle" :key="day" :class="LEVELS[level]" class="aspect-square rounded-md" aria-hidden="true" />
         <ThemeToggle class="aspect-square rounded-md bg-accent-600 text-neutral-0 hover:bg-accent-700" />
         <span v-for="(level, day) in afterToggle" :key="day + 4" :class="LEVELS[level]" class="aspect-square rounded-md" aria-hidden="true" />

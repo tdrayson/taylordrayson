@@ -25,6 +25,6 @@ const classes = computed(() =>
 
 <template>
     <span :class="classes">
-        <img :src="src" :alt="alt" :class="cn('size-full object-cover object-top', imgClass)">
+        <img :src="src" :alt="alt" :class="cn('size-full bg-transparent object-cover object-top', imgClass)">
     </span>
 </template>

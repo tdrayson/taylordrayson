@@ -24,8 +24,8 @@ const page = usePage();
             <ThemeToggle class="absolute right-4 top-4 size-11 rounded-full bg-white/20 text-white hover:bg-white/30" />
         </TinkerBanner>
 
-        <div class="mx-auto flex max-w-md flex-col px-6 pb-12">
-            <Avatar :src="card.avatar" :alt="card.name" size="size-28" class="relative -mt-14 border-4 border-neutral-25 bg-tinker-50 dark:border-neutral-0" />
+        <div class="mx-auto flex max-w-md flex-col px-7 pb-12">
+            <Avatar :src="card.avatar" :alt="card.name" size="size-28" class="relative -mt-14 border-4 border-neutral-25 bg-tinker-100 shadow-lg dark:border-neutral-0" />
 
             <h1 class="mt-5 font-open-sans text-3xl font-bold tracking-normal text-neutral-900">{{ card.name }}</h1>
             <p class="font-bebas text-2xl uppercase leading-tight tracking-wide text-neutral-500">{{ card.organisation }}</p>

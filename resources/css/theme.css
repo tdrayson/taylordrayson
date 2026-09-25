@@ -55,12 +55,14 @@
 
     /* The Creative Tinker's brand blue, for the business link page. 500 holds in both themes. */
     --color-tinker-50: #e4ebf6;
+    --color-tinker-100: #cfdcf0;
     --color-tinker-500: #4377bf;
     --color-tinker-600: #34649f;
 
     /* Third-party marks shown in their own colour. */
     --color-linkedin: #0a66c2;
     --color-strava: #fc4c02;
+    --color-instagram: #e1306c;
 
     /* Heatmap ramp (quiet → busy) */
     --color-heat-1: #e3e8ff;
