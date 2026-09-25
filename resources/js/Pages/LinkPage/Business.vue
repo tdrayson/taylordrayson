@@ -77,7 +77,7 @@ const page = usePage();
                 <p class="text-sm text-neutral-500">
                     <strong class="font-semibold text-neutral-600">{{ card.coffees.toLocaleString('en-GB') }}</strong> coffees this year
                 </p>
-                <a :href="page.props.appUrl" class="text-lg font-semibold text-neutral-600 transition-colors hover:text-tinker-600">
+                <a :href="page.props.appUrl" class="text-sm font-semibold text-neutral-600 transition-colors hover:text-tinker-600">
                     Me outside of work: taylordrayson.com
                 </a>
             </footer>

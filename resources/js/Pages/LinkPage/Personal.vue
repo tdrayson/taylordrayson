@@ -83,7 +83,7 @@ const format = (count) => count.toLocaleString('en-GB');
                     <strong class="font-semibold text-neutral-600">{{ format(daysLogged) }}</strong> days logged,
                     <strong class="font-semibold text-neutral-600">{{ format(card.coffees) }}</strong> coffees this year
                 </p>
-                <a :href="page.props.appUrl" class="font-display text-lg font-semibold text-neutral-500 transition-colors hover:text-accent-500">
+                <a :href="page.props.appUrl" class="font-display text-sm font-semibold text-neutral-500 transition-colors hover:text-accent-500">
                     More about me at taylordrayson.com
                 </a>
             </footer>
