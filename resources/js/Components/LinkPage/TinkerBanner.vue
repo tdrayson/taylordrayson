@@ -7,7 +7,7 @@ defineProps({
 </script>
 
 <template>
-    <header :class="compact ? 'h-24 sm:h-32' : 'h-36 sm:h-52'" class="relative overflow-hidden bg-tinker-500 text-white">
+    <header :class="compact ? 'h-20' : 'h-36 sm:h-52'" class="relative overflow-hidden bg-tinker-500 text-white">
         <TinkerIllustration :compact="compact" />
         <slot />
     </header>
