@@ -8,23 +8,26 @@ const props = defineProps({
     class: { type: [String, Array, Object], default: '' },
 });
 
-const { resolved, setTheme } = useSettings();
+const { theme, setTheme } = useSettings();
 
-const isDark = computed(() => resolved.value === 'dark');
+// Each press moves to the next theme, wrapping from dark back to system.
+const THEMES = {
+    system: { icon: 'ComputerIcon', label: 'System', next: 'light' },
+    light: { icon: 'Sun03Icon', label: 'Light', next: 'dark' },
+    dark: { icon: 'Moon02Icon', label: 'Dark', next: 'system' },
+};
 
-// Swap to the opposite of what is showing, as an explicit choice rather than 'system'.
-function toggle() {
-    setTheme(isDark.value ? 'light' : 'dark');
-}
+const current = computed(() => THEMES[theme.value] ?? THEMES.system);
 </script>
 
 <template>
     <button
         type="button"
-        :aria-label="isDark ? 'Switch to light theme' : 'Switch to dark theme'"
+        :aria-label="`Theme: ${current.label}. Switch to ${THEMES[current.next].label.toLowerCase()}`"
+        :title="`Theme: ${current.label}`"
         :class="cn('flex items-center justify-center transition-colors', props.class)"
-        @click="toggle"
+        @click="setTheme(current.next)"
     >
-        <Icon :name="isDark ? 'Moon02Icon' : 'Sun03Icon'" class="size-5" />
+        <Icon :name="current.icon" class="size-5" />
     </button>
 </template>
