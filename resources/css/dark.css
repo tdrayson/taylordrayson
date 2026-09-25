@@ -34,6 +34,10 @@
     --color-accent-800: #c7d1ff;
     --color-accent-900: #e3e8ff;
 
+    /* Tinker blue: tint and text lift off the dark canvas; the 500 brand stays put. */
+    --color-tinker-50: #1b2a44;
+    --color-tinker-600: #8fb0e0;
+
     /* Heat ramp — quiet (dark blue) → busy (bright). */
     --color-heat-1: var(--color-accent-100);
     --color-heat-2: var(--color-accent-300);
