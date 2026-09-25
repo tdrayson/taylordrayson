@@ -25,7 +25,7 @@ const page = usePage();
         </TinkerBanner>
 
         <div class="mx-auto flex max-w-sm flex-col px-6 pb-12">
-            <Avatar :src="card.avatar" :alt="card.name" size="size-28" class="relative -mt-14 border-4 border-neutral-25 bg-tinker-100 shadow-lg dark:border-neutral-0" />
+            <Avatar :src="card.avatar" :alt="card.name" size="size-28" class="relative -mt-14 border-4 border-neutral-25 bg-avatar shadow-lg dark:border-neutral-0" />
 
             <h1 class="mt-5 font-open-sans text-3xl font-bold tracking-normal text-neutral-900">{{ card.name }}</h1>
             <p class="font-bebas text-2xl uppercase leading-tight tracking-wide text-neutral-500">{{ card.organisation }}</p>

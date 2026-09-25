@@ -36,7 +36,6 @@
 
     /* Tinker blue: tint and text lift off the dark canvas; the 500 brand stays put. */
     --color-tinker-50: #1b2a44;
-    --color-tinker-100: #243a5e;
     --color-tinker-600: #8fb0e0;
 
     /* Heat ramp — quiet (dark blue) → busy (bright). */

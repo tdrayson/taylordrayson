@@ -53,9 +53,11 @@
     --color-accent-800: #1a3398;
     --color-accent-900: #12235f;
 
+    /* The favicon's ground, kept in dark mode so the link page avatars match the icon. */
+    --color-avatar: #dbe2ff;
+
     /* The Creative Tinker's brand blue, for the business link page. 500 holds in both themes. */
     --color-tinker-50: #e4ebf6;
-    --color-tinker-100: #cfdcf0;
     --color-tinker-500: #4377bf;
     --color-tinker-600: #34649f;
 
