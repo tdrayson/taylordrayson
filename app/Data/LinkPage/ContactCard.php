@@ -11,7 +11,9 @@ use JsonSerializable;
 final readonly class ContactCard implements Arrayable, JsonSerializable
 {
     /**
-     * @param  bool  $work  Whether the phone, email and website are work details rather than personal ones.
+     * @param  array<'home'|'work', string>  $emails
+     * @param  array<'home'|'work', string>  $websites
+     * @param  bool  $work  Whether the phone is a work number, which also names the file after the organisation.
      * @param  string|null  $birthday  A Y-m-d date.
      * @param  array<string, string>  $profiles  Labelled URLs (socials, WhatsApp) keyed by their label.
      * @param  string|null  $photoPath  Absolute path to a JPEG embedded as the contact photo.
@@ -23,8 +25,8 @@ final readonly class ContactCard implements Arrayable, JsonSerializable
         public ?string $organisation = null,
         public ?string $title = null,
         public ?string $phone = null,
-        public ?string $email = null,
-        public ?string $website = null,
+        public array $emails = [],
+        public array $websites = [],
         public bool $work = false,
         public ?string $birthday = null,
         public array $profiles = [],
@@ -49,8 +51,8 @@ final readonly class ContactCard implements Arrayable, JsonSerializable
             'organisation' => $this->organisation,
             'title' => $this->title,
             'phone' => $this->phone,
-            'email' => $this->email,
-            'website' => $this->website,
+            'emails' => $this->emails,
+            'websites' => $this->websites,
             'work' => $this->work,
             'birthday' => $this->birthday,
             'profiles' => $this->profiles,

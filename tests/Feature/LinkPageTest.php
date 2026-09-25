@@ -52,6 +52,8 @@ it('hands out work details on the business card and personal ones on the persona
         'profile.pages.tct.phone' => '+44 7700 900001',
         'profile.pages.td.phone' => '+44 7700 900000',
         'profile.pages.td.birthday' => '1990-01-31',
+        'profile.pages.td.vcard_emails' => ['home' => 'me@example.com', 'work' => 'hello@example.com'],
+        'profile.pages.tct.vcard_emails' => ['work' => 'hello@example.com'],
     ]);
 
     get(profileUrl('/tct/contact'))
@@ -64,6 +66,8 @@ it('hands out work details on the business card and personal ones on the persona
         ->assertSee('TEL;TYPE=WORK,VOICE;waid=447700900001:+447700900001')
         ->assertSee('URL;TYPE=WORK:https://thecreativetinker.com')
         ->assertSee('.URL:https://wa.me/447700900001')
+        ->assertSee('EMAIL;TYPE=INTERNET,WORK:hello@example.com')
+        ->assertDontSee('me@example.com')
         ->assertDontSee('BDAY');
 
     get(profileUrl('/td/contact'))
@@ -71,5 +75,9 @@ it('hands out work details on the business card and personal ones on the persona
         ->assertHeader('Content-Disposition', 'attachment; filename=taylor-drayson.vcf')
         ->assertSee('ORG:The Creative Tinker')
         ->assertSee('TEL;TYPE=CELL,VOICE;waid=447700900000:+447700900000')
+        ->assertSee('EMAIL;TYPE=INTERNET,HOME:me@example.com')
+        ->assertSee('EMAIL;TYPE=INTERNET,WORK:hello@example.com')
+        ->assertSee('URL;TYPE=WORK:https://thecreativetinker.com')
+        ->assertDontSee('+447700900001')
         ->assertSee('BDAY:1990-01-31');
 });

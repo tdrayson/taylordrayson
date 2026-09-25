@@ -26,9 +26,11 @@ return [
             'bio' => null,
             'organisation' => 'The Creative Tinker',
             'title' => 'Web Developer',
-            'website' => env('APP_URL', 'https://taylordrayson.com'),
             'phone' => env('PROFILE_PERSONAL_PHONE'),
             'email' => env('PROFILE_PERSONAL_EMAIL'),
+            // Friends get both inboxes and sites, so business mail still lands in the work inbox.
+            'vcard_emails' => ['home' => env('PROFILE_PERSONAL_EMAIL'), 'work' => env('PROFILE_BUSINESS_EMAIL')],
+            'vcard_websites' => ['home' => env('APP_URL', 'https://taylordrayson.com'), 'work' => 'https://thecreativetinker.com'],
             // Y-m-d, on the personal vCard only.
             'birthday' => env('PROFILE_BIRTHDAY'),
             'sections' => [
@@ -56,9 +58,10 @@ return [
             'bio' => "I design and build websites, keep things simple, and tinker until it's right.",
             'organisation' => 'The Creative Tinker',
             'title' => 'Web Developer',
-            'website' => 'https://thecreativetinker.com',
             'phone' => env('PROFILE_BUSINESS_PHONE'),
             'email' => env('PROFILE_BUSINESS_EMAIL'),
+            'vcard_emails' => ['work' => env('PROFILE_BUSINESS_EMAIL')],
+            'vcard_websites' => ['work' => 'https://thecreativetinker.com'],
             'sections' => [
                 [
                     'heading' => 'My website',

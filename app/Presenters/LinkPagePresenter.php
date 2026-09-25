@@ -71,8 +71,8 @@ final class LinkPagePresenter
             organisation: $config['organisation'],
             title: $config['title'],
             phone: $phone,
-            email: filled($config['email'] ?? null) ? $config['email'] : null,
-            website: $config['website'],
+            emails: array_filter($config['vcard_emails'], filled(...)),
+            websites: array_filter($config['vcard_websites'], filled(...)),
             work: $page === LinkPage::Business,
             birthday: filled($config['birthday'] ?? null) ? $config['birthday'] : null,
             profiles: collect($this->socials($config['socials']))

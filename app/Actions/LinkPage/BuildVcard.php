@@ -23,8 +23,8 @@ final class BuildVcard
             ...$this->optional('ORG', $card->organisation),
             ...$this->optional('TITLE', $card->title),
             ...$this->phone($card),
-            ...($card->email === null ? [] : ['EMAIL;TYPE=INTERNET,'.($card->work ? 'WORK' : 'HOME').':'.$card->email]),
-            ...($card->website === null ? [] : ['URL;TYPE='.($card->work ? 'WORK' : 'HOME').':'.$card->website]),
+            ...$this->typed('EMAIL;TYPE=INTERNET,', $card->emails),
+            ...$this->typed('URL;TYPE=', $card->websites),
             ...($card->birthday === null ? [] : ['BDAY:'.$card->birthday]),
             ...$this->profiles($card->profiles),
             ...($card->photoPath === null ? [] : ['PHOTO;ENCODING=b;TYPE=JPEG:'.base64_encode((string) file_get_contents($card->photoPath))]),
@@ -48,6 +48,21 @@ final class BuildVcard
         $type = $card->work ? 'WORK,VOICE' : 'CELL,VOICE';
 
         return ["TEL;TYPE={$type};waid=".ltrim($card->phone, '+').':'.$card->phone];
+    }
+
+    /**
+     * One line per value, typed HOME or WORK from its key.
+     *
+     * @param  array<'home'|'work', string>  $values
+     * @return list<string>
+     */
+    private function typed(string $prefix, array $values): array
+    {
+        return array_map(
+            fn (string $type, string $value): string => $prefix.strtoupper($type).':'.$value,
+            array_keys($values),
+            array_values($values),
+        );
     }
 
     /**

@@ -11,8 +11,8 @@ it('writes a business contact with work labels and CRLF endings', function () {
         organisation: 'The Creative Tinker',
         title: 'Web Developer',
         phone: '+447700900000',
-        email: 'hello@example.com',
-        website: 'https://thecreativetinker.com',
+        emails: ['work' => 'hello@example.com'],
+        websites: ['work' => 'https://thecreativetinker.com'],
         work: true,
         profiles: ['LinkedIn' => 'https://www.linkedin.com/in/example', 'WhatsApp' => 'https://wa.me/447700900000'],
     ));
@@ -36,21 +36,22 @@ it('writes a business contact with work labels and CRLF endings', function () {
     ])->and(substr_count($vcard, "\n"))->toBe(substr_count($vcard, "\r\n"));
 });
 
-it('labels a personal contact as mobile and home, with a birthday', function () {
+it('gives a personal contact a mobile, both inboxes and sites, and a birthday', function () {
     $vcard = (new BuildVcard)(new ContactCard(
         name: 'Taylor Drayson',
         givenName: 'Taylor',
         familyName: 'Drayson',
         phone: '+447700900000',
-        email: 'me@example.com',
-        website: 'https://taylordrayson.com',
+        emails: ['home' => 'me@example.com', 'work' => 'hello@example.com'],
+        websites: ['home' => 'https://taylordrayson.com', 'work' => 'https://thecreativetinker.com'],
         birthday: '1990-01-31',
     ));
 
     expect($vcard)->toContain("TEL;TYPE=CELL,VOICE;waid=447700900000:+447700900000\r\n")
-        ->toContain("EMAIL;TYPE=INTERNET,HOME:me@example.com\r\n")
-        ->toContain("URL;TYPE=HOME:https://taylordrayson.com\r\n")
-        ->toContain("BDAY:1990-01-31\r\n");
+        ->toContain("EMAIL;TYPE=INTERNET,HOME:me@example.com\r\nEMAIL;TYPE=INTERNET,WORK:hello@example.com\r\n")
+        ->toContain("URL;TYPE=HOME:https://taylordrayson.com\r\nURL;TYPE=WORK:https://thecreativetinker.com\r\n")
+        ->toContain("BDAY:1990-01-31\r\n")
+        ->and(substr_count($vcard, 'TEL;'))->toBe(1);
 });
 
 it('leaves out anything unset', function () {
