@@ -6,6 +6,7 @@ use App\Data\BookMeta;
 use App\Models\Concerns\HasAttachments;
 use App\Models\Concerns\HasSpan;
 use App\Models\Concerns\HasStatus;
+use App\Models\Concerns\HasSubjects;
 use App\Models\Concerns\HasTags;
 use App\Models\Concerns\HasTimelineEntry;
 use App\Models\Concerns\Timelineable;
@@ -23,7 +24,7 @@ use Spatie\MediaLibrary\HasMedia;
 #[Fillable(['occurred_at', 'started_at', 'title', 'rating', 'timezone', 'source', 'source_id', 'meta', 'status', 'password', 'progress_percent', 'current_page', 'pages', 'progressed_at', 'overview'])]
 final class Book extends Model implements HasMedia, Timelineable
 {
-    use HasAttachments, HasFactory, HasSpan, HasStatus, HasTags, HasTimelineEntry;
+    use HasAttachments, HasFactory, HasSpan, HasStatus, HasSubjects, HasTags, HasTimelineEntry;
 
     protected $appends = ['percent_read'];
 

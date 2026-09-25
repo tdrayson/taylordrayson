@@ -65,6 +65,7 @@ final class TypeCatalogue
             new TypeMeta(key: 'period', icon: 'Calendar03Icon', label: 'Archive', accent: 'article', href: '/'),
             new TypeMeta(key: 'tag', icon: 'Tag01Icon', label: 'Tag', accent: 'article', href: '/tags'),
             new TypeMeta(key: 'live', icon: 'Clock01Icon', label: 'Now', accent: 'activity', href: '/now'),
+            new TypeMeta(key: 'subject', icon: 'UserIcon', label: 'Subject', accent: 'article', href: '/life'),
         ];
     }
 

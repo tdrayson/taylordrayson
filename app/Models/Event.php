@@ -6,6 +6,7 @@ use App\Data\RangeData;
 use App\Models\Concerns\HasAttachments;
 use App\Models\Concerns\HasSpan;
 use App\Models\Concerns\HasStatus;
+use App\Models\Concerns\HasSubjects;
 use App\Models\Concerns\HasTags;
 use App\Models\Concerns\HasTimelineEntry;
 use App\Models\Concerns\Timelineable;
@@ -41,7 +42,7 @@ use Spatie\MediaLibrary\HasMedia;
 ])]
 class Event extends Model implements HasMedia, Timelineable
 {
-    use HasAttachments, HasFactory, HasSpan, HasStatus, HasTags, HasTimelineEntry;
+    use HasAttachments, HasFactory, HasSpan, HasStatus, HasSubjects, HasTags, HasTimelineEntry;
 
     /**
      * @return array<string, string>

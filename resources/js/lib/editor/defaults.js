@@ -35,6 +35,7 @@ export function defaultValueFor(field) {
         case 'image':
         case 'book-cover':
         case 'gallery':
+        case 'facts':
             return [];
         case 'boolean':
             return false;

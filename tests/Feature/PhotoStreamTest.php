@@ -1,8 +1,11 @@
 <?php
 
+use App\Enums\PhotoFilter;
+use App\Enums\ReviewKind;
 use App\Models\Activity;
 use App\Models\Film;
 use App\Models\Place;
+use App\Models\Subject;
 use App\Models\TvShow;
 use App\Presenters\CardPresenter;
 use App\Queries\PhotoStream;
@@ -38,6 +41,42 @@ it('returns real photos newest first, and the limited call is a prefix of the fu
         // prefix, so /now is always a leading slice of /photos.
         ->and($limited)->toHaveCount(1)
         ->and($limited[0]['url'])->toBe($all[0]['url']);
+});
+
+it('lists only photographs with neither a tag nor a review', function () {
+    Storage::fake('public');
+
+    $tagged = Activity::factory()->create()->addMediaFromString(fakeJpeg())->usingFileName('a.jpg')->toMediaCollection('photos');
+    $tagged->subjects()->attach(Subject::factory()->person()->create(), ['role' => 'subject', 'x' => 1, 'y' => 1]);
+
+    $reviewed = Activity::factory()->create()->addMediaFromString(fakeJpeg())->usingFileName('b.jpg')->toMediaCollection('photos');
+    $reviewed->setCustomProperty(ReviewKind::Subjects->property(), now()->toIso8601String())->save();
+
+    Activity::factory()->create()->addMediaFromString(fakeJpeg())->usingFileName('c.jpg')->toMediaCollection('photos');
+
+    $stream = app(PhotoStream::class)->filtered(PhotoFilter::NeedsTagging);
+
+    expect($stream())->toHaveCount(1)
+        ->and($stream->count())->toBe(1)
+        ->and(app(PhotoStream::class)->count())->toBe(3);
+});
+
+it('lists only photographs with no alt text', function () {
+    Storage::fake('public');
+
+    $described = Activity::factory()->create()->addMediaFromString(fakeJpeg())->usingFileName('a.jpg')->toMediaCollection('photos');
+    $described->setCustomProperty('alt', 'Something')->save();
+    Activity::factory()->create()->addMediaFromString(fakeJpeg())->usingFileName('b.jpg')->toMediaCollection('photos');
+
+    expect(app(PhotoStream::class)->filtered(PhotoFilter::NeedsAlt)())->toHaveCount(1);
+});
+
+it('leaves the unfiltered stream alone', function () {
+    Storage::fake('public');
+
+    Activity::factory()->create()->addMediaFromString(fakeJpeg())->usingFileName('a.jpg')->toMediaCollection('photos');
+
+    expect(app(PhotoStream::class)())->toHaveCount(1);
 });
 
 it('pages the stream without shaping or dropping photos at a group boundary', function () {

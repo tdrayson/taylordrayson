@@ -81,5 +81,11 @@ function unitLabel(placeholder) {
         <Input v-else v-model="single" placeholder="Filter value" aria-label="Filter value" />
     </template>
 
+    <!-- Every non-"none" subject operator (includes/includes_all/excludes)
+         takes a list of subjects, so this never falls back to a text input. -->
+    <template v-else-if="dataType === 'subject'">
+        <MultiSelect v-model="listValue" :options="options ?? []" />
+    </template>
+
     <Input v-else v-model="single" placeholder="Filter value" aria-label="Filter value" />
 </template>

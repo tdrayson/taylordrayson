@@ -32,6 +32,10 @@ const props = defineProps({
     entry: { type: Object, default: null },
     polyline: { type: String, default: null },
     source: { type: Object, default: null },
+    // Grouped display lines, the entry's own direct tags, and subjects its
+    // prose mentions but hasn't tagged; empty for a model with no subjects
+    // support (a day of food, an aggregate).
+    subjects: { type: Object, default: () => ({ lines: [], direct: [], mentioned: [] }) },
     og: { type: Object, default: () => ({}) },
     // One ConversationData, server-rendered so the responses read without JS.
     conversation: { type: Object, default: null },
@@ -187,6 +191,10 @@ setLayoutProps({ minimal: props.editing, breadcrumb: breadcrumb() });
             :source="source"
             :tags="tags"
             :formats="formats"
+            :subjects="subjects"
+            :type="type"
+            :entry-id="entry?.id"
+            :signed-in="signedIn"
             class="mt-10"
         />
 

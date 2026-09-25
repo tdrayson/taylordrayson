@@ -27,6 +27,10 @@ const VARIANTS = {
 
 // md and lg share the form-control height (CONTROL) so a button lines up beside an input or select.
 const SIZES = {
+    // For a link that sits in running text or on its own: no box, so it lines
+    // up with the paragraph beside it. A link in a row of padded buttons wants
+    // a real size instead, or it floats out of the row.
+    inline: 'gap-1.5 text-2xs',
     sm: 'gap-1.5 px-3 py-1.5 text-2xs',
     md: 'min-h-11 gap-1.5 px-4 py-2 text-sm',
     lg: 'min-h-11 gap-2 px-5 py-2.5 text-sm',

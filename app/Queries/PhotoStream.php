@@ -2,6 +2,7 @@
 
 namespace App\Queries;
 
+use App\Enums\PhotoFilter;
 use App\Models\Attachment;
 use App\Models\Concerns\Timelineable;
 use App\Support\GalleryPhotos;
@@ -26,6 +27,22 @@ final class PhotoStream
      * @var Collection<int, array{model: Model&Timelineable, media: EloquentCollection<int, Attachment>}>|null
      */
     private ?Collection $groups = null;
+
+    private ?PhotoFilter $filter = null;
+
+    /**
+     * A copy of the stream narrowed to a work-queue facet, or unnarrowed for null.
+     *
+     * @param  PhotoFilter|null  $filter  The facet to narrow to; null is every photo.
+     */
+    public function filtered(?PhotoFilter $filter): self
+    {
+        $stream = clone $this;
+        $stream->filter = $filter;
+        $stream->groups = null;
+
+        return $stream;
+    }
 
     /**
      * @param  int|null  $limit  Stop once this many photos are shaped; null shapes every photo.
@@ -109,19 +126,6 @@ final class PhotoStream
         return $this->attachments()->count();
     }
 
-    /** Cover and photo attachments whose owning entry is listed, so a draft cover or an unlisted entry's photos never reach the gallery. */
-    private function attachments(): Builder
-    {
-        $owners = array_map(
-            fn (string $alias): string => Relation::getMorphedModel($alias) ?? $alias,
-            GalleryPhotos::includedModels(),
-        );
-
-        return Attachment::query()
-            ->whereIn('collection_name', ['cover', 'photos'])
-            ->whereHasMorph('model', $owners, fn (Builder $owner) => $owner->listed());
-    }
-
     /**
      * Every timeline entry that owns photos, paired with its media and ordered
      * newest first. Ties on the same date fall back to the model key so the
@@ -152,6 +156,25 @@ final class PhotoStream
                 $group['model']->getKey(),
             ))
             ->values();
+    }
+
+    /**
+     * Cover and photo attachments whose owning entry is listed, so a draft cover or an
+     * unlisted entry's photos never reach the gallery, narrowed to the facet if one is set.
+     *
+     * @return Builder<Attachment>
+     */
+    private function attachments(): Builder
+    {
+        $owners = array_map(
+            fn (string $alias): string => Relation::getMorphedModel($alias) ?? $alias,
+            GalleryPhotos::includedModels(),
+        );
+
+        return Attachment::query()
+            ->whereIn('collection_name', ['cover', 'photos'])
+            ->whereHasMorph('model', $owners, fn (Builder $owner) => $owner->listed())
+            ->when($this->filter, fn (Builder $query, PhotoFilter $filter): Builder => $filter->apply($query));
     }
 
     /**

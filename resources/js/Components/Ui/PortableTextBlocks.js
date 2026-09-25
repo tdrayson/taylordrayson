@@ -418,7 +418,7 @@ function renderImage(node, onImageClick) {
         }, [
             h('img', {
                 src: node.url,
-                alt: node.caption || '',
+                alt: node.alt ?? node.caption ?? '',
                 width: node.width || undefined,
                 height: node.height || undefined,
                 // A portrait is ratio-true rather than cropped, so it misses the

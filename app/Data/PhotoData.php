@@ -12,9 +12,12 @@ use JsonSerializable;
 final readonly class PhotoData implements Arrayable, JsonSerializable
 {
     private function __construct(
+        public int $id,
         public string $src,
         public ?string $srcset,
         public string $full,
+        public ?string $alt,
+        public ?string $caption,
         public ?float $latitude,
         public ?float $longitude,
         private bool $withCoordinates,
@@ -24,17 +27,17 @@ final readonly class PhotoData implements Arrayable, JsonSerializable
      * A gallery photo (cover or gallery collection), always carrying the
      * (possibly null) route coordinate keys.
      */
-    public static function gallery(string $src, ?string $srcset, string $full, ?float $latitude, ?float $longitude): self
+    public static function gallery(int $id, string $src, ?string $srcset, string $full, ?string $alt, ?string $caption, ?float $latitude, ?float $longitude): self
     {
-        return new self($src, $srcset, $full, $latitude, $longitude, true);
+        return new self($id, $src, $srcset, $full, $alt, $caption, $latitude, $longitude, true);
     }
 
     /**
      * A cover-only photo (e.g. Article), with no coordinate keys at all.
      */
-    public static function cover(string $src, ?string $srcset, string $full): self
+    public static function cover(int $id, string $src, ?string $srcset, string $full, ?string $alt, ?string $caption): self
     {
-        return new self($src, $srcset, $full, null, null, false);
+        return new self($id, $src, $srcset, $full, $alt, $caption, null, null, false);
     }
 
     /**
@@ -43,9 +46,12 @@ final readonly class PhotoData implements Arrayable, JsonSerializable
     public function toArray(): array
     {
         $data = [
+            'id' => $this->id,
             'src' => $this->src,
             'srcset' => $this->srcset,
             'full' => $this->full,
+            'alt' => $this->alt,
+            'caption' => $this->caption,
         ];
 
         if ($this->withCoordinates) {

@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Models\Concerns\HasAttachments;
 use App\Models\Concerns\HasStatus;
+use App\Models\Concerns\HasSubjects;
 use App\Models\Concerns\HasTimelineEntry;
 use App\Models\Concerns\Timelineable;
 use App\Observers\TimelineEntryObserver;
@@ -34,6 +35,7 @@ class ThisWeekWith extends Model implements HasMedia, Timelineable
     use HasAttachments;
     use HasFactory;
     use HasStatus;
+    use HasSubjects;
     use HasTimelineEntry;
 
     protected $table = 'this_week_with';

@@ -4,6 +4,7 @@ namespace App\Datasets;
 
 use App\Enums\TimelineType;
 use App\Models\Page;
+use App\Models\Subject;
 use App\Models\Trip;
 use App\Models\TvShow;
 use App\Models\User;
@@ -61,6 +62,7 @@ final class Datasets
         return [
             ...array_map(fn (Dataset $dataset): string => $dataset->model(), self::all()),
             'page' => Page::class,
+            'subject' => Subject::class,
             'tv-show' => TvShow::class,
             'user' => User::class,
             'trip' => Trip::class,

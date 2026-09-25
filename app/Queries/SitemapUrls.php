@@ -2,7 +2,9 @@
 
 namespace App\Queries;
 
+use App\Enums\SubjectKind;
 use App\Models\Page;
+use App\Models\Subject;
 use App\Models\Tag;
 use App\Models\TimelineEntry;
 use App\Models\Trip;
@@ -142,7 +144,10 @@ final class SitemapUrls
         // The home page and the two live views change whenever anything is
         // logged; the rest are structural and carry no lastmod of their own.
         $moving = ['/', '/now', '/on-this-day', '/photos'];
-        $static = ['/more', '/feeds', '/tags', '/trips', '/tv-shows', '/flights/map', '/leaderboard'];
+        $static = [
+            '/more', '/feeds', '/tags', '/trips', '/tv-shows', '/flights/map', '/leaderboard',
+            '/life', ...array_map(fn (SubjectKind $kind): string => '/life/'.$kind->segment(), SubjectKind::cases()),
+        ];
 
         return [
             ...array_map(fn (string $loc): array => ['loc' => $loc, 'lastmod' => $lastmod], $moving),
@@ -215,6 +220,15 @@ final class SitemapUrls
                 'lastmod' => $page->updated_at?->toAtomString(),
             ]);
 
-        return [...$tags, ...$trips, ...$tvShows, ...$pages];
+        // A subject carries a lastmod, unlike the others above: a bio genuinely
+        // changes, where a tag or trip's URL is stable and its content derived.
+        $subjects = Subject::query()->orderBy('kind')->orderBy('slug')
+            ->get(['kind', 'slug', 'updated_at'])
+            ->map(fn (Subject $subject): array => [
+                'loc' => $subject->url(),
+                'lastmod' => $subject->updated_at?->toAtomString(),
+            ]);
+
+        return [...$tags, ...$trips, ...$tvShows, ...$pages, ...$subjects];
     }
 }
