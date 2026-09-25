@@ -77,6 +77,40 @@
     }
 }
 
+/* Link page visits, typed by `slide()` in LinkPage/shared.js: a short push
+   either way. Reduced motion keeps the browser's default cross-fade. */
+@media (prefers-reduced-motion: no-preference) {
+    :root:active-view-transition-type(link-forward, link-back)::view-transition-old(root) {
+        animation: var(--duration-pop-fade) ease both view-fade-out,
+            var(--duration-rise) var(--ease-out-expo) both view-push-out;
+    }
+
+    :root:active-view-transition-type(link-forward, link-back)::view-transition-new(root) {
+        animation: var(--duration-rise-fade) ease var(--duration-pop-fade) both view-fade-in,
+            var(--duration-rise) var(--ease-out-expo) both view-push-in;
+    }
+
+    :root:active-view-transition-type(link-back) {
+        --view-push: -1;
+    }
+}
+
+@keyframes view-fade-out {
+    to { opacity: 0; }
+}
+
+@keyframes view-fade-in {
+    from { opacity: 0; }
+}
+
+@keyframes view-push-out {
+    to { translate: calc(var(--view-push, 1) * -1.5rem) 0; }
+}
+
+@keyframes view-push-in {
+    from { translate: calc(var(--view-push, 1) * 1.5rem) 0; }
+}
+
 /* Set by useTheme for the frame the theme changes in. */
 .theme-swapping,
 .theme-swapping * {
