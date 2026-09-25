@@ -1,12 +1,12 @@
 <script setup>
 import { ref } from 'vue';
-import { Link } from '@inertiajs/vue3';
+import { Head, Link } from '@inertiajs/vue3';
 import TinkerLayout from '../../Layouts/TinkerLayout.vue';
 import Icon from '../../Components/Ui/Icon.vue';
 import CardButton from '../../Components/LinkPage/CardButton.vue';
 import DetailsForm from '../../Components/LinkPage/DetailsForm.vue';
-import TinkerBanner from '../../Components/LinkPage/TinkerBanner.vue';
-import { slide } from '../../Components/LinkPage/shared.js';
+
+defineOptions({ layout: [TinkerLayout, { compact: true }] });
 
 defineProps({
     backHref: { type: String, required: true },
@@ -31,15 +31,14 @@ function focusHeading() {
 </script>
 
 <template>
-    <TinkerLayout title="Send me your details">
-        <TinkerBanner compact>
-            <nav class="relative mx-auto flex h-full max-w-sm items-center px-6">
-                <Link :href="backHref" :view-transition="slide('back')" class="flex items-center gap-2 text-lg font-semibold text-white hover:underline">
-                    <Icon name="ArrowLeft01Icon" class="size-5" />
-                    Back
-                </Link>
-            </nav>
-        </TinkerBanner>
+    <div>
+        <Head title="Send me your details" />
+        <nav class="absolute inset-x-0 top-0 mx-auto flex h-20 max-w-sm items-center px-6">
+            <Link :href="backHref" class="flex items-center gap-2 text-lg font-semibold text-white hover:underline">
+                <Icon name="ArrowLeft01Icon" class="size-5" />
+                Back
+            </Link>
+        </nav>
 
         <div class="mx-auto flex max-w-sm flex-col px-6 py-10">
             <Transition name="rise" mode="out-in" @enter="focusHeading">
@@ -62,5 +61,5 @@ function focusHeading() {
                 </div>
             </Transition>
         </div>
-    </TinkerLayout>
+    </div>
 </template>

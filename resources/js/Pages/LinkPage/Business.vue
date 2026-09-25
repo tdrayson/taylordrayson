@@ -1,5 +1,5 @@
 <script setup>
-import { usePage } from '@inertiajs/vue3';
+import { Head, usePage } from '@inertiajs/vue3';
 import TinkerLayout from '../../Layouts/TinkerLayout.vue';
 import Avatar from '../../Components/Profile/Avatar.vue';
 import BezierMark from '../../Components/LinkPage/BezierMark.vue';
@@ -8,8 +8,9 @@ import LinkRow from '../../Components/LinkPage/LinkRow.vue';
 import SectionHeading from '../../Components/LinkPage/SectionHeading.vue';
 import TinkerMark from '../../Components/LinkPage/TinkerMark.vue';
 import ThemeToggle from '../../Components/LinkPage/ThemeToggle.vue';
-import TinkerBanner from '../../Components/LinkPage/TinkerBanner.vue';
 import { SOCIALS } from '../../Components/LinkPage/shared.js';
+
+defineOptions({ layout: TinkerLayout });
 
 defineProps({
     card: { type: Object, required: true },
@@ -19,10 +20,9 @@ const page = usePage();
 </script>
 
 <template>
-    <TinkerLayout :title="card.organisation">
-        <TinkerBanner>
-            <ThemeToggle class="absolute right-4 top-4 size-11 rounded-full bg-white/20 text-white hover:bg-white/30" />
-        </TinkerBanner>
+    <div>
+        <Head :title="card.organisation" />
+        <ThemeToggle class="absolute right-4 top-4 size-11 rounded-full bg-white/20 text-white hover:bg-white/30" />
 
         <div class="mx-auto flex max-w-sm flex-col px-6 pb-12">
             <Avatar :src="card.avatar" :alt="card.name" size="size-28" class="relative -mt-14 border-4 border-neutral-25 bg-avatar shadow-lg dark:border-neutral-0" />
@@ -79,5 +79,5 @@ const page = usePage();
                 </a>
             </footer>
         </div>
-    </TinkerLayout>
+    </div>
 </template>

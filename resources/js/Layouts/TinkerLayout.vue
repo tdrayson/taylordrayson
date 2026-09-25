@@ -2,19 +2,22 @@
 import '@fontsource-variable/montserrat';
 import '@fontsource-variable/open-sans';
 import '@fontsource/bebas-neue';
-import { Head } from '@inertiajs/vue3';
+import PageSwap from '../Components/LinkPage/PageSwap.vue';
+import TinkerBanner from '../Components/LinkPage/TinkerBanner.vue';
 
-// The business card's own brand faces, imported here so only its pages download them.
+// Persistent, so the banner is one element that grows and shrinks between the card and its form.
 defineProps({
-    title: { type: String, default: '' },
+    compact: { type: Boolean, default: false },
 });
 </script>
 
 <template>
-    <div class="min-h-dvh bg-neutral-25 font-open-sans dark:bg-neutral-0">
-        <Head :title="title" />
+    <div class="relative min-h-dvh bg-neutral-25 font-open-sans dark:bg-neutral-0">
+        <TinkerBanner :compact="compact" />
         <main>
-            <slot />
+            <PageSwap>
+                <slot />
+            </PageSwap>
         </main>
     </div>
 </template>

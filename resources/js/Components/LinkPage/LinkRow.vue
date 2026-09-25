@@ -3,7 +3,7 @@ import { computed, useSlots } from 'vue';
 import { Link } from '@inertiajs/vue3';
 import Icon from '../Ui/Icon.vue';
 import { cn } from '../../lib/cn.js';
-import { SURFACE, slide } from './shared.js';
+import { SURFACE } from './shared.js';
 
 const props = defineProps({
     href: { type: String, required: true },
@@ -37,7 +37,6 @@ const hasMedia = computed(() => Boolean(slots.media || props.logo || props.icon)
         :href="href"
         :target="internal ? undefined : '_blank'"
         :rel="internal ? undefined : 'noopener noreferrer'"
-        :view-transition="internal ? slide('forward') : undefined"
         :class="cn('group relative flex items-center gap-4 rounded-lg p-4 transition-colors hover:border-neutral-200', SURFACE)"
     >
         <template v-if="hasMedia">

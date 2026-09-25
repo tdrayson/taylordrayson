@@ -1,12 +1,14 @@
 <script setup>
 import { ref } from 'vue';
-import { Link } from '@inertiajs/vue3';
+import { Head, Link } from '@inertiajs/vue3';
 import LinkPageLayout from '../../Layouts/LinkPageLayout.vue';
 import Icon from '../../Components/Ui/Icon.vue';
 import CardButton from '../../Components/LinkPage/CardButton.vue';
 import DetailsForm from '../../Components/LinkPage/DetailsForm.vue';
 import LevelSquares from '../../Components/LinkPage/LevelSquares.vue';
-import { LEVELS, slide } from '../../Components/LinkPage/shared.js';
+import { LEVELS } from '../../Components/LinkPage/shared.js';
+
+defineOptions({ layout: LinkPageLayout });
 
 defineProps({
     backHref: { type: String, required: true },
@@ -30,10 +32,11 @@ function focusHeading() {
 </script>
 
 <template>
-    <LinkPageLayout title="Swap details">
+    <div>
+        <Head title="Swap details" />
         <div class="mx-auto flex max-w-sm flex-col px-6 py-8">
             <nav class="flex items-center justify-between">
-                <Link :href="backHref" :view-transition="slide('back')" class="flex items-center gap-2 font-display text-lg font-semibold text-neutral-900 transition-colors hover:text-accent-500">
+                <Link :href="backHref" class="flex items-center gap-2 font-display text-lg font-semibold text-neutral-900 transition-colors hover:text-accent-500">
                     <Icon name="ArrowLeft01Icon" class="size-5" />
                     Back
                 </Link>
@@ -63,5 +66,5 @@ function focusHeading() {
                 </div>
             </Transition>
         </div>
-    </LinkPageLayout>
+    </div>
 </template>

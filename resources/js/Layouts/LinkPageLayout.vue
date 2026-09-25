@@ -1,16 +1,13 @@
 <script setup>
-import { Head } from '@inertiajs/vue3';
-
-defineProps({
-    title: { type: String, default: '' },
-});
+import PageSwap from '../Components/LinkPage/PageSwap.vue';
 </script>
 
 <template>
     <div class="min-h-dvh bg-neutral-0">
-        <Head :title="title" />
         <main>
-            <slot />
+            <PageSwap>
+                <slot />
+            </PageSwap>
         </main>
     </div>
 </template>

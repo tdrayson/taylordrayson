@@ -12,6 +12,3 @@ export const SOCIALS = {
     LinkedIn: { icon: 'Linkedin01Icon', class: 'text-linkedin' },
     Strava: { icon: 'StravaIcon', class: 'text-strava' },
 };
-
-// Tags an Inertia view transition so transitions.css slides it the right way.
-export const slide = (direction) => (transition) => transition.types?.add(`link-${direction}`);
