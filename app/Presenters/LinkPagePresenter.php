@@ -2,14 +2,16 @@
 
 namespace App\Presenters;
 
+use App\Data\EntryDay;
 use App\Data\LinkPage\ContactCard;
 use App\Data\LinkPage\LinkItem;
 use App\Data\LinkPage\LinkPageData;
 use App\Data\LinkPage\LinkSection;
 use App\Enums\LinkPage;
 use App\Queries\CoffeesThisYear;
-use App\Queries\RecentActivityLevels;
+use App\Queries\EntryDays;
 use App\Queries\ThisWeekWithEpisodeCount;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Str;
 
 /**
@@ -22,7 +24,7 @@ final class LinkPagePresenter
 
     public function __construct(
         private readonly CoffeesThisYear $coffees,
-        private readonly RecentActivityLevels $activityLevels,
+        private readonly EntryDays $entryDays,
         private readonly ThisWeekWithEpisodeCount $episodes,
     ) {}
 
@@ -49,7 +51,7 @@ final class LinkPagePresenter
             sections: array_map($this->section(...), $config['sections']),
             socialHeading: $config['social_heading'],
             socials: $this->socials($config['socials']),
-            heatmap: $page === LinkPage::Personal ? ($this->activityLevels)(self::HEATMAP_DAYS) : [],
+            heatmap: $page === LinkPage::Personal ? $this->heatmap() : [],
             coffees: ($this->coffees)(),
         );
     }
@@ -81,6 +83,18 @@ final class LinkPagePresenter
                 ->all(),
             photoPath: is_file($photo) ? $photo : null,
         );
+    }
+
+    /**
+     * Activity levels for the personal header's tiles, ending today.
+     *
+     * @return list<int>
+     */
+    private function heatmap(): array
+    {
+        $start = Carbon::today((string) config('app.home_timezone'))->subDays(self::HEATMAP_DAYS - 1);
+
+        return array_map(fn (EntryDay $day): int => $day->level?->value ?? 0, ($this->entryDays)($start, self::HEATMAP_DAYS));
     }
 
     /**
