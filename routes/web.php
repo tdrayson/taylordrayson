@@ -1,6 +1,7 @@
 <?php
 
 use App\Enums\ExportFormat;
+use App\Enums\LinkPage;
 use App\Http\Controllers\AuthoringController;
 use App\Http\Controllers\CaloriesRedirectController;
 use App\Http\Controllers\CitationPreviewController;
@@ -14,6 +15,9 @@ use App\Http\Controllers\FlightMapController;
 use App\Http\Controllers\GalleryController;
 use App\Http\Controllers\HubController;
 use App\Http\Controllers\LeaderboardController;
+use App\Http\Controllers\LinkPageContactController;
+use App\Http\Controllers\LinkPageController;
+use App\Http\Controllers\LinkPageDetailsController;
 use App\Http\Controllers\LookupController;
 use App\Http\Controllers\ManifestController;
 use App\Http\Controllers\MarkResponseMineController;
@@ -43,7 +47,19 @@ use App\Http\Controllers\UnlockEntryController;
 use App\Http\Controllers\UnsubscribeController;
 use App\Http\Controllers\UpdateEntryStatusController;
 use App\Http\Controllers\WebmentionController;
+use App\Http\Middleware\NoIndex;
 use Illuminate\Support\Facades\Route;
+
+// Link-in-bio cards on their own subdomain, first so no main-site route claims
+// these paths there. The trailing catch-all keeps the rest of the site off it.
+Route::domain(config('profile.domain'))->middleware(NoIndex::class)->group(function (): void {
+    Route::redirect('/', '/'.LinkPage::Personal->value);
+    Route::get('/{page}', LinkPageController::class)->name('link-page.show');
+    Route::get('/{page}/details', LinkPageDetailsController::class)->name('link-page.details');
+    // No .vcf extension: nginx serves static-looking extensions itself.
+    Route::get('/{page}/contact', LinkPageContactController::class)->name('link-page.contact');
+    Route::get('/{any}', fn () => abort(404))->where('any', '.*');
+});
 
 // Sign-in, required first: the /{slug} page catch-all at the bottom matches
 // any lowercase word, 'login' included, so registering it later would let a
