@@ -33,7 +33,7 @@ async function show(isSent) {
 
 <template>
     <LinkPageLayout title="Swap details">
-        <div class="mx-auto flex max-w-md flex-col px-7 py-8">
+        <div class="mx-auto flex max-w-sm flex-col px-6 py-8">
             <nav class="flex items-center justify-between">
                 <Link :href="backHref" class="flex items-center gap-2 font-display text-lg font-semibold text-neutral-900 transition-colors hover:text-accent-500">
                     <Icon name="ArrowLeft01Icon" class="size-5" />

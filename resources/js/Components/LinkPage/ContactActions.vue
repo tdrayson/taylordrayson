@@ -22,10 +22,10 @@ const ICON_CLASSES = {
             Save my contact
         </CardButton>
 
-        <div v-if="card.phoneHref || card.emailHref" class="grid auto-cols-fr grid-flow-col gap-2.5">
-            <ActionTile v-if="card.phoneHref" :href="card.phoneHref" label="Call" aria-label="Call me" icon="Call02Icon" :icon-class="ICON_CLASSES[variant]" :variant="variant" shape="compact" />
-            <ActionTile v-if="card.emailHref" :href="card.emailHref" label="Email" aria-label="Email me" icon="Mail01Icon" :icon-class="ICON_CLASSES[variant]" :variant="variant" shape="compact" />
-            <ActionTile v-if="card.whatsappHref" :href="card.whatsappHref" label="WhatsApp" aria-label="Message me on WhatsApp" icon="WhatsappIcon" :icon-class="ICON_CLASSES[variant]" :variant="variant" shape="compact" external />
+        <div v-if="card.phoneHref || card.emailHref" class="grid grid-cols-3 gap-2.5">
+            <ActionTile v-if="card.phoneHref" :href="card.phoneHref" label="Call" aria-label="Call me" icon="Call02Icon" :icon-class="ICON_CLASSES[variant]" :variant="variant" />
+            <ActionTile v-if="card.emailHref" :href="card.emailHref" label="Email" aria-label="Email me" icon="Mail01Icon" :icon-class="ICON_CLASSES[variant]" :variant="variant" />
+            <ActionTile v-if="card.whatsappHref" :href="card.whatsappHref" label="WhatsApp" aria-label="Message me on WhatsApp" icon="WhatsappIcon" :icon-class="ICON_CLASSES[variant]" :variant="variant" external />
         </div>
     </div>
 </template>

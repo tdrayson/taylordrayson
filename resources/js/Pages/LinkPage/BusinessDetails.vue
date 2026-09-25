@@ -34,7 +34,7 @@ async function show(isSent) {
 <template>
     <TinkerLayout title="Send me your details">
         <TinkerBanner compact>
-            <nav class="relative mx-auto flex h-full max-w-md items-center px-7">
+            <nav class="relative mx-auto flex h-full max-w-sm items-center px-6">
                 <Link :href="backHref" class="flex items-center gap-2 text-lg font-semibold text-white hover:underline">
                     <Icon name="ArrowLeft01Icon" class="size-5" />
                     Back
@@ -42,7 +42,7 @@ async function show(isSent) {
             </nav>
         </TinkerBanner>
 
-        <div class="mx-auto flex max-w-md flex-col px-7 py-10">
+        <div class="mx-auto flex max-w-sm flex-col px-6 py-10">
             <template v-if="!sent">
                 <h1 ref="heading" tabindex="-1" class="font-montserrat text-3xl font-extrabold tracking-tight text-neutral-900">Send me your details</h1>
                 <p class="mt-2 text-lg/relaxed text-neutral-600">I'll save your number and get in touch.</p>

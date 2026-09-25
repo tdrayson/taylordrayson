@@ -37,7 +37,6 @@ return [
         ['label' => 'GitHub', 'href' => 'https://github.com/tdrayson'],
         ['label' => 'LinkedIn', 'href' => env('IDENTITY_LINKEDIN_URL')],
         ['label' => 'Strava', 'href' => env('IDENTITY_STRAVA_URL')],
-        ['label' => 'Instagram', 'href' => env('IDENTITY_INSTAGRAM_URL')],
     ], fn (array $profile): bool => filled($profile['href']))),
 
 ];

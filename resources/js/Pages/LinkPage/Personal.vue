@@ -26,7 +26,7 @@ const format = (count) => count.toLocaleString('en-GB');
 
 <template>
     <LinkPageLayout>
-        <div class="mx-auto flex max-w-md flex-col px-7 py-10 sm:py-16">
+        <div class="mx-auto flex max-w-sm flex-col px-6 py-10 sm:py-16">
             <ActivityHeader :levels="card.heatmap" :avatar="card.avatar" :name="card.name" />
 
             <h1 class="mt-12 w-min font-display text-5xl font-extrabold leading-none tracking-tight text-neutral-900">{{ card.name }}</h1>
@@ -56,7 +56,7 @@ const format = (count) => count.toLocaleString('en-GB');
 
             <section v-if="card.socials.length || card.detailsHref" class="mt-8 flex flex-col gap-3">
                 <SectionHeading>{{ card.socialHeading }}</SectionHeading>
-                <div v-if="card.socials.length" class="grid grid-cols-4 gap-2.5">
+                <div v-if="card.socials.length" class="grid grid-cols-3 gap-2.5">
                     <ActionTile
                         v-for="social in card.socials"
                         :key="social.icon"

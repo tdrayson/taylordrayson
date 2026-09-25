@@ -11,5 +11,4 @@ export const SOCIALS = {
     GitHub: { icon: 'GithubIcon', class: 'text-neutral-900' },
     LinkedIn: { icon: 'Linkedin01Icon', class: 'text-linkedin' },
     Strava: { icon: 'StravaIcon', class: 'text-strava' },
-    Instagram: { icon: 'InstagramIcon', class: 'text-instagram' },
 };

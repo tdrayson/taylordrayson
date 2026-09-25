@@ -47,7 +47,7 @@ return [
             ],
             // Identity profile label => the label shown on this card.
             'social_heading' => 'Stay in touch',
-            'socials' => ['GitHub' => 'GitHub', 'LinkedIn' => 'LinkedIn', 'Strava' => 'Strava', 'Instagram' => 'Instagram'],
+            'socials' => ['GitHub' => 'GitHub', 'LinkedIn' => 'LinkedIn', 'Strava' => 'Strava'],
         ],
 
         'tct' => [
