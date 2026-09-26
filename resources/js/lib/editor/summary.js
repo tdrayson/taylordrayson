@@ -19,7 +19,8 @@ export function readableWallClock({ date, time }, now = new Date()) {
 
 /**
  * One field's value on a line, or '' when it is unset: tags joined with commas,
- * a select by its option label, a date in the editor's own format.
+ * a select by its option label, a date in the editor's own format. A date the
+ * server stamps at save reads "Now", as DateTimeField shows it.
  *
  * @param {object} field One serialised FieldData.
  * @param {*} value The field's current value on the form.
@@ -27,7 +28,7 @@ export function readableWallClock({ date, time }, now = new Date()) {
  */
 export function summariseValue(field, value) {
     if (value === null || value === undefined || value === '') {
-        return '';
+        return field.defaultsToNow ? 'Now' : '';
     }
 
     switch (field.type) {

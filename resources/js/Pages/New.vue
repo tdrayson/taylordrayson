@@ -36,7 +36,7 @@ const carried = claim(props.type);
 const values = computed(() => ({ ...valuesFor(props.fields), ...carried }));
 
 // Drawn in place of a title field, for the types without one.
-const heading = computed(() => (props.type ? `New ${entryType(props.type).label}` : null));
+const heading = computed(() => (props.type ? `New ${entryType(props.type).label.toLowerCase()}` : null));
 </script>
 
 <template>
