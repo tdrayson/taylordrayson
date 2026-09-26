@@ -2,20 +2,23 @@
 
 namespace App\Mcp\Tools;
 
+use App\Enums\EntryStatus;
 use App\Search\FilterValidator;
 use App\Search\RunSearch;
+use App\Search\SearchDrafts;
 use Illuminate\Contracts\JsonSchema\JsonSchema;
 use Laravel\Mcp\Request;
 use Laravel\Mcp\Response;
 use Laravel\Mcp\Server\Attributes\Description;
 use Laravel\Mcp\Server\Tool;
 
-#[Description('Search the timeline with a structured filter. The main way to find entries: call search_fields first for the types, fields and operators available.')]
+#[Description('Search the timeline with a structured filter. The main way to find entries: call search_fields first for the types, fields and operators available. Published only unless a status is asked for; drafts come back in their own list, undated.')]
 class SearchEntries extends Tool
 {
     public function __construct(
         private readonly FilterValidator $validator,
         private readonly RunSearch $search,
+        private readonly SearchDrafts $drafts,
     ) {}
 
     public function handle(Request $request): Response
@@ -24,6 +27,7 @@ class SearchEntries extends Tool
             'filter' => ['required', 'array', 'min:1'],
             'page' => ['nullable', 'integer', 'min:1'],
             'order' => ['nullable', 'in:newest,oldest'],
+            'status' => ['nullable', 'in:published,unlisted,private,draft,all'],
         ]);
 
         // Through the same validator the web search uses, so an unknown type,
@@ -34,7 +38,30 @@ class SearchEntries extends Tool
             return Response::error('No usable clause in that filter. Call search_fields for the types, fields and operators that exist.');
         }
 
-        $results = ($this->search)($groups, $input['page'] ?? 1, $input['order'] ?? 'newest');
+        $status = $input['status'] ?? null;
+        $namesStatus = collect($groups)->flatMap(fn (array $group): array => $group['conditions'])->contains('field', 'status');
+
+        if ($status === null && $namesStatus) {
+            return Response::error('The default of published would override that status condition. Pass status all to let each group\'s conditions decide.');
+        }
+
+        if ($status === 'draft') {
+            $drafts = ($this->drafts)($groups);
+
+            return Response::json(['total' => count($drafts), 'drafts' => $drafts]);
+        }
+
+        $spineStatus = match ($status) {
+            null => EntryStatus::Published,
+            'all' => null,
+            default => EntryStatus::from($status),
+        };
+
+        $results = ($this->search)($groups, $input['page'] ?? 1, $input['order'] ?? 'newest', $spineStatus);
+
+        if ($status === 'all') {
+            $results['drafts'] = ($this->drafts)($groups);
+        }
 
         return Response::json($results);
     }
@@ -50,6 +77,8 @@ class SearchEntries extends Tool
                 ->required(),
             'page' => $schema->integer()->description('1-based page of results, 25 per page.'),
             'order' => $schema->string()->description('"newest" (default) or "oldest".'),
+            'status' => $schema->string()->enum(['published', 'unlisted', 'private', 'draft', 'all'])
+                ->description('Default published. draft returns up to 25 undated drafts of the filtered types, newest edit first, in an unpaged drafts list; all returns every status plus that list, and lets status conditions in the filter pick per group.'),
         ];
     }
 }

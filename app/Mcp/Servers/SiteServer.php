@@ -2,13 +2,17 @@
 
 namespace App\Mcp\Servers;
 
+use App\Mcp\Tools\Conversation;
 use App\Mcp\Tools\DatabaseQuery;
 use App\Mcp\Tools\DatabaseSchema;
 use App\Mcp\Tools\DataFreshness;
 use App\Mcp\Tools\Entry;
 use App\Mcp\Tools\EntrySeries;
 use App\Mcp\Tools\FailedJobs;
+use App\Mcp\Tools\NeedsAttention;
+use App\Mcp\Tools\Now;
 use App\Mcp\Tools\ReadLogs;
+use App\Mcp\Tools\RecentResponses;
 use App\Mcp\Tools\SearchEntries;
 use App\Mcp\Tools\SearchFields;
 use App\Mcp\Tools\Stats;
@@ -36,6 +40,14 @@ Reach for these first, in roughly this order:
 - stats, for totals and averages over a period.
 - data_freshness, to see whether a kind of data is still arriving and how far
   behind it is running.
+- now, for the current moment as the /now page shows it.
+- conversation, for what people have said on one entry; recent_responses for
+  the latest across the site.
+- needs_attention, for what is waiting on a decision: held comments, failed
+  jobs, unfinished books and drafts.
+
+timeline and search_entries return published entries unless asked for another
+status. Drafts are undated and only reachable through search_entries.
 
 database_query and database_schema are the fallback, for derived columns
 nothing presents and cross-type aggregates the search compiler cannot express.
@@ -57,6 +69,10 @@ class SiteServer extends Server
         EntrySeries::class,
         Stats::class,
         DataFreshness::class,
+        Now::class,
+        Conversation::class,
+        RecentResponses::class,
+        NeedsAttention::class,
         FailedJobs::class,
         ReadLogs::class,
         DatabaseSchema::class,
