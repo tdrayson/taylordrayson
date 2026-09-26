@@ -49,6 +49,7 @@ use App\Http\Controllers\UpdateEntryStatusController;
 use App\Http\Controllers\WebmentionController;
 use App\Http\Middleware\NoIndex;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Str;
 
 // Link-in-bio cards on their own subdomain, first so no main-site route claims
 // these paths there. The trailing catch-all keeps the rest of the site off it.
@@ -282,6 +283,10 @@ Route::get('/trips/{slug}', [TripController::class, 'show'])->name('trips.show')
 // Old site URLs, exact-match only so a live sub-route is never shadowed.
 foreach (config('redirects') as $from => $to) {
     Route::redirect("/{$from}", "/{$to}", 301);
+}
+
+foreach (config('identity.profiles') as $profile) {
+    Route::redirect('/'.Str::lower($profile['label']), $profile['href']);
 }
 
 // Page exports, above the page catch-all for the same reason the entry export
