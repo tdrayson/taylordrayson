@@ -33,11 +33,11 @@ class OgImageController extends Controller
         abort_unless($request->hasValidSignature(), 404);
 
         $card = ($this->pageOgData)(
-            (string) $request->query('title'),
-            (string) $request->query('eyebrow'),
-            (string) $request->query('accent'),
-            (string) $request->query('variant'),
-            (string) $request->query('description'),
+            $request->query('title'),
+            $request->query('eyebrow'),
+            $request->query('accent'),
+            $request->query('variant'),
+            $request->query('description'),
         );
 
         $path = $this->renderer->card(

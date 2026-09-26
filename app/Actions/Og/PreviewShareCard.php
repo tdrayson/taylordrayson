@@ -2,7 +2,6 @@
 
 namespace App\Actions\Og;
 
-use App\Data\FieldData;
 use App\Data\SharePreviewData;
 use App\Enums\EntryStatus;
 use App\Fields\FieldRegistry;
@@ -14,7 +13,10 @@ use App\Support\OgRenderer;
 use App\Support\PortableText;
 use Carbon\CarbonInterface;
 use Closure;
+use Illuminate\Contracts\Support\Arrayable;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Arr;
+use Illuminate\Support\Str;
 use LogicException;
 
 /**
@@ -46,7 +48,7 @@ final class PreviewShareCard
         $png = $this->renderer->png(view('og.card', $card));
 
         return new SharePreviewData(
-            title: $og['title'] ?? config('identity.name'),
+            title: $og['title'] ?: config('identity.name'),
             description: $og['description'],
             image: 'data:image/png;base64,'.base64_encode($png),
         );
@@ -54,19 +56,34 @@ final class PreviewShareCard
 
     /**
      * The submitted values that are this type's own columns. Media fields name a
-     * collection rather than a column, so they never reach fill().
+     * collection rather than a column, so they never reach fill(). A dotted field
+     * (`meta.author`) is merged over the column's current value, as the update actions do.
      *
      * @param  array<string, mixed>  $values
      * @return array<string, mixed>
      */
     private function fillable(Model $model, array $values): array
     {
-        $names = array_column(
-            array_filter(FieldRegistry::for($model), fn (FieldData $field): bool => ! $field->type->isMedia()),
-            'name',
-        );
+        $picked = [];
 
-        return array_intersect_key($values, array_flip(array_intersect($names, $model->getFillable())));
+        foreach (FieldRegistry::for($model) as $field) {
+            if (! $field->type->isMedia() && $model->isFillable(Str::before($field->name, '.')) && Arr::has($values, $field->name)) {
+                $picked[$field->name] = Arr::get($values, $field->name);
+            }
+        }
+
+        $attributes = Arr::undot($picked);
+
+        foreach (array_keys($picked) as $name) {
+            if (str_contains($name, '.')) {
+                $root = Str::before($name, '.');
+                $current = $model->getAttribute($root);
+                $current = $current instanceof Arrayable ? $current->toArray() : (array) $current;
+                $attributes[$root] = [...$current, ...$attributes[$root]];
+            }
+        }
+
+        return $attributes;
     }
 
     /**

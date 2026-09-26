@@ -1,6 +1,7 @@
 <?php
 
 use App\Models\Article;
+use App\Models\Book;
 use App\Models\User;
 use App\Support\OgRenderer;
 use Illuminate\View\View;
@@ -40,6 +41,17 @@ it('previews an edit to an existing entry without saving it', function () {
         ->assertJsonPath('title', 'After');
 
     expect($article->fresh()->title)->toBe('Before');
+});
+
+it('merges an edited meta field over the stored meta', function () {
+    $book = Book::factory()->create(['meta' => ['author' => 'Before', 'isbn' => '9780000000000']]);
+
+    $response = $this->actingAs(User::factory()->create())
+        ->postJson('/entries/book/share-preview', ['id' => $book->id, 'meta.author' => 'Ursula K. Le Guin'])
+        ->assertOk();
+
+    expect($response->json('description'))->toContain('by Ursula K. Le Guin')
+        ->and($book->fresh()->meta->author)->toBe('Before');
 });
 
 it('draws a page on the text card', function () {
