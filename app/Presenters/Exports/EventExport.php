@@ -3,6 +3,7 @@
 namespace App\Presenters\Exports;
 
 use App\Data\Aspects\Geometry;
+use App\Data\Aspects\Imagery;
 use App\Data\Aspects\Span;
 use App\Data\ExportData;
 use App\Data\ExportField;
@@ -57,6 +58,7 @@ final class EventExport
             aspects: array_filter([
                 Geometry::class => $model->latitude === null ? null : Geometry::point((float) $model->latitude, (float) $model->longitude),
                 Span::class => $model->occurred_at === null ? null : Span::between($model->occurred_at, $model->ends_at ?? $model->occurred_at, $model->timezone(), $address === '' ? null : $address, (bool) $model->all_day),
+                Imagery::class => Imagery::gallery($model->galleryPhotos()),
             ]),
         );
     }

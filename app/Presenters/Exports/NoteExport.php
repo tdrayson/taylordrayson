@@ -2,6 +2,7 @@
 
 namespace App\Presenters\Exports;
 
+use App\Data\Aspects\Imagery;
 use App\Data\ExportData;
 use App\Data\ExportInstant;
 use App\Enums\TimelineType;
@@ -34,6 +35,9 @@ final class NoteExport
             fields: [],
             links: CommonLinks::for($model),
             body: $model->content,
+            aspects: array_filter([
+                Imagery::class => Imagery::gallery($model->galleryPhotos()),
+            ]),
         );
     }
 }

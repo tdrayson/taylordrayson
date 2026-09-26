@@ -3,6 +3,7 @@
 namespace App\Presenters\Exports;
 
 use App\Data\Aspects\Geometry;
+use App\Data\Aspects\Imagery;
 use App\Data\ExportData;
 use App\Data\ExportField;
 use App\Data\ExportInstant;
@@ -49,6 +50,7 @@ final class PlaceExport
             body: $model->description,
             aspects: array_filter([
                 Geometry::class => $model->latitude === null ? null : Geometry::point((float) $model->latitude, (float) $model->longitude),
+                Imagery::class => Imagery::gallery($model->galleryPhotos()),
             ]),
         );
     }

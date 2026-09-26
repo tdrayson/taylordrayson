@@ -2,6 +2,7 @@
 
 namespace App\Presenters\Exports\Formats;
 
+use App\Data\Aspects\Imagery;
 use App\Data\Aspects\Span;
 use App\Data\ExportData;
 use App\Data\ExportLink;
@@ -79,6 +80,16 @@ final class Mf2Format extends Format
                 'html' => $html,
                 'value' => $this->contentText($data),
             ]];
+        }
+
+        $imagery = $data->aspect(Imagery::class);
+
+        if ($imagery?->featured !== null) {
+            $properties['featured'] = [['value' => $imagery->featured, 'alt' => $imagery->featuredAlt]];
+        }
+
+        if ($imagery !== null && $imagery->photos !== []) {
+            $properties['photo'] = array_map(fn (string $url): array => ['value' => $url, 'alt' => ''], $imagery->photos);
         }
 
         $categories = array_map(fn (ExportLink $link): string => $link->title, $data->linksWithRel('category'));
