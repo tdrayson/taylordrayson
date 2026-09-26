@@ -6,6 +6,7 @@ use App\Http\Controllers\CaloriesRedirectController;
 use App\Http\Controllers\CitationPreviewController;
 use App\Http\Controllers\ClearFailedJobsController;
 use App\Http\Controllers\CommentController;
+use App\Http\Controllers\DeleteEntryController;
 use App\Http\Controllers\DesignSystemController;
 use App\Http\Controllers\EntryController;
 use App\Http\Controllers\EntryExportController;
@@ -73,6 +74,8 @@ Route::middleware('auth')->group(function (): void {
     Route::post('/entries/{type}', [AuthoringController::class, 'store'])->name('entries.store');
     Route::patch('/entries/{type}/{id}', [AuthoringController::class, 'update'])
         ->where('id', '[0-9]+')->name('entries.update');
+    Route::delete('/entries/{type}/{id}', DeleteEntryController::class)
+        ->where('id', '[0-9]+')->name('entries.destroy');
 
     // Owner-only status change, valid for every dataset with HasStatus (synced types included).
     Route::patch('/entries/{dataset}/{id}/status', UpdateEntryStatusController::class)

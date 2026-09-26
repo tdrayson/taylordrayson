@@ -237,7 +237,7 @@ class AuthoringController extends Controller
     }
 
     /**
-     * @return array{model: class-string<Model>, create: class-string, update: class-string, prepare?: class-string, draftDetail?: class-string}
+     * @return array{model: class-string<Model>, create: class-string, update: class-string, delete: class-string, prepare?: class-string, draftDetail?: class-string}
      */
     private function definition(string $type): array
     {
