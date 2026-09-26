@@ -36,6 +36,26 @@ final class EntryAtUrl
         return $model;
     }
 
+    /**
+     * The entry behind a path or full URL: a dated `/YYYY/MM/DD/slug` or a draft's `/drafts/{dataset}/{id}`.
+     *
+     * @param  string  $path  The path, or any URL containing one.
+     */
+    public function forPath(string $path): ?Model
+    {
+        if (preg_match('#/drafts/([a-z-]+)/(\d+)#', $path, $parts) === 1) {
+            $dataset = Datasets::for($parts[1]);
+
+            return $dataset?->draftable() ? $dataset->model()::query()->find((int) $parts[2]) : null;
+        }
+
+        if (preg_match('#(\d{4})/(\d{2})/(\d{2})/([a-z0-9-]+)#i', $path, $parts) !== 1) {
+            return null;
+        }
+
+        return $this((int) $parts[1], (int) $parts[2], (int) $parts[3], $parts[4]);
+    }
+
     /** The owner's draft at a dated address; each draftable type is checked by date and slug. */
     private function draftAt(string $date, string $slug): ?Model
     {
