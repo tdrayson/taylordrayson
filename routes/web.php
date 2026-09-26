@@ -30,6 +30,7 @@ use App\Http\Controllers\NowExportController;
 use App\Http\Controllers\OgImageController;
 use App\Http\Controllers\PageController;
 use App\Http\Controllers\PageExportController;
+use App\Http\Controllers\ProfileShortLinkController;
 use App\Http\Controllers\RandomEntryController;
 use App\Http\Controllers\ReactionController;
 use App\Http\Controllers\RetryFailedJobsController;
@@ -49,7 +50,6 @@ use App\Http\Controllers\UpdateEntryStatusController;
 use App\Http\Controllers\WebmentionController;
 use App\Http\Middleware\NoIndex;
 use Illuminate\Support\Facades\Route;
-use Illuminate\Support\Str;
 
 // Link-in-bio cards on their own subdomain, first so no main-site route claims
 // these paths there. The trailing catch-all keeps the rest of the site off it.
@@ -285,9 +285,8 @@ foreach (config('redirects') as $from => $to) {
     Route::redirect("/{$from}", "/{$to}", 301);
 }
 
-foreach (config('identity.profiles') as $profile) {
-    Route::redirect('/'.Str::lower($profile['label']), $profile['href']);
-}
+Route::get('/{profile}', ProfileShortLinkController::class)
+    ->where('profile', '(?i:'.collect(config('identity.profiles'))->pluck('label')->implode('|').')');
 
 // Page exports, above the page catch-all for the same reason the entry export
 // sits above the entry route.
