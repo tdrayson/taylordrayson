@@ -38,13 +38,14 @@ it('keeps the cards and the rest of the site apart', function (string $path) {
     'main-site page on the profile domain' => fn () => profileUrl('/now'),
 ]);
 
-it('shows the details row only while the form is switched on', function (bool $enabled, ?string $href) {
+it('shows the details form only while it is switched on', function (bool $enabled, ?string $href, int $status) {
     config(['profile.details_form' => $enabled]);
 
     get(profileUrl('/td'))->assertInertia(fn (Assert $inertia) => $inertia->where('card.detailsHref', $href));
+    get(profileUrl('/tct/details'))->assertStatus($status);
 })->with([
-    'off' => [false, null],
-    'on' => [true, '/td/details'],
+    'off' => [false, null, 404],
+    'on' => [true, '/td/details', 200],
 ]);
 
 it('hands out work details on the business card and personal ones on the personal card', function () {
