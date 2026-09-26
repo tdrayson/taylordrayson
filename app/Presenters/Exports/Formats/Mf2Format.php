@@ -132,7 +132,7 @@ final class Mf2Format extends Format
         return [
             'type' => ['h-card'],
             'properties' => [
-                'photo' => [['value' => url(config('identity.avatar')), 'alt' => config('identity.name')]],
+                'photo' => [url(config('identity.photo'))],
                 'name' => [config('identity.name')],
                 'url' => $urls,
                 'uid' => [$url],
