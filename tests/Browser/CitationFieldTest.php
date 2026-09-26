@@ -17,6 +17,7 @@ it('previews the stored copy and saves a trimmed quote', function () {
 
     $page = visit('/new/note');
     $page->click('.prose-editor')->typeSlowly('.prose-editor', 'Agreed.', 20);
+    $page->click('button[aria-pressed]:has-text("Response")');
     $page->select('#response_kind', 'reply');
     $page->fill('#response_url', 'https://example.com/post');
     $page->click('#slug');
@@ -36,7 +37,7 @@ it('previews the stored copy and saves a trimmed quote', function () {
     $page->assertScript("document.querySelector('#slug').getAttribute('placeholder')", 'replied-to-sending-your-first-webmention');
 
     $page->fill('#slug', 'agreed');
-    $page->click('button:has-text("Post")');
+    $page->click('aside button:has-text("Post")');
     $page->assertScript("location.pathname !== '/new/note'", true);
 
     expect(Note::sole()->response_quote)->toBe('Just this bit.');
@@ -58,6 +59,7 @@ it('drops a trimmed quote when the reply url is changed to a different post', fu
 
     $page = visit('/new/note');
     $page->click('.prose-editor')->typeSlowly('.prose-editor', 'Agreed.', 20);
+    $page->click('button[aria-pressed]:has-text("Response")');
     $page->select('#response_kind', 'reply');
     $page->fill('#response_url', 'https://example.com/post-a');
     $page->click('#slug');
@@ -79,6 +81,7 @@ it('stores an untouched excerpt as an empty quote', function () {
     $note = Note::factory()->create(['response_kind' => 'reply', 'response_url' => 'https://example.com/post']);
 
     $page = visit($note->url().'?edit');
+    $page->click('button[aria-pressed]:has-text("Response")');
 
     $page->assertScript("new Promise(r => setTimeout(() => r(document.querySelector('[data-testid=citation-preview] .p-content')?.textContent.trim()), 1500))", 'The whole opening paragraph.');
     $page->click('button:has-text("Edit quote")');
@@ -90,6 +93,7 @@ it('stores an untouched excerpt as an empty quote', function () {
 
 it('says nothing while the url is not a link yet', function () {
     $page = visit('/new/note');
+    $page->click('button[aria-pressed]:has-text("Response")');
     $page->select('#response_kind', 'reply');
     $page->fill('#response_url', 'not a link');
     $page->click('#slug');

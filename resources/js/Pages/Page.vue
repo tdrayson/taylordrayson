@@ -42,6 +42,9 @@ setLayoutProps({ minimal: props.editing, breadcrumb: [{ label: props.title }] })
 
 const signedIn = computed(() => usePage().props.signedIn === true);
 
+// The editor's View link: this page without `?edit`.
+const viewUrl = computed(() => usePage().url.split('?')[0]);
+
 // Straight off the record, not rebuilt from the display props: listing the
 // keys by hand meant any field not on that list opened empty and was saved
 // back empty.
@@ -53,13 +56,18 @@ const editorValues = computed(() => valuesFor(props.fields, props.values));
 
     <!-- Editing uses the same surface as every other type, so the page does
          not drift into having its own editor. -->
-    <div v-if="editing">
-        <EntryEditor
-            :fields="fields"
-            :values="editorValues"
-            :action="`/entries/page/${id}`"
-            />
-    </div>
+    <EntryEditor
+        v-if="editing"
+        type="page"
+        :fields="fields"
+        :values="editorValues"
+        :action="`/entries/page/${id}`"
+        :heading="title"
+        :view-url="viewUrl"
+        :og="og"
+        :entry-id="id"
+        authoring-type="page"
+    />
 
     <!-- No width cap here: the heading/excerpt carry their own measure below, and
          BlockContent's renderer already applies max-w-prose/max-w-media per

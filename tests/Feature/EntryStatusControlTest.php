@@ -72,8 +72,19 @@ it('opens a synced entry in the editor with only its status, and never for a gue
     $this->actingAs(User::factory()->create())->get("{$url}?edit")->assertInertia(fn (Assert $page) => $page
         ->where('editing', true)
         ->where('editAction', "/entries/activity/{$activity->id}/status")
+        ->where('entryId', null)
+        ->where('authoringType', null)
         ->where('fields', fn ($fields) => collect($fields)->pluck('name')->all() === ['status', 'password'])
         ->where('fields.0.options', fn ($options) => ! collect($options)->pluck('value')->contains('draft')));
+});
+
+it('gives a hand-written entry\'s editor its id and authoring key, only while editing', function () {
+    $note = Note::factory()->create(['occurred_at' => '2026-06-20 09:00:00']);
+    $url = $note->fresh()->url();
+    $this->actingAs(User::factory()->create());
+
+    $this->get("{$url}?edit")->assertInertia(fn (Assert $page) => $page->where('entryId', $note->id)->where('authoringType', 'note'));
+    $this->get($url)->assertInertia(fn (Assert $page) => $page->where('entryId', null)->where('authoringType', null));
 });
 
 it('drafting a published entry drops its timeline row, and republishing brings it back at the same address', function () {

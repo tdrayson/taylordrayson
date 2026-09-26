@@ -45,6 +45,10 @@ const props = defineProps({
     // Editing in place: a synced type's fields are just its status.
     editing: { type: Boolean, default: false },
     editAction: { type: String, default: null },
+    // A hand-written entry's id while editing, for the editor's duplicate, delete and card preview.
+    entryId: { type: Number, default: null },
+    // The authoring key the editor's routes resolve by, which can differ from the card type.
+    authoringType: { type: String, default: null },
     fields: { type: Array, default: () => [] },
     // The owner's only, so the editor can show the password it is locked with.
     password: { type: String, default: null },
@@ -62,6 +66,9 @@ const signedIn = computed(() => usePage().props.signedIn === true);
 
 // This entry's own URL, for the u-url a parser needs on a permalink.
 const permalink = computed(() => usePage().url);
+
+// The editor's View link: this page without `?edit`.
+const viewUrl = computed(() => permalink.value.split('?')[0]);
 
 provideLinkContext(computed(() => ({ previews: props.linkPreviews, favicons: props.linkFavicons })));
 
@@ -132,10 +139,16 @@ setLayoutProps({ minimal: props.editing, breadcrumb: breadcrumb() });
          as Page.vue. -->
     <EntryEditor
         v-if="editing"
+        :type="type"
         :fields="fields"
         :values="editorValues"
         :action="editAction"
-        :heading="title ?? meta.label"
+        :heading="title"
+        :date="fullOccurredLabel"
+        :view-url="viewUrl"
+        :og="og"
+        :entry-id="entryId"
+        :authoring-type="authoringType"
     />
 
     <!-- Spans the page and re-establishes the grid, as Page.vue does, so a

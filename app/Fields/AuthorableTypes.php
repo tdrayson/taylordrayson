@@ -3,23 +3,32 @@
 namespace App\Fields;
 
 use App\Actions\Appearances\CreateAppearance;
+use App\Actions\Appearances\DeleteAppearance;
 use App\Actions\Appearances\UpdateAppearance;
 use App\Actions\Articles\CreateArticle;
+use App\Actions\Articles\DeleteArticle;
 use App\Actions\Articles\UpdateArticle;
 use App\Actions\Books\CreateBook;
+use App\Actions\Books\DeleteBook;
 use App\Actions\Books\PrepareBookSave;
 use App\Actions\Books\UpdateBook;
 use App\Actions\Events\CreateEvent;
+use App\Actions\Events\DeleteEvent;
 use App\Actions\Events\UpdateEvent;
 use App\Actions\Flights\CreateFlight;
+use App\Actions\Flights\DeleteFlight;
 use App\Actions\Flights\UpdateFlight;
 use App\Actions\Fuel\CreateFuel;
+use App\Actions\Fuel\DeleteFuel;
 use App\Actions\Fuel\UpdateFuel;
 use App\Actions\Notes\CreateNote;
+use App\Actions\Notes\DeleteNote;
 use App\Actions\Notes\UpdateNote;
 use App\Actions\Pages\CreatePage;
+use App\Actions\Pages\DeletePage;
 use App\Actions\Pages\UpdatePage;
 use App\Actions\Projects\CreateProject;
+use App\Actions\Projects\DeleteProject;
 use App\Actions\Projects\UpdateProject;
 use App\Datasets\Datasets;
 use App\Models\Appearance;
@@ -48,18 +57,18 @@ final class AuthorableTypes
     /**
      * `prepare` may adjust or refuse validated values before saving; `draftDetail` describes a row on /drafts.
      *
-     * @var array<string, array{model: class-string<Model>, create: class-string, update: class-string, prepare?: class-string, draftDetail?: class-string}>
+     * @var array<string, array{model: class-string<Model>, create: class-string, update: class-string, delete: class-string, prepare?: class-string, draftDetail?: class-string}>
      */
     private const TYPES = [
-        'note' => ['model' => Note::class, 'create' => CreateNote::class, 'update' => UpdateNote::class],
-        'article' => ['model' => Article::class, 'create' => CreateArticle::class, 'update' => UpdateArticle::class],
-        'page' => ['model' => Page::class, 'create' => CreatePage::class, 'update' => UpdatePage::class],
-        'project' => ['model' => Project::class, 'create' => CreateProject::class, 'update' => UpdateProject::class],
-        'event' => ['model' => Event::class, 'create' => CreateEvent::class, 'update' => UpdateEvent::class],
-        'book' => ['model' => Book::class, 'create' => CreateBook::class, 'update' => UpdateBook::class, 'prepare' => PrepareBookSave::class, 'draftDetail' => BookDraftDetail::class],
-        'flight' => ['model' => Flight::class, 'create' => CreateFlight::class, 'update' => UpdateFlight::class],
-        'fuel' => ['model' => Fuel::class, 'create' => CreateFuel::class, 'update' => UpdateFuel::class],
-        'appearance' => ['model' => Appearance::class, 'create' => CreateAppearance::class, 'update' => UpdateAppearance::class],
+        'note' => ['model' => Note::class, 'create' => CreateNote::class, 'update' => UpdateNote::class, 'delete' => DeleteNote::class],
+        'article' => ['model' => Article::class, 'create' => CreateArticle::class, 'update' => UpdateArticle::class, 'delete' => DeleteArticle::class],
+        'page' => ['model' => Page::class, 'create' => CreatePage::class, 'update' => UpdatePage::class, 'delete' => DeletePage::class],
+        'project' => ['model' => Project::class, 'create' => CreateProject::class, 'update' => UpdateProject::class, 'delete' => DeleteProject::class],
+        'event' => ['model' => Event::class, 'create' => CreateEvent::class, 'update' => UpdateEvent::class, 'delete' => DeleteEvent::class],
+        'book' => ['model' => Book::class, 'create' => CreateBook::class, 'update' => UpdateBook::class, 'delete' => DeleteBook::class, 'prepare' => PrepareBookSave::class, 'draftDetail' => BookDraftDetail::class],
+        'flight' => ['model' => Flight::class, 'create' => CreateFlight::class, 'update' => UpdateFlight::class, 'delete' => DeleteFlight::class],
+        'fuel' => ['model' => Fuel::class, 'create' => CreateFuel::class, 'update' => UpdateFuel::class, 'delete' => DeleteFuel::class],
+        'appearance' => ['model' => Appearance::class, 'create' => CreateAppearance::class, 'update' => UpdateAppearance::class, 'delete' => DeleteAppearance::class],
     ];
 
     public static function has(string $type): bool
@@ -68,7 +77,7 @@ final class AuthorableTypes
     }
 
     /**
-     * @return array{model: class-string<Model>, create: class-string, update: class-string, prepare?: class-string, draftDetail?: class-string}|null
+     * @return array{model: class-string<Model>, create: class-string, update: class-string, delete: class-string, prepare?: class-string, draftDetail?: class-string}|null
      */
     public static function get(string $type): ?array
     {

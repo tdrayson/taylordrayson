@@ -8,6 +8,7 @@ import Icon from '../Components/Ui/Icon.vue';
 import Heading from '../Components/Ui/Heading.vue';
 import { valuesFor } from '../lib/editor/defaults.js';
 import { claim } from '../lib/editor/handoff.js';
+import { entryType } from '../entryTypes.js';
 
 defineOptions({ layout: AppLayout, inheritAttrs: false });
 
@@ -27,11 +28,15 @@ setLayoutProps({
         : [{ label: 'New' }],
 });
 
-// Anything a smaller type handed over on the way here, claimed once on setup
-// rather than in the computed: claiming clears it, and a computed may run again.
+// Anything handed over on the way here (a note outgrowing its cap, a duplicated
+// entry), claimed once on setup rather than in the computed: claiming clears it,
+// and a computed may run again.
 const carried = claim(props.type);
 
 const values = computed(() => ({ ...valuesFor(props.fields), ...carried }));
+
+// Drawn in place of a title field, for the types without one.
+const heading = computed(() => (props.type ? `New ${entryType(props.type).label.toLowerCase()}` : null));
 </script>
 
 <template>
@@ -55,14 +60,16 @@ const values = computed(() => ({ ...valuesFor(props.fields), ...carried }));
         </div>
     </div>
 
-    <div v-else>
-        <EntryEditor
-            :fields="fields"
-            :values="values"
-            :action="`/entries/${type}`"
-            method="post"
-            submit-label="Post"
-            :convert-to="type === 'note' ? 'article' : null"
-        />
-    </div>
+    <EntryEditor
+        v-else
+        :type="type"
+        :fields="fields"
+        :values="values"
+        :action="`/entries/${type}`"
+        :authoring-type="type"
+        method="post"
+        submit-label="Post"
+        :convert-to="type === 'note' ? 'article' : null"
+        :heading="heading"
+    />
 </template>

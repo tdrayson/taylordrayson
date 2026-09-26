@@ -7,6 +7,7 @@ import { CONTROL, CONTROL_BORDER, READONLY } from '../../lib/editor/control.js';
 import { clock } from '../../lib/format.js';
 import { formatDate } from '../../lib/dateFormat.js';
 import { useDismissable } from '../../composables/useDismissable.js';
+import { readableWallClock } from '../../lib/editor/summary.js';
 import { stampWallClock, toWallClockDate, wallClockParts } from '../../lib/editor/wallClock.js';
 
 /**
@@ -79,20 +80,9 @@ const shown = computed(() => (parts.value.date
     ? parts.value
     : { date: openedAt.value.slice(0, 10), time: openedAt.value.slice(11, 16) }));
 
-/**
- * The site's timestamp shape, matching LocalTime's label, with the
- * year dropped when it is this one. The zone is its own field, so it is not
- * repeated here.
- */
-function readable({ date, time }) {
-    const year = date.slice(0, 4) !== String(tick.value.getFullYear());
-
-    return `${formatDate(date, { year })}, ${clock(`${date}T${time}`)}`;
-}
-
 // Unset reads as the stamp it would be given, in the same shape as a set one:
 // the muted colour is what says it is not chosen yet.
-const label = computed(() => readable(parts.value.date ? parts.value : nowParts.value));
+const label = computed(() => readableWallClock(parts.value.date ? parts.value : nowParts.value, tick.value));
 
 /** The shortcuts from a real calendar, computed rather than hardcoded. */
 const shortcuts = computed(() => {

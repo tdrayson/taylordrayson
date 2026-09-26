@@ -25,7 +25,7 @@ final class FlightFields
     {
         return [
             FieldData::primary('occurred_at', 'Departs', FieldType::DateTime, required: true, defaultsToNow: true),
-            FieldData::optional('departure_timezone', 'Departure timezone', FieldType::Lookup, source: 'timezone'),
+            FieldData::optional('departure_timezone', 'Departure timezone', FieldType::Lookup, source: 'timezone', sidebar: true),
             FieldData::primary('origin_iata', 'From', FieldType::Lookup, required: true, source: 'airport'),
             FieldData::primary('destination_iata', 'To', FieldType::Lookup, required: true, source: 'airport'),
             FieldData::primary('airline_icao', 'Airline', FieldType::Lookup, required: true, source: 'airline'),
@@ -40,7 +40,7 @@ final class FlightFields
             )),
             FieldData::optional('duration', 'Duration', FieldType::Duration),
             FieldData::optional('distance', 'Distance', FieldType::Distance),
-            FieldData::optional('arrival_timezone', 'Arrival timezone', FieldType::Lookup, source: 'timezone'),
+            FieldData::optional('arrival_timezone', 'Arrival timezone', FieldType::Lookup, source: 'timezone', sidebar: true),
             FieldData::primary('status', 'Status', FieldType::Status, EntryStatus::options()),
             FieldData::hidden('password', 'Password', FieldType::Text),
         ];
