@@ -30,6 +30,7 @@ use App\Http\Controllers\RandomEntryController;
 use App\Http\Controllers\ReactionController;
 use App\Http\Controllers\RetryFailedJobsController;
 use App\Http\Controllers\SearchController;
+use App\Http\Controllers\SharePreviewController;
 use App\Http\Controllers\SitemapController;
 use App\Http\Controllers\SnakeScoreController;
 use App\Http\Controllers\StatsController;
@@ -67,6 +68,8 @@ Route::middleware('auth')->group(function (): void {
     // Quick-add hub, then one form per type. Both above the /{slug} catch-all.
     Route::get('/new', [AuthoringController::class, 'new'])->name('new');
     Route::get('/new/{type}', [AuthoringController::class, 'new'])->name('new.type');
+    Route::post('/entries/{type}/share-preview', SharePreviewController::class)
+        ->middleware('throttle:30,1')->name('entries.share-preview');
     Route::post('/entries/{type}', [AuthoringController::class, 'store'])->name('entries.store');
     Route::patch('/entries/{type}/{id}', [AuthoringController::class, 'update'])
         ->where('id', '[0-9]+')->name('entries.update');
