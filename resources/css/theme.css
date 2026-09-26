@@ -3,6 +3,11 @@
     --font-sans: 'Inter Variable', -apple-system, system-ui, 'Segoe UI', Roboto, sans-serif;
     --font-display: 'Bricolage Grotesque Variable', 'Inter Variable', sans-serif;
 
+    /* The Creative Tinker's brand faces, loaded only by the business link page (TinkerLayout.vue). */
+    --font-montserrat: 'Montserrat Variable', sans-serif;
+    --font-open-sans: 'Open Sans Variable', sans-serif;
+    --font-bebas: 'Bebas Neue', sans-serif;
+
     /* Relative to the surrounding text: a duration's h/m/s suffix. */
     --text-unit: 0.7em;
 
@@ -47,6 +52,18 @@
     --color-accent-700: #213fd4;
     --color-accent-800: #1a3398;
     --color-accent-900: #12235f;
+
+    /* The favicon's ground, kept in dark mode so the link page avatars match the icon. */
+    --color-avatar: #dbe2ff;
+
+    /* The Creative Tinker's brand blue, for the business link page. 500 holds in both themes. */
+    --color-tinker-50: #e4ebf6;
+    --color-tinker-500: #4377bf;
+    --color-tinker-600: #34649f;
+
+    /* Third-party marks shown in their own colour. */
+    --color-linkedin: #0a66c2;
+    --color-strava: #fc4c02;
 
     /* Heatmap ramp (quiet → busy) */
     --color-heat-1: #e3e8ff;

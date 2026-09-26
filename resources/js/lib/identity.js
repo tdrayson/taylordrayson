@@ -1,11 +1,14 @@
 import { computed } from 'vue';
 import { usePage } from '@inertiajs/vue3';
-import { GithubIcon } from '@hugeicons-pro/core-stroke-rounded';
+import { GithubIcon, Linkedin01Icon } from '@hugeicons-pro/core-stroke-rounded';
+import { StravaIcon } from './brandIcons';
 
 // Icon components keyed by profile label. Icons are a client-only concern;
 // config/identity.php (the shared source) carries only href/label.
 const ICONS = {
     GitHub: GithubIcon,
+    LinkedIn: Linkedin01Icon,
+    Strava: StravaIcon,
 };
 
 /**

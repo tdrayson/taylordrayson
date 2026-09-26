@@ -76,3 +76,9 @@
         transform: none;
     }
 }
+
+/* Set by useTheme for the frame the theme changes in. */
+.theme-swapping,
+.theme-swapping * {
+    transition: none !important;
+}

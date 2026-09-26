@@ -32,8 +32,11 @@ return [
 
     'bio' => 'I build stuff on the internet, track everything, and drink too much coffee.',
 
+    // Each also gets a short link on the main site, e.g. /linkedin.
     'profiles' => [
         ['label' => 'GitHub', 'href' => 'https://github.com/tdrayson'],
+        ['label' => 'LinkedIn', 'href' => 'https://www.linkedin.com/in/taylor-drayson'],
+        ['label' => 'Strava', 'href' => 'https://www.strava.com/athletes/23424891'],
     ],
 
 ];

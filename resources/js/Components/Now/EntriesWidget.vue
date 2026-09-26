@@ -6,15 +6,14 @@ import { formatDate } from '../../lib/dateFormat.js';
 
 const props = defineProps({
     label: { type: String, default: 'entries' },
-    // Four Mon-Sun weeks of { date: 'yyyy-mm-dd', count }, oldest first; days after today have a null count.
+    // Four Mon-Sun weeks of { date: 'yyyy-mm-dd', count, level 0-3 }, oldest first; days after today are null.
     days: { type: Array, required: true },
 });
 
 const WEEKDAYS = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
 
-// Empty + three accent steps.
+// Empty + three accent steps, indexed by the server's ActivityLevel.
 const COLORS = ['bg-neutral-100', 'bg-accent-200', 'bg-accent-400', 'bg-accent-600'];
-const level = (c) => (c === 0 ? 0 : c <= 2 ? 1 : c <= 4 ? 2 : 3);
 
 const total = computed(() => props.days.reduce((sum, day) => sum + (day.count ?? 0), 0));
 
@@ -25,7 +24,7 @@ function fmtCount(c) {
     return c === 1 ? '1 entry' : `${c} entries`;
 }
 
-const cells = computed(() => props.days.map(({ date, count }) => {
+const cells = computed(() => props.days.map(({ date, count, level }) => {
     if (count === null) {
         return { key: date, future: true };
     }
@@ -36,7 +35,7 @@ const cells = computed(() => props.days.map(({ date, count }) => {
     return {
         key: date,
         href: `/${year}/${month}/${day}`,
-        color: COLORS[level(count)],
+        color: COLORS[level],
         title: `${label}, ${fmtCount(count)}`,
     };
 }));

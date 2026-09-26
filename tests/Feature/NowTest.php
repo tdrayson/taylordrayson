@@ -57,10 +57,10 @@ it('counts timeline entries across four Monday-first weeks', function () {
 
     get('/now')->assertInertia(fn ($page) => $page
         ->has('entryDays', 28)
-        ->where('entryDays.0', ['date' => '2026-08-24', 'count' => 1])
+        ->where('entryDays.0', ['date' => '2026-08-24', 'count' => 1, 'level' => 1])
         ->where('entryDays.22.count', 1)
-        ->where('entryDays.23', ['date' => '2026-09-16', 'count' => 0])
-        ->where('entryDays.24', ['date' => '2026-09-17', 'count' => null])
+        ->where('entryDays.23', ['date' => '2026-09-16', 'count' => 0, 'level' => 0])
+        ->where('entryDays.24', ['date' => '2026-09-17', 'count' => null, 'level' => null])
         ->where('entryDays.27.date', '2026-09-20')
     );
 });
