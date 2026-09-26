@@ -17,6 +17,7 @@ use App\Support\StaticMap;
 use App\Support\TypeCatalogue;
 use App\Support\TypeColors;
 use App\Support\Units;
+use Carbon\CarbonInterface;
 use Closure;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Str;
@@ -49,6 +50,22 @@ final class BuildEntryOgData
             return null;
         }
 
+        // Seed the wording with the id and last-updated stamp, so editing an
+        // entry rerolls its phrase (matching when the card itself regenerates).
+        return $this->forModel($model, $entry->id.'|'.self::entryTimestamp($entry), $entry->occurred_at, $cutout);
+    }
+
+    /**
+     * Build the card view data from a model alone, for a caller with no timeline
+     * row to hand (the editor's share preview of unsaved values).
+     *
+     * @param  string  $seed  Picks the headline wording; the same seed always gives the same phrase.
+     * @param  CarbonInterface  $occurredAt  The date printed on the card.
+     * @param  Closure(): string  $cutout  The cutout portrait as a data URI.
+     * @return array<string, mixed>
+     */
+    public function forModel(Timelineable&Model $model, string $seed, CarbonInterface $occurredAt, Closure $cutout): array
+    {
         if ($model instanceof Flight) {
             $model->load('origin', 'destination');
         }
@@ -57,16 +74,12 @@ final class BuildEntryOgData
         $accent = TypeColors::hex($card->accent, self::ACCENT_DEFAULT);
         [$layout, $image] = $this->entryImage($model, $card, $accent);
 
-        // Seed the wording with the id and last-updated stamp, so editing an
-        // entry rerolls its phrase (matching when the card itself regenerates).
-        $seed = $entry->id.'|'.self::entryTimestamp($entry);
-
         return [
             'layout' => $layout,
             'accent' => $accent,
             'eyebrow' => TypeCatalogue::forType($card->type)->eyebrow(),
             'title' => $this->entryTitle($model, $card, $seed),
-            'date' => $entry->occurred_at->format('D j M Y'),
+            'date' => $occurredAt->format('D j M Y'),
             'subtitle' => null,
             'image' => $image,
             'stages' => $card->type === TimelineType::Sleep ? $this->sleepStages($card->meta->segments ?? []) : null,

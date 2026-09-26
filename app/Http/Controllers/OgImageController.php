@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Actions\Og\BuildEntryOgData;
+use App\Actions\Og\BuildPageOgData;
 use App\Actions\Og\OgGalleryUrls;
 use App\Datasets\Datasets;
 use App\Models\Scopes\ListedScope;
@@ -11,7 +12,6 @@ use App\Support\OgRenderer;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Str;
 use Illuminate\View\View;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
@@ -19,6 +19,7 @@ class OgImageController extends Controller
 {
     public function __construct(
         private readonly BuildEntryOgData $entryOgData,
+        private readonly BuildPageOgData $pageOgData,
         private readonly OgGalleryUrls $galleryUrls,
         private readonly OgRenderer $renderer,
     ) {}
@@ -31,24 +32,20 @@ class OgImageController extends Controller
     {
         abort_unless($request->hasValidSignature(), 404);
 
-        $title = Str::limit(trim((string) $request->query('title')) ?: config('identity.name'), 160, '');
-        $eyebrow = Str::limit(trim((string) $request->query('eyebrow')), 60, '') ?: null;
-        $accent = $this->galleryUrls->accent($request->query('accent'));
-        $layout = $request->query('variant') === 'home' ? 'home' : 'text';
-        $subtitle = Str::limit(trim((string) $request->query('description')), 200, '') ?: null;
+        $card = ($this->pageOgData)(
+            (string) $request->query('title'),
+            (string) $request->query('eyebrow'),
+            (string) $request->query('accent'),
+            (string) $request->query('variant'),
+            (string) $request->query('description'),
+        );
 
         $path = $this->renderer->card(
             'page',
             md5((string) $request->query('for')),
-            md5(implode('|', [$layout, $title, (string) $eyebrow, $accent, (string) $subtitle])),
+            md5(implode('|', [$card['layout'], $card['title'], (string) $card['eyebrow'], $card['accent'], (string) $card['subtitle']])),
             fn (): View => view('og.card', [
-                'layout' => $layout,
-                'accent' => $accent,
-                'eyebrow' => $eyebrow,
-                'title' => $title,
-                'date' => null,
-                'subtitle' => $subtitle,
-                'image' => null,
+                ...$card,
                 'cutout' => $this->galleryUrls->dataUri('taylor-cutout.png', 'image/png'),
             ]),
         );
