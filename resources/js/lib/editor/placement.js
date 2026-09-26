@@ -20,6 +20,30 @@ export function isWords(field) {
 }
 
 /**
+ * Drawn by the publish block or the header, so on no tab and not in the sidebar.
+ *
+ * @param {object} field One serialised FieldData.
+ * @returns {boolean}
+ */
+function drawnApart(field) {
+    return field.type === 'status' || Boolean(field.isTitle);
+}
+
+/**
+ * Which tab a field is drawn on, or null when it sits on none (sidebar, header, publish block).
+ *
+ * @param {object} field One serialised FieldData.
+ * @returns {string|null}
+ */
+export function tabFor(field) {
+    if (drawnApart(field) || field.sidebar) {
+        return null;
+    }
+
+    return field.tab ?? MAIN_TAB;
+}
+
+/**
  * Split the offered fields into where they are drawn. Status and title are
  * drawn by the publish block and header, so they appear in none of these.
  *
@@ -30,14 +54,16 @@ export function placeFields(fields) {
     const placed = { main: [], tabs: {}, sidebar: [] };
 
     fields
-        .filter((field) => field.type !== 'status' && ! field.isTitle)
+        .filter((field) => ! drawnApart(field))
         .forEach((field) => {
-            if (field.sidebar) {
+            const tab = tabFor(field);
+
+            if (tab === null) {
                 placed.sidebar.push(field);
-            } else if (field.tab) {
-                (placed.tabs[field.tab] ??= []).push(field);
-            } else {
+            } else if (tab === MAIN_TAB) {
                 placed.main.push(field);
+            } else {
+                (placed.tabs[tab] ??= []).push(field);
             }
         });
 

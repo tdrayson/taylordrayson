@@ -1,14 +1,5 @@
 import { computed, ref, watch } from 'vue';
-import { MAIN_TAB, SOCIAL_TAB, placeFields, tabsFor } from '../lib/editor/placement.js';
-
-/** Which tab a field is drawn on, or null when it sits on none (sidebar, header, publish block, hidden). */
-function tabOf(field) {
-    if (field.sidebar || field.hidden || field.isTitle || field.type === 'status') {
-        return null;
-    }
-
-    return field.tab ?? MAIN_TAB;
-}
+import { MAIN_TAB, SOCIAL_TAB, placeFields, tabFor, tabsFor } from '../lib/editor/placement.js';
 
 /**
  * Where the editor draws each field, and which tab is showing.
@@ -30,11 +21,14 @@ export function useEditorTabs(fields, offered, form) {
      * The switcher's options, from every field the type offers rather than those
      * showing now, so a tab never appears or vanishes mid-edit.
      */
-    const tabs = computed(() => tabsFor(fields.value.filter((field) => ! field.hidden))
-        .map((tab) => ({
+    const tabs = computed(() => {
+        const shown = fields.value.filter((field) => ! field.hidden);
+
+        return tabsFor(shown).map((tab) => ({
             ...tab,
-            hasError: fields.value.some((field) => tabOf(field) === tab.value && form.errors[field.name]),
-        })));
+            hasError: shown.some((field) => tabFor(field) === tab.value && form.errors[field.name]),
+        }));
+    });
 
     const activeTab = ref(tabs.value[0].value);
 
