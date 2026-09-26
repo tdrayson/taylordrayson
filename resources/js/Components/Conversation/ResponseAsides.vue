@@ -3,6 +3,7 @@ import { computed, defineAsyncComponent, nextTick, ref } from 'vue';
 import { copyText } from '../../lib/clipboard.js';
 import { useOgCard } from '../../composables/useOgCard.js';
 import Accordion from '../Ui/Accordion.vue';
+import SharePreview from '../Ui/SharePreview.vue';
 
 const props = defineProps({
     // The canonical, absolute URL of the thing being responded to.
@@ -106,24 +107,7 @@ async function copy() {
                 This is what shows up when you post the link somewhere.
             </p>
 
-            <!-- Built as the embed itself rather than as a bare image: the
-                 title and description are what a reader actually judges the
-                 link on, and they come from the same tags the card does. -->
-            <figure class="max-w-2xl overflow-hidden rounded-xl border border-neutral-50 bg-neutral-25">
-                <!-- The box is reserved at the card's own ratio so opening
-                     this panel does not jump when the image arrives. -->
-                <img
-                    :src="cardUrl"
-                    alt=""
-                    loading="lazy"
-                    class="block aspect-og w-full border-b border-neutral-50 bg-neutral-50 object-cover"
-                >
-                <figcaption class="space-y-1 p-4">
-                    <p v-if="host" class="text-2xs font-semibold uppercase tracking-wider text-neutral-500">{{ host }}</p>
-                    <p v-if="og.title" class="text-base font-semibold text-neutral-900">{{ og.title }}</p>
-                    <p v-if="og.description" class="text-sm text-neutral-500">{{ og.description }}</p>
-                </figcaption>
-            </figure>
+            <SharePreview :image="cardUrl" :title="og.title" :description="og.description" :host="host" />
 
             <p class="mt-3 text-sm text-neutral-500">
                 Want to see how it is made?
