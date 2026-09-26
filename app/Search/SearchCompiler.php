@@ -108,6 +108,21 @@ class SearchCompiler
     }
 
     /**
+     * Apply one typed group straight to its model's query, for rows with no spine entry to search through, such as drafts.
+     *
+     * @param  Builder  $query  A query on the group type's model.
+     * @param  array<string, mixed>  $group  The group: { type, conditions }.
+     */
+    public function applyToModel(Builder $query, array $group): void
+    {
+        $type = SearchSchema::types()[$group['type']] ?? null;
+
+        if ($type !== null) {
+            $this->applyConditions($query, $group, $type);
+        }
+    }
+
+    /**
      * Apply every known condition in a typed group to its morphed model query.
      *
      * @param  Builder  $query  The morphed model query for the group's type.
