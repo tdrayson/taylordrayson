@@ -150,7 +150,7 @@ class AppServiceProvider extends ServiceProvider
         // to read it itself.
         config([
             'feed.author_name' => config('identity.name'),
-            'feed.author_email' => config('identity.email'),
+            'feed.author_email' => config('identity.email') ?: null,
         ]);
 
         // Say who we are on every outbound request: an unidentified default

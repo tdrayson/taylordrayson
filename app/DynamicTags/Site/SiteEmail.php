@@ -44,6 +44,6 @@ class SiteEmail extends DynamicTag
     {
         $address = config('identity.email');
 
-        return $address === null ? null : str_replace('@', '(at)', $address);
+        return blank($address) ? null : str_replace('@', '(at)', $address);
     }
 }

@@ -5,6 +5,10 @@ use App\DynamicTags\DynamicTagRegistry;
 use App\Enums\Placement;
 use App\Support\PortableText;
 
+beforeEach(function () {
+    config(['identity.email' => 'taylor@drayson.co.uk']);
+});
+
 it('resolves the email with the @ spelled out, inline only', function () {
     $registry = app(DynamicTagRegistry::class);
 
@@ -13,6 +17,12 @@ it('resolves the email with the @ spelled out, inline only', function () {
         ->not->toContain('@')
         ->and($registry->find('site.email')->supports())
         ->toBe([Placement::Inline]);
+});
+
+it('resolves no email when none is configured', function () {
+    config(['identity.email' => '']);
+
+    expect(app(DynamicTagRegistry::class)->value('site.email', []))->toBeNull();
 });
 
 it('never puts the real address in a resolved document, so plainText stays harvester-safe too', function () {

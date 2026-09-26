@@ -32,7 +32,8 @@ return [
 
     'bio' => 'I build stuff on the internet, track everything, and drink too much coffee.',
 
-    'email' => 'taylor@drayson.co.uk',
+    // The personal link page's address, so it lives in .env and is never committed.
+    'email' => env('PROFILE_PERSONAL_EMAIL'),
 
     // Where I am based, deliberately distinct from ambient.location, which
     // follows me around.
