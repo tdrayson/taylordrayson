@@ -28,7 +28,7 @@ setLayoutProps({
         : [{ label: 'New' }],
 });
 
-// Anything a smaller type handed over on the way here, claimed once on setup
+// Anything handed over on the way here (a note outgrowing its cap, a duplicated entry), claimed once on setup
 // rather than in the computed: claiming clears it, and a computed may run again.
 const carried = claim(props.type);
 

@@ -3,7 +3,7 @@ import { computed, provide, ref, toRef, watch } from 'vue';
 import { router, useForm } from '@inertiajs/vue3';
 import { useEditorTabs } from '../../composables/useEditorTabs.js';
 import { useSlugField } from '../../composables/useSlugField.js';
-import { withMediaIds } from '../../lib/editor/media.js';
+import { isMedia, withMediaIds } from '../../lib/editor/media.js';
 import { plainTextOf, slugifyInput } from '../../lib/editor/defaults.js';
 import { stash } from '../../lib/editor/handoff.js';
 import { shiftWallClock } from '../../lib/editor/wallClock.js';
@@ -15,8 +15,10 @@ import Select from '../Ui/Select.vue';
 import ZoomSwitcher from '../Layout/ZoomSwitcher.vue';
 import EditorFields from './EditorFields.vue';
 import EditorHeader from './EditorHeader.vue';
+import EditorShareTab from './EditorShareTab.vue';
 import EditorSidebar from './EditorSidebar.vue';
 import EditorSidebarRows from './EditorSidebarRows.vue';
+import EntryMenu from './EntryMenu.vue';
 import FieldInput from './FieldInput.vue';
 import LengthNotice from './LengthNotice.vue';
 import PasswordInput from './PasswordInput.vue';
@@ -43,6 +45,10 @@ const props = defineProps({
     date: { type: String, default: null },
     // The entry's own page, for an entry that already exists.
     viewUrl: { type: String, default: null },
+    // The saved entry's Open Graph payload, for the Social tab's opening card.
+    og: { type: Object, default: null },
+    // A saved hand-written entry's id; null when new or synced, which cannot be duplicated or deleted here.
+    entryId: { type: Number, default: null },
 });
 
 const form = useForm({ ...props.values });
@@ -82,7 +88,7 @@ const { placed, mainBody, mainRest, tabs, activeTab, fieldTabs } = useEditorTabs
 /** The response context CitationField last loaded, which a response's slug is named from. */
 const responsePreview = ref(null);
 
-const { slugField, slugLocked, slugEdited, derivedSlug, slugPreview } = useSlugField(props, form, titleField, statusField, responsePreview);
+const { slugField, slugLocked, slugUnlocked, slugEdited, derivedSlug, slugPreview } = useSlugField(props, form, titleField, statusField, responsePreview);
 
 /** How far a relative field sits after the one it is measured from, by default. */
 const RELATIVE_DEFAULT_MINUTES = 60;
@@ -179,8 +185,15 @@ function convert() {
     router.visit(`/new/${props.convertTo}`);
 }
 
+/** A settled slug, until unlocked by hand for this session. */
+const slugReadonly = computed(() => slugLocked.value && ! slugUnlocked.value);
+
+const UNLOCK_SLUG = { label: 'Unlock', ariaLabel: 'Unlock the slug', action: () => (slugUnlocked.value = true) };
+
 /** FieldInput props that depend on the rest of the form, e.g. a slug's preview and lock. */
 function fieldBindings(field) {
+    const lockedSlug = field.type === 'slug' && ! field.readOnly && slugReadonly.value;
+
     return {
         relativeToValue: field.relativeTo ? String(form[field.relativeTo] ?? '') : null,
         password: form.password ?? '',
@@ -188,7 +201,8 @@ function fieldBindings(field) {
         longitude: form.longitude ?? null,
         responseUrl: form.response_url ?? null,
         responseKind: form.response_kind ?? null,
-        readonly: Boolean(field.readOnly) || (field.type === 'slug' && slugLocked.value),
+        readonly: Boolean(field.readOnly) || (field.type === 'slug' && slugReadonly.value),
+        labelAction: lockedSlug ? UNLOCK_SLUG : null,
         placeholder: field.type === 'slug' ? derivedSlug.value : '',
         hint: field.type === 'slug' ? slugPreview.value : null,
         excused: field.required && ! required(field, form),
@@ -247,6 +261,44 @@ const status = computed(() => {
 const saveLabel = computed(() => (props.method === 'post' ? props.submitLabel : 'Save'));
 
 const saveDisabled = computed(() => form.processing || overLimit.value || needsPassword.value);
+
+/** Where the Social tab's Refresh posts; synced types have no preview. */
+const previewUrl = computed(() => (props.method === 'post' || props.entryId !== null
+    ? `/entries/${props.type}/share-preview`
+    : null));
+
+/** The values a save would send, plus the id so the preview fills the saved entry. */
+function sharePayload() {
+    return { ...withMediaIds(props.fields, form.data()), ...(props.entryId !== null ? { id: props.entryId } : {}) };
+}
+
+const deleteUrl = computed(() => (props.entryId !== null ? `/entries/${props.type}/${props.entryId}` : null));
+
+/** What the delete confirmation names: the saved title, or the heading. */
+const entryName = computed(() => (titleField.value ? props.values[titleField.value.name] : null) || props.heading || null);
+
+/**
+ * Open a new entry of this type holding these values. What makes this entry
+ * this one (slug, status, password, media, dates stamped at save) stays behind.
+ */
+function duplicate() {
+    const dropped = new Set(['password']);
+
+    props.fields
+        .filter((field) => ['slug', 'status'].includes(field.type) || isMedia(field) || field.defaultsToNow)
+        .forEach((field) => dropped.add(field.name));
+
+    // An end measured from a dropped start would sit before the new one.
+    props.fields
+        .filter((field) => field.relativeTo && dropped.has(field.relativeTo))
+        .forEach((field) => dropped.add(field.name));
+
+    stash(props.type, Object.fromEntries(props.fields
+        .filter((field) => ! dropped.has(field.name))
+        .map((field) => [field.name, form[field.name]])));
+
+    router.visit(`/new/${props.type}`);
+}
 
 /** Save the form as it stands; the status travels with every other field. */
 function submit() {
@@ -333,7 +385,9 @@ function submit() {
                         />
                     </div>
 
-                    <div v-show="activeTab === SOCIAL_TAB" />
+                    <div v-show="activeTab === SOCIAL_TAB">
+                        <EditorShareTab :og="og" :preview-url="previewUrl" :payload="sharePayload" />
+                    </div>
                 </div>
 
                 <EditorSidebar
@@ -349,6 +403,16 @@ function submit() {
                     @fill="applyFill"
                     @submit="submit"
                 >
+                    <template v-if="viewUrl" #menu>
+                        <EntryMenu
+                            :view-url="viewUrl"
+                            :delete-url="deleteUrl"
+                            :can-duplicate="entryId !== null"
+                            :name="entryName"
+                            @duplicate="duplicate"
+                        />
+                    </template>
+
                     <!-- Both drawn, one per breakpoint: the phone rows only mount an open
                          row's inputs, and suffix their ids so none repeats the list's. -->
                     <template v-if="placed.sidebar.length" #default>
@@ -412,6 +476,17 @@ function submit() {
                     <Button variant="primary" size="lg" class="shrink-0" :disabled="saveDisabled" @click="submit">
                         {{ saveLabel }}
                     </Button>
+
+                    <!-- The sidebar's menu is desktop only; this is the same one for a phone. -->
+                    <EntryMenu
+                        v-if="viewUrl"
+                        :view-url="viewUrl"
+                        :delete-url="deleteUrl"
+                        :can-duplicate="entryId !== null"
+                        :name="entryName"
+                        above
+                        @duplicate="duplicate"
+                    />
                 </div>
 
                 <p v-if="statusField" class="mt-1 text-xs text-neutral-500">{{ status }}</p>
