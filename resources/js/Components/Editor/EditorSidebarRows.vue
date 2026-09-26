@@ -57,7 +57,11 @@ async function toggle(row) {
 
     await nextTick();
 
-    bodies.value[row.key]?.querySelector('input, textarea, select, button')?.focus();
+    // By id first: a generic query would land on a tag's remove button before the tags input.
+    const body = bodies.value[row.key];
+    const control = row.kind === 'field' ? body?.querySelector(`#${CSS.escape(`${row.field.name}${ID_SUFFIX}`)}`) : null;
+
+    (control ?? body?.querySelector('input, textarea, select, button'))?.focus();
 }
 
 // A refused field cannot be fixed while its row is shut, so the first one opens.
@@ -79,7 +83,7 @@ watch(() => Object.keys(props.form.errors).join(','), () => {
                 type="button"
                 class="flex min-h-12 w-full items-center gap-3 py-3 text-left"
                 :aria-expanded="openKey === row.key"
-                :aria-controls="`sidebar-row-${index}`"
+                :aria-controls="openKey === row.key ? `sidebar-row-${index}` : undefined"
                 @click="toggle(row)"
             >
                 <span class="shrink-0 text-sm font-medium" :class="isInvalid(row) ? 'text-red-600' : 'text-neutral-900'">

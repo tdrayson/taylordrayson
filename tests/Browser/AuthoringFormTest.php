@@ -48,6 +48,7 @@ it('opens one sidebar row at a time on a phone', function () {
         ->resize(390, 844)
         ->click('button[aria-expanded]:has-text("Tags")')
         ->assertPresent('#tags-row')
+        ->assertScript('document.activeElement.id', 'tags-row')
         ->click('button[aria-expanded]:has-text("Date")')
         ->assertMissing('#tags-row')
         ->assertPresent('#occurred_at-row')
