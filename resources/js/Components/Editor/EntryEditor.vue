@@ -283,13 +283,13 @@ const entryName = computed(() => (titleField.value ? props.values[titleField.val
 
 /**
  * Open a new entry of this type holding these values. What makes this entry
- * this one (slug, status, password, media, dates stamped at save) stays behind.
+ * this one (slug, status, password, media, dates stamped at save, synced values) stays behind.
  */
 function duplicate() {
     const dropped = new Set(['password']);
 
     props.fields
-        .filter((field) => ['slug', 'status'].includes(field.type) || isMedia(field) || field.defaultsToNow)
+        .filter((field) => ['slug', 'status'].includes(field.type) || isMedia(field) || field.defaultsToNow || field.readOnly)
         .forEach((field) => dropped.add(field.name));
 
     // An end measured from a dropped start would sit before the new one.
