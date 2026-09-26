@@ -2,6 +2,7 @@
 
 namespace App\Presenters\Exports;
 
+use App\Data\Aspects\Imagery;
 use App\Data\Aspects\Span;
 use App\Data\ExportData;
 use App\Data\ExportField;
@@ -55,6 +56,7 @@ final class AppearanceExport
             body: $model->description,
             aspects: array_filter([
                 Span::class => $model->occurred_at === null ? null : Span::moment($model->occurred_at, $model->duration, $model->timezone()),
+                Imagery::class => Imagery::of($model->thumbnailUrl()),
             ]),
         );
     }

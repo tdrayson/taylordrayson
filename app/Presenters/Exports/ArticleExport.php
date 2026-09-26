@@ -2,6 +2,7 @@
 
 namespace App\Presenters\Exports;
 
+use App\Data\Aspects\Imagery;
 use App\Data\ExportData;
 use App\Data\ExportField;
 use App\Data\ExportInstant;
@@ -13,8 +14,7 @@ use App\Presenters\Exports\Sheets\ArticleSheet;
 
 /**
  * An article as an export: its title and excerpt, with the Portable Text
- * document itself as the body. No aspects: an article has neither a place
- * nor a span.
+ * document itself as the body, and its cover as the featured image.
  */
 final class ArticleExport
 {
@@ -43,6 +43,9 @@ final class ArticleExport
             // null on most real articles, which is why mf2 must not fall back to
             // a generated one for those.
             standfirst: $model->excerpt,
+            aspects: array_filter([
+                Imagery::class => Imagery::of($model->coverPhoto()['full'] ?? null),
+            ]),
         );
     }
 }

@@ -2,6 +2,7 @@
 
 namespace App\Presenters\Exports;
 
+use App\Data\Aspects\Imagery;
 use App\Data\ExportData;
 use App\Data\ExportField;
 use App\Data\ExportInstant;
@@ -10,10 +11,11 @@ use App\Models\Book;
 use App\Presenters\CardPresenter;
 use App\Presenters\EntryDescription;
 use App\Presenters\Exports\Sheets\BookSheet;
+use App\Queries\EntryArtwork;
 
 /**
- * A book as an export: what was read, its rating and progress. No aspects: a
- * book has neither a place nor a span.
+ * A book as an export: what was read, its rating and progress, and its
+ * cover as the featured image.
  */
 final class BookExport
 {
@@ -25,6 +27,7 @@ final class BookExport
     public function present(Book $model): ExportData
     {
         $card = CardPresenter::for($model);
+        $artwork = (new EntryArtwork)($model);
 
         return new ExportData(
             type: TimelineType::Book,
@@ -42,6 +45,10 @@ final class BookExport
             ])),
             links: CommonLinks::for($model),
             body: $model->overview,
+            aspects: array_filter([
+                // Alt must match the page: the hero poster is decorative, the standalone cover is not.
+                Imagery::class => Imagery::of($artwork['poster'], featuredAlt: $artwork['backdrop'] === null ? "Cover of {$model->title}" : ''),
+            ]),
         );
     }
 }

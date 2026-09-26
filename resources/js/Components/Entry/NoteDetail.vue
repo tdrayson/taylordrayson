@@ -34,7 +34,7 @@ const lightboxIndex = ref(null);
                     :class="photos.length > 1 ? 'aspect-square' : ''"
                     @click="lightboxIndex = index"
                 >
-                    <img :src="photo.src" :srcset="photo.srcset || undefined" sizes="(min-width: 768px) 608px, 100vw" alt="" class="size-full object-cover">
+                    <img :src="photo.src" :srcset="photo.srcset || undefined" sizes="(min-width: 768px) 608px, 100vw" alt="" class="u-photo size-full object-cover">
                     <span class="pointer-events-none absolute right-2 top-2 opacity-0 transition-opacity group-hover/zoom:opacity-100 group-focus-within/zoom:opacity-100">
                         <ZoomButton />
                     </span>

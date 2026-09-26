@@ -2,6 +2,7 @@
 
 namespace App\Presenters\Exports;
 
+use App\Data\Aspects\Imagery;
 use App\Data\ExportData;
 use App\Data\ExportField;
 use App\Data\ExportInstant;
@@ -11,12 +12,13 @@ use App\Models\TvEpisode;
 use App\Presenters\CardPresenter;
 use App\Presenters\EntryDescription;
 use App\Presenters\Exports\Sheets\TvEpisodeSheet;
+use App\Queries\EntryArtwork;
 use App\Support\SerialNumber;
 use App\Support\ShowTitle;
 
 /**
  * A TV episode as an export: what was watched, the show it belongs to, and
- * where in the run. No aspects: an episode has neither a place nor a span.
+ * where in the run, and the poster the page features.
  */
 final class TvEpisodeExport
 {
@@ -30,6 +32,7 @@ final class TvEpisodeExport
         $model->loadMissing('tvShow');
 
         $card = CardPresenter::for($model);
+        $artwork = (new EntryArtwork)($model);
         $show = ShowTitle::for($model);
 
         return new ExportData(
@@ -54,6 +57,9 @@ final class TvEpisodeExport
                 ])),
                 ...CommonLinks::for($model),
             ],
+            aspects: array_filter([
+                Imagery::class => Imagery::of($artwork['backdrop'] === null ? null : $artwork['poster']),
+            ]),
         );
     }
 }

@@ -353,7 +353,7 @@ const row = computed(() => (props.id === null ? null : interactions.value[`${pro
                 aria-label="View photos"
                 @click="openLightbox(0)"
             >
-                <img :src="coverPhoto.src" :srcset="coverPhoto.srcset || undefined" sizes="100vw" alt="" class="size-full object-cover">
+                <img :src="coverPhoto.src" :srcset="coverPhoto.srcset || undefined" sizes="100vw" alt="" class="u-photo size-full object-cover">
             </button>
             <span class="pointer-events-none absolute right-2 top-2 opacity-0 transition-opacity group-hover/zoom:opacity-100 group-focus-within/zoom:opacity-100">
                 <ZoomButton />
@@ -390,7 +390,7 @@ const row = computed(() => (props.id === null ? null : interactions.value[`${pro
                     aria-label="View photos"
                     @click="openLightbox(0)"
                 >
-                    <img :src="coverPhoto.src" :srcset="coverPhoto.srcset || undefined" sizes="320px" alt="" class="aspect-square h-72 w-auto max-w-none rounded-lg border border-neutral-50 object-cover">
+                    <img :src="coverPhoto.src" :srcset="coverPhoto.srcset || undefined" sizes="320px" alt="" class="u-photo aspect-square h-72 w-auto max-w-none rounded-lg border border-neutral-50 object-cover">
                 </button>
                 <span class="pointer-events-none absolute right-2 top-2 opacity-0 transition-opacity group-hover/zoom:opacity-100 group-focus-within/zoom:opacity-100">
                     <ZoomButton />
