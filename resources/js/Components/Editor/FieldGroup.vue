@@ -31,10 +31,10 @@ const open = computed({
 </script>
 
 <template>
-    <div class="rounded-lg border bg-neutral-25 p-3" :class="invalid ? 'border-red-500' : 'border-neutral-50'">
+    <div>
         <div class="flex items-start justify-between gap-3">
             <div class="min-w-0">
-                <Eyebrow as="p" class="text-neutral-500">{{ label }}</Eyebrow>
+                <Eyebrow as="p" :class="invalid ? 'text-red-600' : 'text-neutral-500'">{{ label }}</Eyebrow>
                 <p v-if="summary" class="mt-0.5 text-sm text-neutral-900">{{ summary }}</p>
                 <p v-else class="mt-0.5 text-sm text-neutral-500">Not set</p>
             </div>
@@ -49,7 +49,7 @@ const open = computed({
             </button>
         </div>
 
-        <div v-if="open" class="mt-3 space-y-4">
+        <div v-if="open" class="mt-4 space-y-6">
             <slot />
         </div>
     </div>

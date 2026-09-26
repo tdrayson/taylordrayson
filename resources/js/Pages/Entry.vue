@@ -67,6 +67,9 @@ const morphing = useMorphTarget();
 // This entry's own URL, for the u-url a parser needs on a permalink.
 const permalink = computed(() => usePage().url);
 
+// The editor's View link: this page without `?edit`.
+const viewUrl = computed(() => permalink.value.split('?')[0]);
+
 provideLinkContext(computed(() => ({ previews: props.linkPreviews, favicons: props.linkFavicons })));
 
 // Current values for the form, read off the entry payload. Dotted field names
@@ -141,10 +144,13 @@ setLayoutProps({ minimal: props.editing, breadcrumb: breadcrumb() });
          as Page.vue. -->
     <EntryEditor
         v-if="editing"
+        :type="type"
         :fields="fields"
         :values="editorValues"
         :action="editAction"
-        :heading="title ?? meta.label"
+        :heading="title"
+        :date="fullOccurredLabel"
+        :view-url="viewUrl"
     />
 
     <!-- Spans the page and re-establishes the grid, as Page.vue does, so a
