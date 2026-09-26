@@ -3,6 +3,7 @@
 namespace App\Fields;
 
 use App\Data\FieldData;
+use App\Enums\EditorTab;
 use App\Enums\EntryStatus;
 use App\Enums\FieldType;
 use App\Enums\ProjectStage;
@@ -23,14 +24,14 @@ final class ProjectFields
                 ProjectStage::cases(),
             ), required: true),
             FieldData::primary('url', 'Link', FieldType::Url),
-            FieldData::optional('long_description', 'About', FieldType::RichText),
+            FieldData::optional('long_description', 'About', FieldType::RichText, tab: EditorTab::Summary),
             FieldData::optional('github_url', 'Repository', FieldType::Url),
-            FieldData::optional('featured', 'Featured', FieldType::Boolean),
-            FieldData::primary('tags', 'Tags', FieldType::Tags),
-            FieldData::optional('cover', 'Cover image', FieldType::Image, collection: 'cover'),
-            FieldData::optional('occurred_at', 'Date', FieldType::DateTime, defaultsToNow: true),
-            FieldData::optional('timezone', 'Timezone', FieldType::Lookup, source: 'timezone'),
-            FieldData::optional('slug', 'Slug', FieldType::Slug, checksReservedSlug: true),
+            FieldData::optional('featured', 'Featured', FieldType::Boolean, sidebar: true),
+            FieldData::primary('tags', 'Tags', FieldType::Tags, sidebar: true),
+            FieldData::optional('cover', 'Cover image', FieldType::Image, collection: 'cover', sidebar: true),
+            FieldData::optional('occurred_at', 'Date', FieldType::DateTime, defaultsToNow: true, sidebar: true),
+            FieldData::optional('timezone', 'Timezone', FieldType::Lookup, source: 'timezone', sidebar: true),
+            FieldData::optional('slug', 'Slug', FieldType::Slug, checksReservedSlug: true, sidebar: true),
             FieldData::primary('status', 'Status', FieldType::Status, EntryStatus::options()),
             FieldData::hidden('password', 'Password', FieldType::Text),
         ];
