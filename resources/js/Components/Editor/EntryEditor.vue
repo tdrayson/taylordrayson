@@ -333,6 +333,7 @@ function submit() {
                 <EditorSidebar
                     :status="statusField ? form[statusField.name] : null"
                     :status-field="statusField"
+                    :status-error="statusField ? form.errors[statusField.name] : null"
                     :password="form.password ?? ''"
                     :status-text="status"
                     :view-url="viewUrl"

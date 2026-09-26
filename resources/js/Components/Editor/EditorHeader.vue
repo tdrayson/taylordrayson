@@ -46,7 +46,7 @@ const accentStyle = computed(() => ({ color: `var(--color-${meta.value.accent})`
             <p v-if="titleError" class="mt-1 text-xs text-red-600">{{ titleError }}</p>
         </template>
 
-        <h1 v-else-if="heading" v-twemoji class="mt-1 font-display text-5xl font-extrabold tracking-tight">{{ heading }}</h1>
+        <h1 v-else-if="heading" v-twemoji class="mt-1 max-w-2xl font-display text-5xl font-extrabold tracking-tight">{{ heading }}</h1>
 
         <h1 v-else class="sr-only">{{ [meta.label, date].filter(Boolean).join(', ') }}</h1>
 

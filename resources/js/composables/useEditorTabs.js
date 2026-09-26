@@ -1,9 +1,13 @@
 import { computed, ref, watch } from 'vue';
 import { MAIN_TAB, SOCIAL_TAB, placeFields, tabsFor } from '../lib/editor/placement.js';
 
-/** Which tab a field is drawn on, or null for the sidebar. */
+/** Which tab a field is drawn on, or null when it sits on none (sidebar, header, publish block, hidden). */
 function tabOf(field) {
-    return field.sidebar ? null : field.tab ?? MAIN_TAB;
+    if (field.sidebar || field.hidden || field.isTitle || field.type === 'status') {
+        return null;
+    }
+
+    return field.tab ?? MAIN_TAB;
 }
 
 /**
