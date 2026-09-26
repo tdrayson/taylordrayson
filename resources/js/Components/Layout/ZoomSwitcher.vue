@@ -1,4 +1,5 @@
 <script setup>
+// An option may carry `hasError` to flag something inside it needing attention.
 defineProps({
     modelValue: { type: String, default: 'day' },
     options: {
@@ -26,6 +27,10 @@ defineEmits(['update:modelValue']);
             @click="$emit('update:modelValue', option.value)"
         >
             {{ option.label }}
+            <template v-if="option.hasError">
+                <span class="ml-1 inline-block size-1.5 rounded-full bg-red-600 align-middle" aria-hidden="true" />
+                <span class="sr-only">, needs fixing</span>
+            </template>
         </button>
     </div>
 </template>
