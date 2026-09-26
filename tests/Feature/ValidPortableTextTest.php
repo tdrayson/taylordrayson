@@ -51,6 +51,30 @@ it('rejects malformed documents', function (mixed $document) {
     'image with protocol-relative url' => [[['_type' => 'image', '_key' => 'k1', 'url' => '//example.com/a.webp']]],
 ]);
 
+it('accepts a markDef href that is a root-relative entry path, as the mention picker inserts', function () {
+    $link = PortableText::key();
+
+    expect(ptPasses([
+        [
+            '_type' => 'block', '_key' => PortableText::key(), 'style' => 'normal',
+            'markDefs' => [['_key' => $link, '_type' => 'link', 'href' => '/2025/03/04/slug']],
+            'children' => [PortableText::span('a mention', [$link])],
+        ],
+    ]))->toBeTrue();
+});
+
+it('accepts a markDef href using the mailto: scheme', function () {
+    $link = PortableText::key();
+
+    expect(ptPasses([
+        [
+            '_type' => 'block', '_key' => PortableText::key(), 'style' => 'normal',
+            'markDefs' => [['_key' => $link, '_type' => 'link', 'href' => 'mailto:hello@example.com']],
+            'children' => [PortableText::span('email me', [$link])],
+        ],
+    ]))->toBeTrue();
+});
+
 it('accepts every stored article document', function () {
     Article::factory()->count(3)->create()->each(function ($article) {
         expect(ptPasses($article->content))->toBeTrue();
@@ -116,3 +140,107 @@ it('rejects malformed video nodes', function (mixed $document) {
     'width not an integer' => [[['_type' => 'video', '_key' => 'k1', 'url' => 'https://example.com/clip.mp4', 'width' => '1280']]],
     'width zero' => [[['_type' => 'video', '_key' => 'k1', 'url' => 'https://example.com/clip.mp4', 'width' => 0]]],
 ]);
+
+it('accepts the decorators the editor actually emits', function () {
+    expect(ptPasses([[
+        '_type' => 'block', '_key' => 'b1', 'style' => 'normal', 'markDefs' => [],
+        'children' => [PortableText::span('struck', ['underline', 'strike-through'])],
+    ]]))->toBeTrue();
+});
+
+it('accepts the nulls the editor writes for absent optionals', function () {
+    expect(ptPasses([
+        ['_type' => 'image', '_key' => 'i1', 'url' => '/storage/a.webp', 'width' => null, 'height' => null],
+        ['_type' => 'code', '_key' => 'c1', 'code' => 'echo 1;', 'language' => null, 'filename' => null, 'lineNumbers' => null],
+    ]))->toBeTrue();
+});
+
+it('accepts a plain string, since a Prose field may be saved without a document', function () {
+    expect(ptPasses('Just a plain note.'))->toBeTrue();
+});
+
+it('accepts a list item the editor has just created with no text yet', function () {
+    expect(ptPasses([
+        ['_type' => 'block', '_key' => 'b1', 'style' => 'normal', 'listItem' => 'bullet', 'level' => 1, 'children' => []],
+    ]))->toBeTrue();
+});
+
+it('accepts a registered dynamic tag', function () {
+    expect(ptPasses([[
+        '_type' => 'block', '_key' => 'b1', 'style' => 'normal', 'markDefs' => [],
+        'children' => [
+            PortableText::span('I have logged '),
+            ['_type' => 'dynamicTag', '_key' => 't1', 'tag' => 'entries.count', 'options' => ['type' => 'note']],
+        ],
+    ]]))->toBeTrue();
+});
+
+it('rejects an unregistered tag, so a typo fails on save', function () {
+    expect(ptPasses([[
+        '_type' => 'block', '_key' => 'b1', 'style' => 'normal', 'markDefs' => [],
+        'children' => [['_type' => 'dynamicTag', '_key' => 't1', 'tag' => 'entriez', 'options' => []]],
+    ]]))->toBeFalse();
+});
+
+it('rejects a tag used in a placement it does not support', function () {
+    expect(ptPasses([[
+        '_type' => 'block', '_key' => 'b1', 'style' => 'normal', 'markDefs' => [],
+        'children' => [['_type' => 'dynamicTag', '_key' => 't1', 'tag' => 'entries.photo', 'options' => []]],
+    ]]))->toBeFalse();
+});
+
+it('accepts a tag legal in the placement it is used in', function () {
+    expect(ptPasses([[
+        '_type' => 'block', '_key' => 'b1', 'style' => 'normal', 'markDefs' => [],
+        'children' => [['_type' => 'dynamicTag', '_key' => 't1', 'tag' => 'site.social', 'options' => ['network' => 'github']]],
+    ]]))->toBeTrue();
+});
+
+it('accepts a dynamicHref markDef and a span referencing it', function () {
+    expect(ptPasses([[
+        '_type' => 'block', '_key' => 'b1', 'style' => 'normal',
+        'markDefs' => [['_key' => 'h1', '_type' => 'dynamicHref', 'tag' => 'site.social', 'options' => ['network' => 'github']]],
+        'children' => [PortableText::span('GitHub', ['h1'])],
+    ]]))->toBeTrue();
+});
+
+it('rejects a dynamicHref for a tag that does not support the placement', function () {
+    expect(ptPasses([[
+        '_type' => 'block', '_key' => 'b1', 'style' => 'normal',
+        'markDefs' => [['_key' => 'h1', '_type' => 'dynamicHref', 'tag' => 'entries.count', 'options' => []]],
+        'children' => [PortableText::span('Count', ['h1'])],
+    ]]))->toBeFalse();
+});
+
+it('accepts an image node carrying a tag instead of a url', function () {
+    expect(ptPasses([
+        ['_type' => 'image', '_key' => 'i1', 'tag' => 'entries.photo', 'options' => []],
+    ]))->toBeTrue();
+});
+
+it('rejects an image tag not legal as an image source', function () {
+    expect(ptPasses([
+        ['_type' => 'image', '_key' => 'i1', 'tag' => 'entries.count', 'options' => []],
+    ]))->toBeFalse();
+});
+
+it('rejects an unknown option value', function () {
+    expect(ptPasses([[
+        '_type' => 'block', '_key' => 'b1', 'style' => 'normal', 'markDefs' => [],
+        'children' => [['_type' => 'dynamicTag', '_key' => 't1', 'tag' => 'entries.count', 'options' => ['type' => 'nope']]],
+    ]]))->toBeFalse();
+});
+
+it('rejects an undeclared option name', function () {
+    expect(ptPasses([[
+        '_type' => 'block', '_key' => 'b1', 'style' => 'normal', 'markDefs' => [],
+        'children' => [['_type' => 'dynamicTag', '_key' => 't1', 'tag' => 'entries.count', 'options' => ['nope' => 'x']]],
+    ]]))->toBeFalse();
+});
+
+it('accepts a bare year for the period option', function () {
+    expect(ptPasses([[
+        '_type' => 'block', '_key' => 'b1', 'style' => 'normal', 'markDefs' => [],
+        'children' => [['_type' => 'dynamicTag', '_key' => 't1', 'tag' => 'entries.count', 'options' => ['period' => '2025']]],
+    ]]))->toBeTrue();
+});

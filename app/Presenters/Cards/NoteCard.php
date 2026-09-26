@@ -39,13 +39,13 @@ final class NoteCard
             occurredAt: $model->occurred_at,
             range: null,
             meta: CardMeta::note(
-                body: $model->content,
+                body: $model->resolvedContent(),
                 photos: array_map(
                     fn (array $photo): PhotoData => PhotoData::gallery($photo['src'], $photo['srcset'], $photo['full'], $photo['latitude'], $photo['longitude']),
                     $model->galleryPhotos(),
                 ),
-                previews: app(BuildLinkPreviews::class)($model->content),
-                favicons: (new BuildLinkFavicons)($model->content),
+                previews: app(BuildLinkPreviews::class)($model->resolvedContent()),
+                favicons: (new BuildLinkFavicons)($model->resolvedContent()),
                 // The card names the target in its own title when there is
                 // nothing else on it, so the context card would say it twice.
                 response: $response === null ? null : [...$response->toArray(), 'namedInTitle' => $gesture],
@@ -66,7 +66,7 @@ final class NoteCard
         $response = $this->response($model);
 
         if ($response === null || ! $model->responseKind()?->isGesture()) {
-            return Str::limit(PortableText::plainText($model->content), 80);
+            return Str::limit(PortableText::plainText($model->resolvedContent()), 80);
         }
 
         $sentence = $model->responseKind()?->sentence()
