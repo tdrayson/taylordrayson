@@ -64,6 +64,8 @@ const editorValues = computed(() => valuesFor(props.fields, props.values));
         :action="`/entries/page/${id}`"
         :heading="title"
         :view-url="viewUrl"
+        :og="og"
+        :entry-id="id"
     />
 
     <!-- No width cap here: the heading/excerpt carry their own measure below, and

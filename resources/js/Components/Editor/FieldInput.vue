@@ -54,6 +54,8 @@ const props = defineProps({
     excused: { type: Boolean, default: false },
     // The control's id, when the same field is drawn twice (the phone rows beside the desktop list).
     id: { type: String, default: null },
+    // A text button beside the label, e.g. { label: 'Unlock', ariaLabel: 'Unlock the slug', action }.
+    labelAction: { type: Object, default: null },
 });
 
 const inputId = computed(() => props.id ?? props.field.name);
@@ -116,6 +118,16 @@ function textToTags(value) {
             <Eyebrow as="label" :for="inputId" class="block text-neutral-500">{{ field.label }}</Eyebrow>
 
             <LengthRing v-if="field.max" :used="usedCharacters" :max="field.max" />
+
+            <button
+                v-if="labelAction"
+                type="button"
+                class="text-xs text-accent-500 underline underline-offset-2 hover:text-accent-700"
+                :aria-label="labelAction.ariaLabel ?? labelAction.label"
+                @click="labelAction.action"
+            >
+                {{ labelAction.label }}
+            </button>
         </div>
 
         <RichTextEditor
@@ -306,8 +318,19 @@ function textToTags(value) {
 
         <p v-if="error" class="mt-1 text-xs text-red-600">{{ error }}</p>
 
-        <p v-else-if="readonly && field.type === 'slug'" class="mt-1 text-xs text-neutral-500">Settled when this was first saved.</p>
+        <p v-else-if="readonly && field.type === 'slug'" class="mt-1 text-xs text-neutral-500">Published, so the URL may already be linked.</p>
 
         <p v-else-if="hint" class="mt-1 truncate text-xs text-neutral-500">{{ hint }}</p>
+
+        <!-- With no label to sit beside (a phone row), the action goes under the control. -->
+        <button
+            v-if="hideLabel && labelAction"
+            type="button"
+            class="mt-1 min-h-11 text-xs text-accent-500 underline underline-offset-2 hover:text-accent-700"
+            :aria-label="labelAction.ariaLabel ?? labelAction.label"
+            @click="labelAction.action"
+        >
+            {{ labelAction.label }}
+        </button>
     </div>
 </template>

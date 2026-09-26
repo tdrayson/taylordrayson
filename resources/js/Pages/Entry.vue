@@ -45,6 +45,8 @@ const props = defineProps({
     // Editing in place: a synced type's fields are just its status.
     editing: { type: Boolean, default: false },
     editAction: { type: String, default: null },
+    // A hand-written entry's id while editing, for the editor's duplicate, delete and card preview.
+    entryId: { type: Number, default: null },
     fields: { type: Array, default: () => [] },
     // The owner's only, so the editor can show the password it is locked with.
     password: { type: String, default: null },
@@ -142,6 +144,8 @@ setLayoutProps({ minimal: props.editing, breadcrumb: breadcrumb() });
         :heading="title"
         :date="fullOccurredLabel"
         :view-url="viewUrl"
+        :og="og"
+        :entry-id="entryId"
     />
 
     <!-- Spans the page and re-establishes the grid, as Page.vue does, so a

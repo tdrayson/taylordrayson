@@ -32,6 +32,9 @@ export function useSlugField(props, form, titleField, statusField, responsePrevi
         return statusField.value ? props.values[statusField.value.name] !== 'draft' : true;
     });
 
+    /** Unlocked by hand for this session, to edit a settled slug. It still never follows the title. */
+    const slugUnlocked = ref(false);
+
     /**
      * Until then it follows the title, unless it has been typed by hand: writing a
      * slug yourself is the way to say you want that one.
@@ -125,5 +128,5 @@ export function useSlugField(props, form, titleField, statusField, responsePrevi
         return day ? `/${day.replaceAll('-', '/')}/${slug}` : `/${slug}`;
     });
 
-    return { slugField, slugLocked, slugEdited, derivedSlug, slugPreview };
+    return { slugField, slugLocked, slugUnlocked, slugEdited, derivedSlug, slugPreview };
 }
