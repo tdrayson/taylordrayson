@@ -1,5 +1,5 @@
 <script setup>
-import { computed } from 'vue';
+import { computed, nextTick } from 'vue';
 import { CONTROL, CONTROL_BORDER, READONLY } from '../../lib/editor/control.js';
 import { cn } from '../../lib/cn.js';
 import Eyebrow from '../Ui/Eyebrow.vue';
@@ -59,6 +59,12 @@ const props = defineProps({
 });
 
 const inputId = computed(() => props.id ?? props.field.name);
+
+/** Run the label's action, then return focus to the control, since the button may be gone. */
+function runLabelAction() {
+    props.labelAction.action();
+    nextTick(() => document.getElementById(inputId.value)?.focus());
+}
 
 // How much of a capped field's budget the current value spends. Measured on
 // readable text, the same way the server measures it.
@@ -124,7 +130,7 @@ function textToTags(value) {
                 type="button"
                 class="text-xs text-accent-500 underline underline-offset-2 hover:text-accent-700"
                 :aria-label="labelAction.ariaLabel ?? labelAction.label"
-                @click="labelAction.action"
+                @click="runLabelAction"
             >
                 {{ labelAction.label }}
             </button>
@@ -328,7 +334,7 @@ function textToTags(value) {
             type="button"
             class="mt-1 min-h-11 text-xs text-accent-500 underline underline-offset-2 hover:text-accent-700"
             :aria-label="labelAction.ariaLabel ?? labelAction.label"
-            @click="labelAction.action"
+            @click="runLabelAction"
         >
             {{ labelAction.label }}
         </button>
