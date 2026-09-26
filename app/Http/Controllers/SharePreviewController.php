@@ -10,6 +10,7 @@ use Illuminate\Http\JsonResponse;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Throwable;
 use TypeError;
+use ValueError;
 
 /** The editor's preview of an entry's share card, drawn from its unsaved values. */
 class SharePreviewController extends Controller
@@ -24,7 +25,11 @@ class SharePreviewController extends Controller
             $card = $preview($model, $request->except('id'));
         } catch (Throwable $exception) {
             // An incomplete form is expected to fail these; anything else is a bug worth hearing about.
-            if (! $exception instanceof TypeError && ! $exception instanceof InvalidFormatException) {
+            $expected = $exception instanceof TypeError
+                || $exception instanceof ValueError
+                || $exception instanceof InvalidFormatException;
+
+            if (! $expected) {
                 report($exception);
             }
 
