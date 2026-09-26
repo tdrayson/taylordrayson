@@ -12,6 +12,8 @@ defineProps({
     // The status field's definition, or null for a type without one.
     statusField: { type: Object, default: null },
     password: { type: String, default: '' },
+    // The server's validation message for the status, if the last save was refused.
+    statusError: { type: String, default: null },
     // What the saved status means, or what is stopping the save.
     statusText: { type: String, required: true },
     // The entry's own page, for an entry that already exists.
@@ -26,7 +28,11 @@ defineEmits(['fill', 'submit']);
 </script>
 
 <template>
-    <aside class="mt-12 border-t border-neutral-50 pt-8 lg:sticky lg:top-6 lg:mt-0 lg:w-72 lg:shrink-0 lg:self-start lg:border-t-0 lg:pt-0">
+    <!-- Below lg only the status and the sidebar fields show, so with neither it draws no rule. -->
+    <aside
+        class="lg:sticky lg:top-6 lg:mt-0 lg:w-72 lg:shrink-0 lg:self-start lg:border-t-0 lg:pt-0"
+        :class="statusField || $slots.default ? 'mt-12 border-t border-neutral-50 pt-8' : ''"
+    >
         <div class="space-y-3">
             <div v-if="statusField">
                 <Eyebrow as="label" :for="statusField.name" class="mb-1 block text-neutral-500">{{ statusField.label }}</Eyebrow>
@@ -40,6 +46,8 @@ defineEmits(['fill', 'submit']);
                     @update:model-value="status = $event"
                     @fill="$emit('fill', $event)"
                 />
+
+                <p v-if="statusError" class="mt-1 text-xs text-red-600">{{ statusError }}</p>
             </div>
 
             <p class="hidden text-sm text-neutral-500 lg:block">{{ statusText }}</p>

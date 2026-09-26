@@ -6,12 +6,12 @@ it('reveals the response url only once a kind is chosen', function () {
     $this->actingAs(User::factory()->create());
 
     $page = visit('/new/note');
+    $page->click('button[aria-pressed]:has-text("Response")');
 
     // Hidden until a kind is picked: showWhen response_kind => [] means any value.
     $page->assertMissing('#response_url')
         ->assertMissing('#rsvp_value');
 
-    $page->click('button[aria-pressed]:has-text("Response")');
     $page->select('#response_kind', 'reply');
     $page->assertPresent('#response_url')
         // An answer belongs to an RSVP alone.
