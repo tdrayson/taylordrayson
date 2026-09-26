@@ -12,7 +12,7 @@ import { useListboxNavigation } from '../../composables/useListboxNavigation.js'
  * icon button share nothing but the popover.
  */
 const props = defineProps({
-    // [{ label, href, icon?, description?, external?, visit? }], `visit` being router.visit options.
+    // [{ label, href?, action?, icon?, description?, external?, danger?, visit? }], `visit` being router.visit options.
     items: { type: Array, required: true },
     // Which edge the panel is pinned to.
     align: { type: String, default: 'right' },
@@ -37,12 +37,15 @@ const panelClasses = computed(() =>
     ),
 );
 
-const itemClasses = computed(() =>
-    cn(
+// A danger item keeps the row's hover/focus treatment but swaps the label to
+// the same red the destructive Button variant uses, so it reads as an override.
+function itemClasses(item) {
+    return cn(
         'flex items-center gap-3 px-4 py-2 text-sm text-neutral-700 transition-colors hover:bg-neutral-25 hover:text-neutral-900 focus-visible:bg-neutral-25 focus-visible:text-neutral-900 focus-visible:-outline-offset-2 data-[active=true]:bg-neutral-25',
+        item.danger ? 'text-red-600 hover:text-red-700 focus-visible:text-red-700' : '',
         props.itemClass,
-    ),
-);
+    );
+}
 
 const iconClasses = computed(() => cn('text-neutral-500', props.iconClass));
 
@@ -58,13 +61,29 @@ const { activeIndex, onKeydown } = useListboxNavigation(navigable, {
     listEl,
     onSelect: (item) => {
         close();
-        if (item.external) {
-            window.open(item.href, '_blank', 'noopener');
-        } else {
-            router.visit(item.href, item.visit ?? {});
-        }
+        activateItem(item);
     },
 });
+
+// An action item has no page to visit; everything else keeps its old behaviour.
+function activateItem(item) {
+    if (item.action) {
+        item.action();
+    } else if (item.external) {
+        window.open(item.href, '_blank', 'noopener');
+    } else {
+        router.visit(item.href, item.visit ?? {});
+    }
+}
+
+// A click on an action row must run it too; a link row already navigates via its own href.
+function onItemClick(item) {
+    close();
+
+    if (item.action) {
+        item.action();
+    }
+}
 
 // An external row opens a file rather than a page, so its name has to say so.
 function accessibleName(item) {
@@ -115,20 +134,21 @@ watch(isOpen, (open) => {
             @keydown="onKeydown"
         >
             <component
-                :is="item.external ? 'a' : Link"
+                :is="item.action ? 'button' : (item.external ? 'a' : Link)"
                 v-for="(item, index) in items"
                 :id="rowId(index)"
-                :key="item.href"
-                v-bind="item.external ? {} : item.visit"
+                :key="rowId(index)"
+                v-bind="item.external || item.action ? {} : item.visit"
                 role="menuitem"
-                :href="item.href"
+                :type="item.action ? 'button' : undefined"
+                :href="item.action ? undefined : item.href"
                 :target="item.external ? '_blank' : undefined"
                 :rel="item.external ? 'noopener' : undefined"
                 :aria-label="accessibleName(item)"
                 :data-active="index === activeIndex"
                 :tabindex="index === activeIndex ? 0 : -1"
-                :class="itemClasses"
-                @click="close"
+                :class="itemClasses(item)"
+                @click="onItemClick(item)"
             >
                 <Icon v-if="item.icon" :icon="item.icon" :class="iconClasses" />
                 <span class="min-w-0 flex-1">{{ item.label }}</span>
