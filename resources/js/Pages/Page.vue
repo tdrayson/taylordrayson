@@ -66,6 +66,7 @@ const editorValues = computed(() => valuesFor(props.fields, props.values));
         :view-url="viewUrl"
         :og="og"
         :entry-id="id"
+        authoring-type="page"
     />
 
     <!-- No width cap here: the heading/excerpt carry their own measure below, and

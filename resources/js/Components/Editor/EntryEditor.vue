@@ -49,6 +49,8 @@ const props = defineProps({
     og: { type: Object, default: null },
     // A saved hand-written entry's id; null when new or synced, which cannot be duplicated or deleted here.
     entryId: { type: Number, default: null },
+    // The authoring key the /entries and /new routes resolve by, which the card type need not match; null for a synced type.
+    authoringType: { type: String, default: null },
 });
 
 const form = useForm({ ...props.values });
@@ -263,8 +265,8 @@ const saveLabel = computed(() => (props.method === 'post' ? props.submitLabel : 
 const saveDisabled = computed(() => form.processing || overLimit.value || needsPassword.value);
 
 /** Where the Social tab's Refresh posts; synced types have no preview. */
-const previewUrl = computed(() => (props.method === 'post' || props.entryId !== null
-    ? `/entries/${props.type}/share-preview`
+const previewUrl = computed(() => (props.authoringType !== null && (props.method === 'post' || props.entryId !== null)
+    ? `/entries/${props.authoringType}/share-preview`
     : null));
 
 /** The values a save would send, plus the id so the preview fills the saved entry. */
@@ -272,7 +274,9 @@ function sharePayload() {
     return { ...withMediaIds(props.fields, form.data()), ...(props.entryId !== null ? { id: props.entryId } : {}) };
 }
 
-const deleteUrl = computed(() => (props.entryId !== null ? `/entries/${props.type}/${props.entryId}` : null));
+const deleteUrl = computed(() => (props.entryId !== null && props.authoringType !== null
+    ? `/entries/${props.authoringType}/${props.entryId}`
+    : null));
 
 /** What the delete confirmation names: the saved title, or the heading. */
 const entryName = computed(() => (titleField.value ? props.values[titleField.value.name] : null) || props.heading || null);
@@ -293,11 +297,11 @@ function duplicate() {
         .filter((field) => field.relativeTo && dropped.has(field.relativeTo))
         .forEach((field) => dropped.add(field.name));
 
-    stash(props.type, Object.fromEntries(props.fields
+    stash(props.authoringType, Object.fromEntries(props.fields
         .filter((field) => ! dropped.has(field.name))
         .map((field) => [field.name, form[field.name]])));
 
-    router.visit(`/new/${props.type}`);
+    router.visit(`/new/${props.authoringType}`);
 }
 
 /** Save the form as it stands; the status travels with every other field. */
@@ -407,7 +411,7 @@ function submit() {
                         <EntryMenu
                             :view-url="viewUrl"
                             :delete-url="deleteUrl"
-                            :can-duplicate="entryId !== null"
+                            :can-duplicate="entryId !== null && authoringType !== null"
                             :name="entryName"
                             @duplicate="duplicate"
                         />
@@ -482,7 +486,7 @@ function submit() {
                         v-if="viewUrl"
                         :view-url="viewUrl"
                         :delete-url="deleteUrl"
-                        :can-duplicate="entryId !== null"
+                        :can-duplicate="entryId !== null && authoringType !== null"
                         :name="entryName"
                         above
                         @duplicate="duplicate"
