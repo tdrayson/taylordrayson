@@ -37,13 +37,16 @@ const accentStyle = computed(() => ({ color: `var(--color-${meta.value.accent})`
                 :id="titleField.name"
                 v-model="title"
                 :placeholder="titleField.label"
+                :aria-label="titleField.label"
+                :aria-invalid="titleError ? 'true' : undefined"
+                :aria-describedby="titleError ? `${titleField.name}-error` : undefined"
                 rows="1"
                 data-text-size
                 class="field-sizing-content mt-1 w-full resize-none overflow-hidden border-none bg-transparent p-0 pb-1.5 font-display text-5xl font-extrabold tracking-tight text-neutral-900 placeholder:text-neutral-200 focus:outline-none"
                 @keydown.enter.prevent
             />
 
-            <p v-if="titleError" class="mt-1 text-xs text-red-600">{{ titleError }}</p>
+            <p v-if="titleError" :id="`${titleField.name}-error`" class="mt-1 text-xs text-red-600">{{ titleError }}</p>
         </template>
 
         <h1 v-else-if="heading" v-twemoji class="mt-1 max-w-2xl font-display text-5xl font-extrabold tracking-tight">{{ heading }}</h1>
