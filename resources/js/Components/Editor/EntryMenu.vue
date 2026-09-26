@@ -1,5 +1,5 @@
 <script setup>
-import { computed, ref } from 'vue';
+import { computed, nextTick, ref } from 'vue';
 import { router, usePage } from '@inertiajs/vue3';
 import { copyText } from '../../lib/clipboard.js';
 import Button from '../Ui/Button.vue';
@@ -49,7 +49,8 @@ const items = computed(() => [
     { label: 'View on site', href: props.viewUrl },
     { label: 'Copy link', action: copyLink },
     props.canDuplicate ? { label: 'Duplicate', action: () => emit('duplicate') } : null,
-    props.deleteUrl ? { label: 'Delete', action: () => (confirming.value = true), danger: true } : null,
+    // Opened a tick later, once the menu has handed focus back to its trigger for the modal to return to.
+    props.deleteUrl ? { label: 'Delete', action: () => nextTick(() => (confirming.value = true)), danger: true } : null,
 ].filter(Boolean));
 </script>
 

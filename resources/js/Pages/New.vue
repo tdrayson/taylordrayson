@@ -28,8 +28,9 @@ setLayoutProps({
         : [{ label: 'New' }],
 });
 
-// Anything handed over on the way here (a note outgrowing its cap, a duplicated entry), claimed once on setup
-// rather than in the computed: claiming clears it, and a computed may run again.
+// Anything handed over on the way here (a note outgrowing its cap, a duplicated
+// entry), claimed once on setup rather than in the computed: claiming clears it,
+// and a computed may run again.
 const carried = claim(props.type);
 
 const values = computed(() => ({ ...valuesFor(props.fields), ...carried }));
