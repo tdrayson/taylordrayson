@@ -1,5 +1,6 @@
 <?php
 
+use App\Enums\EditorTab;
 use App\Enums\FieldType;
 use App\Fields\FieldRegistry;
 use App\Models\Appearance;
@@ -91,4 +92,22 @@ it('serialises a field for the client', function () {
         'primary' => true,
         'isBody' => false,
     ])->and($stage->toArray()['options'])->toHaveCount(4);
+});
+
+it('only serialises tab and sidebar when they are set', function () {
+    $fields = collect(FieldRegistry::for(new Article))->keyBy('name');
+
+    expect($fields['excerpt']->toArray())->toHaveKey('tab', EditorTab::Summary->value)
+        ->and($fields['excerpt']->toArray())->not->toHaveKey('sidebar')
+        ->and($fields['slug']->toArray())->toHaveKey('sidebar', true)
+        ->and($fields['slug']->toArray())->not->toHaveKey('tab')
+        ->and($fields['title']->toArray())->not->toHaveKey('tab')
+        ->and($fields['title']->toArray())->not->toHaveKey('sidebar');
+});
+
+it('places article fields on the summary tab and in the sidebar', function () {
+    $fields = collect(FieldRegistry::for(new Article))->keyBy('name');
+
+    expect($fields['excerpt']->tab)->toBe(EditorTab::Summary)
+        ->and($fields['slug']->sidebar)->toBeTrue();
 });

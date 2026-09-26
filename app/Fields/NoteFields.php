@@ -3,6 +3,7 @@
 namespace App\Fields;
 
 use App\Data\FieldData;
+use App\Enums\EditorTab;
 use App\Enums\EntryStatus;
 use App\Enums\FieldType;
 use App\Enums\ResponseKind;
@@ -25,15 +26,15 @@ final class NoteFields
     {
         return [
             FieldData::primary('content', 'Note', FieldType::Prose, required: true, max: Note::MAX_LENGTH, requiredUnless: ['response_kind' => ResponseKind::gestureValues()]),
-            FieldData::optional('response_kind', 'Response', FieldType::Select, ResponseKind::options()),
-            FieldData::optional('response_url', 'Responding to', FieldType::Url, showWhen: ['response_kind' => []]),
-            FieldData::optional('response_quote', 'Quote', FieldType::Citation, showWhen: ['response_url' => []]),
-            FieldData::optional('rsvp_value', 'Answer', FieldType::Select, RsvpValue::options(), showWhen: ['response_kind' => ['rsvp']]),
-            FieldData::primary('tags', 'Tags', FieldType::Tags),
+            FieldData::optional('response_kind', 'Response', FieldType::Select, ResponseKind::options(), tab: EditorTab::Response),
+            FieldData::optional('response_url', 'Responding to', FieldType::Url, showWhen: ['response_kind' => []], tab: EditorTab::Response),
+            FieldData::optional('response_quote', 'Quote', FieldType::Citation, showWhen: ['response_url' => []], tab: EditorTab::Response),
+            FieldData::optional('rsvp_value', 'Answer', FieldType::Select, RsvpValue::options(), showWhen: ['response_kind' => ['rsvp']], tab: EditorTab::Response),
+            FieldData::primary('tags', 'Tags', FieldType::Tags, sidebar: true),
             FieldData::optional('photos', 'Photos', FieldType::Gallery, collection: 'photos'),
-            FieldData::primary('occurred_at', 'Date', FieldType::DateTime, defaultsToNow: true),
-            FieldData::optional('timezone', 'Timezone', FieldType::Lookup, source: 'timezone'),
-            FieldData::primary('slug', 'Slug', FieldType::Slug, fallback: Note::FALLBACK_SLUG, checksReservedSlug: true),
+            FieldData::primary('occurred_at', 'Date', FieldType::DateTime, defaultsToNow: true, sidebar: true),
+            FieldData::optional('timezone', 'Timezone', FieldType::Lookup, source: 'timezone', sidebar: true),
+            FieldData::primary('slug', 'Slug', FieldType::Slug, fallback: Note::FALLBACK_SLUG, checksReservedSlug: true, sidebar: true),
             FieldData::primary('status', 'Status', FieldType::Status, EntryStatus::options()),
             FieldData::hidden('password', 'Password', FieldType::Text),
         ];

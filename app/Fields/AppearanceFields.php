@@ -30,8 +30,8 @@ final class AppearanceFields
             FieldData::optional('audio_url', 'Audio', FieldType::Url),
             FieldData::optional('duration', 'Duration', FieldType::Duration),
             FieldData::optional('description', 'About', FieldType::Textarea),
-            FieldData::primary('occurred_at', 'Date', FieldType::DateTime, required: true, defaultsToNow: true),
-            FieldData::optional('timezone', 'Timezone', FieldType::Lookup, source: 'timezone'),
+            FieldData::primary('occurred_at', 'Date', FieldType::DateTime, required: true, defaultsToNow: true, sidebar: true),
+            FieldData::optional('timezone', 'Timezone', FieldType::Lookup, source: 'timezone', sidebar: true),
             FieldData::primary('status', 'Status', FieldType::Status, EntryStatus::options()),
             FieldData::hidden('password', 'Password', FieldType::Text),
         ];
