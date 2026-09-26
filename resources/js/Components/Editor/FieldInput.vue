@@ -52,7 +52,11 @@ const props = defineProps({
     hint: { type: String, default: null },
     // A required field its condition has excused, e.g. the body of a like.
     excused: { type: Boolean, default: false },
+    // The control's id, when the same field is drawn twice (the phone rows beside the desktop list).
+    id: { type: String, default: null },
 });
+
+const inputId = computed(() => props.id ?? props.field.name);
 
 // How much of a capped field's budget the current value spends. Measured on
 // readable text, the same way the server measures it.
@@ -109,7 +113,7 @@ function textToTags(value) {
         <!-- A citation field with nothing but a preview to show (a like, repost
              or RSVP has no quote of its own) draws no label above it. -->
         <div v-if="! hideLabel && field.type !== 'boolean' && (field.type !== 'citation' || responseKind === 'reply')" class="mb-1 flex items-center justify-between gap-3">
-            <Eyebrow as="label" :for="field.name" class="block text-neutral-500">{{ field.label }}</Eyebrow>
+            <Eyebrow as="label" :for="inputId" class="block text-neutral-500">{{ field.label }}</Eyebrow>
 
             <LengthRing v-if="field.max" :used="usedCharacters" :max="field.max" />
         </div>
@@ -143,7 +147,7 @@ function textToTags(value) {
 
         <textarea
             v-else-if="field.type === 'textarea'"
-            :id="field.name"
+            :id="inputId"
             :value="modelValue ?? ''"
             rows="4"
             :readonly="readonly"
@@ -153,7 +157,7 @@ function textToTags(value) {
 
         <BookCoverField
             v-else-if="field.type === 'book-cover'"
-            :id="field.name"
+            :id="inputId"
             :model-value="Array.isArray(modelValue) ? modelValue : []"
             :invalid="Boolean(error)"
             :readonly="readonly"
@@ -163,7 +167,7 @@ function textToTags(value) {
 
         <ImageField
             v-else-if="field.type === 'image' || field.type === 'gallery'"
-            :id="field.name"
+            :id="inputId"
             :model-value="Array.isArray(modelValue) ? modelValue : []"
             :multiple="field.type === 'gallery'"
             :invalid="Boolean(error)"
@@ -180,7 +184,7 @@ function textToTags(value) {
             <span>{{ field.label }}</span>
 
             <Switch
-                :id="field.name"
+                :id="inputId"
                 :model-value="Boolean(modelValue)"
                 :readonly="readonly"
                 @update:model-value="$emit('update:modelValue', $event)"
@@ -189,7 +193,7 @@ function textToTags(value) {
 
         <StatusInput
             v-else-if="field.type === 'status'"
-            :id="field.name"
+            :id="inputId"
             :model-value="modelValue ?? 'published'"
             :password="password"
             :options="field.options ?? []"
@@ -200,7 +204,7 @@ function textToTags(value) {
 
         <Select
             v-else-if="field.type === 'select'"
-            :id="field.name"
+            :id="inputId"
             :model-value="modelValue ?? ''"
             :options="field.options ?? []"
             :placeholder="`Choose ${field.label.toLowerCase()}`"
@@ -212,7 +216,7 @@ function textToTags(value) {
 
         <TagsInput
             v-else-if="field.type === 'tags'"
-            :id="field.name"
+            :id="inputId"
             :model-value="Array.isArray(modelValue) ? modelValue : []"
             :readonly="readonly"
             @update:model-value="$emit('update:modelValue', $event)"
@@ -220,7 +224,7 @@ function textToTags(value) {
 
         <DateTimeField
             v-else-if="field.type === 'datetime'"
-            :id="field.name"
+            :id="inputId"
             :model-value="String(modelValue ?? '')"
             :relative-to-value="relativeToValue"
             :readonly="readonly"
@@ -229,7 +233,7 @@ function textToTags(value) {
 
         <DurationInput
             v-else-if="field.type === 'duration'"
-            :id="field.name"
+            :id="inputId"
             :model-value="modelValue"
             :readonly="readonly"
             @update:model-value="$emit('update:modelValue', $event)"
@@ -237,7 +241,7 @@ function textToTags(value) {
 
         <DistanceInput
             v-else-if="field.type === 'distance'"
-            :id="field.name"
+            :id="inputId"
             :model-value="modelValue"
             :readonly="readonly"
             @update:model-value="$emit('update:modelValue', $event)"
@@ -245,7 +249,7 @@ function textToTags(value) {
 
         <LookupInput
             v-else-if="field.type === 'lookup'"
-            :id="field.name"
+            :id="inputId"
             :model-value="modelValue ?? ''"
             :source="field.source"
             :readonly="readonly"
@@ -255,7 +259,7 @@ function textToTags(value) {
 
         <LocationInput
             v-else-if="field.type === 'location'"
-            :id="field.name"
+            :id="inputId"
             :model-value="modelValue ?? ''"
             :source="field.source ?? 'place'"
             :readonly="readonly"
@@ -265,7 +269,7 @@ function textToTags(value) {
 
         <CitationField
             v-else-if="field.type === 'citation'"
-            :id="field.name"
+            :id="inputId"
             :model-value="modelValue ?? ''"
             :response-url="responseUrl"
             :response-kind="responseKind"
@@ -275,7 +279,7 @@ function textToTags(value) {
 
         <Input
             v-else
-            :id="field.name"
+            :id="inputId"
             :model-value="modelValue ?? ''"
             :invalid="Boolean(error)"
             :readonly="readonly"

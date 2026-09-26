@@ -6,7 +6,7 @@ import StatusInput from './StatusInput.vue';
 /**
  * The publish block (status, save state, View and the primary button), then
  * the sidebar fields passed in the default slot. Beside the writing column on
- * desktop; below it on a phone, where the sticky bar does the saving.
+ * desktop; on a phone only the fields show, under it, and the sticky bar publishes.
  */
 defineProps({
     // The status field's definition, or null for a type without one.
@@ -28,13 +28,12 @@ defineEmits(['fill', 'submit']);
 </script>
 
 <template>
-    <!-- Below lg only the status and the sidebar fields show, so with neither it draws no rule. -->
     <aside
-        class="lg:sticky lg:top-6 lg:mt-0 lg:w-72 lg:shrink-0 lg:self-start lg:border-t-0 lg:pt-0"
-        :class="statusField || $slots.default ? 'mt-12 border-t border-neutral-50 pt-8' : ''"
+        class="lg:sticky lg:top-6 lg:mt-0 lg:w-72 lg:shrink-0 lg:self-start"
+        :class="$slots.default ? 'mt-12' : ''"
     >
         <div class="space-y-3">
-            <div v-if="statusField">
+            <div v-if="statusField" class="hidden lg:block">
                 <Eyebrow as="label" :for="statusField.name" class="mb-1 block text-neutral-500">{{ statusField.label }}</Eyebrow>
 
                 <StatusInput
@@ -64,7 +63,7 @@ defineEmits(['fill', 'submit']);
         </div>
 
         <template v-if="$slots.default">
-            <hr class="my-6 border-neutral-50" :class="statusField ? '' : 'hidden lg:block'">
+            <hr class="my-6 hidden border-neutral-50 lg:block">
 
             <slot />
         </template>
