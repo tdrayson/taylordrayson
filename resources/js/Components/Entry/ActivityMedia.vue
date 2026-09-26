@@ -36,7 +36,7 @@ defineEmits(['open']);
                 class="group/zoom relative aspect-square cursor-zoom-in overflow-hidden rounded-lg border border-neutral-50 bg-neutral-25 transition-opacity hover:opacity-95"
                 @click="$emit('open', index)"
             >
-                <img :src="photo.src" :srcset="photo.srcset || undefined" sizes="(min-width: 768px) 33vw, 50vw" alt="" class="size-full object-cover">
+                <img :src="photo.src" :srcset="photo.srcset || undefined" sizes="(min-width: 768px) 33vw, 50vw" alt="" class="u-photo size-full object-cover">
                 <span class="pointer-events-none absolute right-2 top-2 opacity-0 transition-opacity group-hover/zoom:opacity-100 group-focus-within/zoom:opacity-100">
                     <ZoomButton />
                 </span>
