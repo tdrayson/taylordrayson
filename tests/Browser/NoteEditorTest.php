@@ -24,7 +24,7 @@ it('saves a note as portable text, with a pasted link marked up', function () {
     $browser->click('.prose-editor')->typeSlowly('.prose-editor', 'See https://example.com for more ', 20);
     $browser->assertScript("document.querySelector('.prose-editor').innerText.includes('example.com')", true);
     $browser->fill('#slug', 'a-note');
-    $browser->click('button:has-text("Post")');
+    $browser->click('aside button:has-text("Post")');
 
     // Wait for the redirect to the saved note before reading it back: the click
     // returns before the request has landed.
@@ -72,6 +72,7 @@ it('lets a response be taken back after it has been chosen', function () {
     $browser = visit('/new/note');
 
     $browser->click('.prose-editor')->typeSlowly('.prose-editor', 'Second thoughts.', 20);
+    $browser->click('button[aria-pressed]:has-text("Response")');
     $browser->select('#response_kind', 'reply');
     $browser->assertPresent('#response_url');
 
@@ -79,7 +80,7 @@ it('lets a response be taken back after it has been chosen', function () {
     $browser->assertMissing('#response_url');
 
     $browser->fill('#slug', 'second-thoughts');
-    $browser->click('button:has-text("Post")');
+    $browser->click('aside button:has-text("Post")');
     $browser->assertScript("location.pathname !== '/new/note'", true);
 
     expect(Note::sole()->response_kind)->toBeNull();
@@ -90,6 +91,7 @@ it('names a like after the post it likes and posts it with no body', function ()
     Citation::factory()->create(['url' => 'https://example.com', 'title' => 'Example Domain']);
 
     $browser = visit('/new/note');
+    $browser->click('button[aria-pressed]:has-text("Response")');
     $browser->select('#response_kind', 'like');
     $browser->fill('#response_url', 'https://example.com');
     $browser->click('#slug');
@@ -100,7 +102,7 @@ it('names a like after the post it likes and posts it with no body', function ()
         true,
     );
 
-    $browser->click('button:has-text("Post")');
+    $browser->click('aside button:has-text("Post")');
     $browser->assertScript("location.pathname !== '/new/note'", true);
 
     expect(Note::sole()->getAttributes()['slug'])->toBe('liked-example-domain');

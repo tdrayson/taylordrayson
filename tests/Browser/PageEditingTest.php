@@ -15,7 +15,7 @@ it('saves an edit to an existing page', function () {
     // races it and posts the document as it was loaded.
     $browser->assertScript("document.querySelector('.prose-editor').innerText.includes('Edited body.')", true);
 
-    $browser->click('button:has-text("Save")');
+    $browser->click('aside button:has-text("Save")');
     $browser->assertSee('Draft, only you can see this');
 
     // The whole record, not just what the page displays: the editor offers a

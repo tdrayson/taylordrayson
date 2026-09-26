@@ -11,6 +11,7 @@ it('reveals the response url only once a kind is chosen', function () {
     $page->assertMissing('#response_url')
         ->assertMissing('#rsvp_value');
 
+    $page->click('button[aria-pressed]:has-text("Response")');
     $page->select('#response_kind', 'reply');
     $page->assertPresent('#response_url')
         // An answer belongs to an RSVP alone.
@@ -23,6 +24,7 @@ it('reveals the answer only for an rsvp, and clears it when the kind changes', f
 
     $page = visit('/new/note');
 
+    $page->click('button[aria-pressed]:has-text("Response")');
     $page->select('#response_kind', 'rsvp');
     $page->assertPresent('#rsvp_value')->assertPresent('#response_url');
 
