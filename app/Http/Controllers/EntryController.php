@@ -164,6 +164,7 @@ class EntryController extends Controller
             'editing' => $editing,
             // The editor's menu duplicates, deletes and previews a hand-written entry by its id.
             'entryId' => $editing && $authorable !== null ? $model->getKey() : null,
+            'authoringType' => $editing ? $authorable : null,
             // A synced type edits its status alone: a field the sync also writes
             // would be silently overwritten by the next run.
             'editAction' => match (true) {

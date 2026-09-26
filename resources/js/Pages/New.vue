@@ -66,6 +66,7 @@ const heading = computed(() => (props.type ? `New ${entryType(props.type).label.
         :fields="fields"
         :values="values"
         :action="`/entries/${type}`"
+        :authoring-type="type"
         method="post"
         submit-label="Post"
         :convert-to="type === 'note' ? 'article' : null"
