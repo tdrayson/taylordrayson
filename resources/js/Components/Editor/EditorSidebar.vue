@@ -28,8 +28,10 @@ defineEmits(['fill', 'submit']);
 </script>
 
 <template>
+    <!-- Capped to the viewport so the lower fields scroll into reach. The -m-2/p-2
+         pair (so w-76 keeps a w-72 column) stops the scroll box clipping focus rings. -->
     <aside
-        class="lg:sticky lg:top-6 lg:mt-0 lg:w-72 lg:shrink-0 lg:self-start"
+        class="lg:sticky lg:top-4 lg:-m-2 lg:max-h-screen lg:w-76 lg:shrink-0 lg:self-start lg:overflow-y-auto lg:p-2 lg:pb-12"
         :class="$slots.default ? 'mt-12' : ''"
     >
         <div class="space-y-3">
