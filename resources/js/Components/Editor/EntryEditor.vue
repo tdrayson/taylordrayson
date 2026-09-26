@@ -10,12 +10,16 @@ import { shiftWallClock } from '../../lib/editor/wallClock.js';
 import { hiddenNames, required, revealed } from '../../lib/editor/visibility.js';
 import { MAIN_TAB, SOCIAL_TAB } from '../../lib/editor/placement.js';
 import Button from '../Ui/Button.vue';
+import Eyebrow from '../Ui/Eyebrow.vue';
+import Select from '../Ui/Select.vue';
 import ZoomSwitcher from '../Layout/ZoomSwitcher.vue';
 import EditorFields from './EditorFields.vue';
 import EditorHeader from './EditorHeader.vue';
 import EditorSidebar from './EditorSidebar.vue';
+import EditorSidebarRows from './EditorSidebarRows.vue';
 import FieldInput from './FieldInput.vue';
 import LengthNotice from './LengthNotice.vue';
+import PasswordInput from './PasswordInput.vue';
 
 /**
  * The editing surface for any type: a header over the tabbed writing column,
@@ -193,10 +197,12 @@ function fieldBindings(field) {
 
 const errorCount = computed(() => Object.keys(form.errors).length);
 
+const isPrivate = computed(() => statusField.value !== null && form[statusField.value.name] === 'private');
+
+const statusError = computed(() => (statusField.value ? form.errors[statusField.value.name] ?? null : null));
+
 /** A private entry cannot be saved with the password box empty. */
-const needsPassword = computed(() => statusField.value !== null
-    && form[statusField.value.name] === 'private'
-    && ! form.password);
+const needsPassword = computed(() => isPrivate.value && ! form.password);
 
 /** What the saved status means for who can see the entry. */
 const STATUS_NOTES = {
@@ -333,7 +339,7 @@ function submit() {
                 <EditorSidebar
                     :status="statusField ? form[statusField.name] : null"
                     :status-field="statusField"
-                    :status-error="statusField ? form.errors[statusField.name] : null"
+                    :status-error="statusError"
                     :password="form.password ?? ''"
                     :status-text="status"
                     :view-url="viewUrl"
@@ -343,11 +349,25 @@ function submit() {
                     @fill="applyFill"
                     @submit="submit"
                 >
+                    <!-- Both drawn, one per breakpoint: the phone rows only mount an open
+                         row's inputs, and suffix their ids so none repeats the list's. -->
                     <template v-if="placed.sidebar.length" #default>
                         <EditorFields
                             :fields="placed.sidebar"
                             :form="form"
                             :bindings="fieldBindings"
+                            compact-zones
+                            class="hidden lg:block"
+                            @update="onFieldInput"
+                            @fill="applyFill"
+                            @preview="responsePreview = $event"
+                        />
+
+                        <EditorSidebarRows
+                            :fields="placed.sidebar"
+                            :form="form"
+                            :bindings="fieldBindings"
+                            class="lg:hidden"
                             @update="onFieldInput"
                             @fill="applyFill"
                             @preview="responsePreview = $event"
@@ -356,14 +376,45 @@ function submit() {
                 </EditorSidebar>
             </div>
 
-            <!-- Phone only: the publish block's save moves here. Sticky rather
-                 than fixed, so the form needs no bottom padding. -->
-            <div class="sticky bottom-0 z-10 mt-8 flex items-center justify-between gap-3 border-t border-neutral-50 bg-neutral-0 py-3 sm:static sm:py-0 sm:pt-4 lg:hidden">
-                <p class="text-xs text-neutral-500 sm:text-sm">{{ status }}</p>
+            <!-- Phone only: kept out of the sticky bar so the bar stays one line. -->
+            <div v-if="isPrivate || statusError" class="mt-8 lg:hidden">
+                <template v-if="isPrivate">
+                    <Eyebrow as="label" for="password-bar" class="mb-1 block text-neutral-500">Password</Eyebrow>
 
-                <Button variant="primary" size="lg" class="shrink-0" :disabled="saveDisabled" @click="submit">
-                    {{ saveLabel }}
-                </Button>
+                    <PasswordInput
+                        id="password-bar"
+                        :model-value="form.password ?? ''"
+                        :readonly="Boolean(statusField.readOnly)"
+                        @update:model-value="applyFill({ password: $event })"
+                    />
+                </template>
+
+                <p v-if="statusError" class="mt-1 text-xs text-red-600">{{ statusError }}</p>
+            </div>
+
+            <!-- Phone only: the publish block moves here. Sticky rather than
+                 fixed, so the form needs no bottom padding. -->
+            <div class="sticky bottom-0 z-10 mt-8 border-t border-neutral-50 bg-neutral-0 py-3 sm:static sm:py-0 sm:pt-4 lg:hidden">
+                <div class="flex items-center gap-3">
+                    <div v-if="statusField" class="min-w-0 flex-1">
+                        <Select
+                            :model-value="form[statusField.name] ?? 'published'"
+                            :options="statusField.options ?? []"
+                            :readonly="Boolean(statusField.readOnly)"
+                            :invalid="Boolean(statusError)"
+                            :aria-label="statusField.label"
+                            @update:model-value="form[statusField.name] = $event"
+                        />
+                    </div>
+
+                    <p v-else class="min-w-0 flex-1 text-xs text-neutral-500 sm:text-sm">{{ status }}</p>
+
+                    <Button variant="primary" size="lg" class="shrink-0" :disabled="saveDisabled" @click="submit">
+                        {{ saveLabel }}
+                    </Button>
+                </div>
+
+                <p v-if="statusField" class="mt-1 text-xs text-neutral-500">{{ status }}</p>
             </div>
         </div>
     </div>

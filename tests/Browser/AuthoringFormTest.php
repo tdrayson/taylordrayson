@@ -30,14 +30,27 @@ it('draws a short form whole, with nothing left behind the add menu', function (
         ->assertNoJavascriptErrors();
 });
 
-it('keeps the timezone inside the date it qualifies, not beside it', function () {
+it('shows the timezone under its date as a value, with the lookup behind Change', function () {
     $this->actingAs(User::factory()->create());
 
-    $page = visit('/new/note');
+    visit('/new/note')
+        ->assertMissing('#timezone')
+        ->click('button[aria-label="Change timezone"]')
+        ->assertPresent('#timezone')
+        ->assertScript('document.activeElement.id', 'timezone')
+        ->assertNoJavascriptErrors();
+});
 
-    $page->assertDontSee('Timezone')
-        ->click('#occurred_at')
-        ->assertSee('Timezone')
+it('opens one sidebar row at a time on a phone', function () {
+    $this->actingAs(User::factory()->create());
+
+    visit('/new/note')
+        ->resize(390, 844)
+        ->click('button[aria-expanded]:has-text("Tags")')
+        ->assertPresent('#tags-row')
+        ->click('button[aria-expanded]:has-text("Date")')
+        ->assertMissing('#tags-row')
+        ->assertPresent('#occurred_at-row')
         ->assertNoJavascriptErrors();
 });
 

@@ -1,7 +1,10 @@
 <script setup>
 import { computed } from 'vue';
+import { fieldRows, isTimezone } from '../../lib/editor/placement.js';
+import { summariseFields } from '../../lib/editor/summary.js';
 import FieldGroup from './FieldGroup.vue';
 import FieldInput from './FieldInput.vue';
+import TimezoneField from './TimezoneField.vue';
 
 /**
  * A stack of field rows, a group standing where its first field was declared.
@@ -13,44 +16,13 @@ const props = defineProps({
     form: { type: Object, required: true },
     // Extra FieldInput props for one field, e.g. a slug's preview and lock.
     bindings: { type: Function, default: () => ({}) },
+    // Draws a timezone as its value and a Change link, under the date it follows when there is one.
+    compactZones: { type: Boolean, default: false },
 });
 
 defineEmits(['update', 'fill', 'preview']);
 
-/**
- * Rows in declaration order. Drawing every group after every loose field
- * instead put an address a whole form away from the venue lookup that fills it.
- */
-const rows = computed(() => {
-    const seen = new Set();
-
-    return props.fields.flatMap((field) => {
-        if (! field.group) {
-            return [{ kind: 'field', key: field.name, field }];
-        }
-
-        if (seen.has(field.group)) {
-            return [];
-        }
-
-        seen.add(field.group);
-
-        return [{
-            kind: 'group',
-            key: field.group,
-            label: field.group,
-            fields: props.fields.filter((candidate) => candidate.group === field.group),
-        }];
-    });
-});
-
-/** The group's set values on one line, so it reads without being opened. */
-function groupSummary(row) {
-    return row.fields
-        .map((field) => props.form[field.name])
-        .filter((value) => value !== null && value !== undefined && value !== '')
-        .join(', ');
-}
+const rows = computed(() => fieldRows(props.fields, { pairZones: props.compactZones }));
 </script>
 
 <template>
@@ -59,7 +31,19 @@ function groupSummary(row) {
             <!-- Wrapped so anything slotted after a field hangs off it rather
                  than becoming another row in the stack's spacing. -->
             <div v-if="row.kind === 'field'">
+                <TimezoneField
+                    v-if="compactZones && isTimezone(row.field)"
+                    :field="row.field"
+                    :model-value="form[row.field.name]"
+                    :error="form.errors[row.field.name]"
+                    :readonly="bindings(row.field).readonly"
+                    labelled
+                    @update:model-value="$emit('update', row.field, $event)"
+                    @fill="(values, options) => $emit('fill', values, options)"
+                />
+
                 <FieldInput
+                    v-else
                     :field="row.field"
                     :model-value="form[row.field.name]"
                     :error="form.errors[row.field.name]"
@@ -69,13 +53,24 @@ function groupSummary(row) {
                     @preview="$emit('preview', $event)"
                 />
 
+                <TimezoneField
+                    v-if="row.zone"
+                    :field="row.zone"
+                    :model-value="form[row.zone.name]"
+                    :error="form.errors[row.zone.name]"
+                    :readonly="bindings(row.zone).readonly"
+                    class="mt-1"
+                    @update:model-value="$emit('update', row.zone, $event)"
+                    @fill="(values, options) => $emit('fill', values, options)"
+                />
+
                 <slot name="after-field" :field="row.field" />
             </div>
 
             <FieldGroup
                 v-else
                 :label="row.label"
-                :summary="groupSummary(row)"
+                :summary="summariseFields(row.fields, form)"
                 :invalid="row.fields.some((field) => form.errors[field.name])"
             >
                 <FieldInput

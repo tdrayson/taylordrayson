@@ -69,3 +69,58 @@ export function tabsFor(fields) {
 
     return tabs;
 }
+
+/**
+ * A timezone lookup, which the sidebar draws compact under the date it qualifies.
+ *
+ * @param {object} field One serialised FieldData.
+ * @returns {boolean}
+ */
+export function isTimezone(field) {
+    return field.source === 'timezone';
+}
+
+/**
+ * A list's rows in declaration order, a group standing where its first field was
+ * declared. With `pairZones`, a timezone straight after a datetime rides on that
+ * datetime's row as its `zone` rather than taking a row of its own.
+ *
+ * @param {Array<object>} fields
+ * @param {{pairZones?: boolean}} options
+ * @returns {Array<{kind: 'field', key: string, field: object, zone: object|null}|{kind: 'group', key: string, label: string, fields: Array<object>}>}
+ */
+export function fieldRows(fields, { pairZones = false } = {}) {
+    const seen = new Set();
+    const rows = [];
+
+    fields.forEach((field) => {
+        const previous = rows.at(-1);
+
+        if (pairZones && isTimezone(field) && previous?.kind === 'field' && previous.field.type === 'datetime' && ! previous.zone) {
+            rows[rows.length - 1] = { ...previous, zone: field };
+
+            return;
+        }
+
+        if (! field.group) {
+            rows.push({ kind: 'field', key: field.name, field, zone: null });
+
+            return;
+        }
+
+        if (seen.has(field.group)) {
+            return;
+        }
+
+        seen.add(field.group);
+
+        rows.push({
+            kind: 'group',
+            key: field.group,
+            label: field.group,
+            fields: fields.filter((candidate) => candidate.group === field.group),
+        });
+    });
+
+    return rows;
+}
