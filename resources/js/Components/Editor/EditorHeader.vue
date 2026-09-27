@@ -3,8 +3,8 @@ import { computed } from 'vue';
 import { entryType } from '../../entryTypes.js';
 
 /**
- * The editor's header, mirroring the entry page's: type label, title, date line.
- * A type with a title field edits it here; any other shows its heading read-only.
+ * The editor's header: title, then date line. A type with a title field edits it
+ * here; any other shows its heading read-only under the type label.
  */
 const props = defineProps({
     type: { type: String, required: true },
@@ -25,7 +25,7 @@ const accentStyle = computed(() => ({ color: `var(--color-${meta.value.accent})`
 
 <template>
     <header>
-        <p class="text-2xs font-semibold uppercase tracking-wider" :style="accentStyle">{{ meta.label }}</p>
+        <p v-if="!titleField" class="text-2xs font-semibold uppercase tracking-wider" :style="accentStyle">{{ meta.label }}</p>
 
         <!-- The page needs exactly one h1 for the outline, and a title field is
              an input rather than a heading, so it gets a hidden one. -->
@@ -42,7 +42,7 @@ const accentStyle = computed(() => ({ color: `var(--color-${meta.value.accent})`
                 :aria-describedby="titleError ? `${titleField.name}-error` : undefined"
                 rows="1"
                 data-text-size
-                class="field-sizing-content mt-1 w-full resize-none overflow-hidden border-none bg-transparent p-0 pb-1.5 font-display text-5xl font-extrabold tracking-tight text-neutral-900 placeholder:text-neutral-200 focus:outline-none"
+                class="field-sizing-content w-full resize-none overflow-hidden border-none bg-transparent p-0 pb-1.5 font-display text-5xl font-extrabold tracking-tight text-neutral-900 placeholder:text-neutral-200 focus:outline-none"
                 @keydown.enter.prevent
             />
 
