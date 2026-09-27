@@ -32,6 +32,13 @@ return [
 
     'bio' => 'I build stuff on the internet, track everything, and drink too much coffee.',
 
+    // The personal link page's address, so it lives in .env and is never committed.
+    'email' => env('PROFILE_PERSONAL_EMAIL'),
+
+    // Where I am based, deliberately distinct from ambient.location, which
+    // follows me around.
+    'home' => 'Whyteleafe, Surrey',
+
     // Each also gets a short link on the main site, e.g. /linkedin.
     'profiles' => [
         ['label' => 'GitHub', 'href' => 'https://github.com/tdrayson'],

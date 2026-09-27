@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Models\Concerns\HasAttachments;
+use App\Models\Concerns\HasDynamicContent;
 use App\Models\Concerns\HasInteractions;
 use App\Models\Concerns\HasStatus;
 use App\Models\Concerns\RecordsMentions;
@@ -30,7 +31,7 @@ use Spatie\MediaLibrary\HasMedia;
 #[ObservedBy([LinkFaviconObserver::class])]
 class Page extends Model implements HasMedia
 {
-    use HasAttachments;
+    use HasAttachments, HasDynamicContent;
 
     /** @use HasFactory<PageFactory> */
     use HasFactory;

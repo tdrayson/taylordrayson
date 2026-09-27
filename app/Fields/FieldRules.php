@@ -7,6 +7,7 @@ use App\Enums\FieldType;
 use App\Rules\NotReservedSlug;
 use App\Rules\RequiredUnless;
 use App\Rules\TextOrDocument;
+use App\Rules\ValidPortableText;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Database\Eloquent\Model;
 
@@ -109,7 +110,7 @@ final class FieldRules
             FieldType::RichText => ['nullable', 'array'],
             // Blocks from the editor, or a plain string from anything that only
             // has one; the model normalises a string into a single block.
-            FieldType::Prose => ['nullable', new TextOrDocument($field->max)],
+            FieldType::Prose => ['nullable', new TextOrDocument($field->max), new ValidPortableText],
             FieldType::Slug => [
                 'nullable', 'string', 'max:100', 'regex:/^[a-z0-9]+(-[a-z0-9]+)*$/',
                 ...($field->checksReservedSlug ? [new NotReservedSlug] : []),
