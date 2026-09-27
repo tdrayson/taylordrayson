@@ -6,7 +6,6 @@ use App\Actions\Notes\NameResponseSlug;
 use App\Enums\ResponseKind;
 use App\Enums\RsvpValue;
 use App\Models\Concerns\HasAttachments;
-use App\Models\Concerns\HasDynamicContent;
 use App\Models\Concerns\HasResponse;
 use App\Models\Concerns\HasStatus;
 use App\Models\Concerns\HasTags;
@@ -55,7 +54,7 @@ class Note extends Model implements HasMedia, Timelineable
     /** How much of the note, or of what a response answers, the derived slug uses. */
     public const SLUG_WORDS = 6;
 
-    use HasAttachments, HasDynamicContent, HasFactory, HasResponse, HasStatus, HasTags, HasTimelineEntry;
+    use HasAttachments, HasFactory, HasResponse, HasStatus, HasTags, HasTimelineEntry;
 
     /**
      * A response's slug is stored when it is created, after HasResponse has linked

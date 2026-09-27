@@ -19,6 +19,9 @@ use Saloon\Http\Request;
  */
 trait AuthenticatesWithToken
 {
+    /** Pocket Casts refuses requests without one. */
+    private const USER_AGENT = 'taylordrayson.com (+https://github.com/tdrayson)';
+
     /** @var (callable(bool): string)|null */
     private $tokenResolver = null;
 
@@ -33,13 +36,7 @@ trait AuthenticatesWithToken
     /** @return array<string, string> */
     protected function defaultHeaders(): array
     {
-        return ['Accept' => 'application/json', 'User-Agent' => $this->userAgent()];
-    }
-
-    /** Pocket Casts refuses requests without one. */
-    private function userAgent(): string
-    {
-        return 'taylordrayson.com (+'.collect(config('identity.profiles'))->firstWhere('label', 'GitHub')['href'].')';
+        return ['Accept' => 'application/json', 'User-Agent' => self::USER_AGENT];
     }
 
     public function boot(PendingRequest $pendingRequest): void
