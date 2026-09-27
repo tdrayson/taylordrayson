@@ -44,7 +44,7 @@ class PageController extends Controller
             'title' => $page->title,
             'excerpt' => $page->excerpt,
             'cover' => $locked ? null : $page->coverPhoto(),
-            'og' => OgMeta::page($page->title, $page->excerpt, PortableText::plainText($page->content), $page->status),
+            'og' => OgMeta::page($page->title, $page->excerpt, PortableText::plainText($page->resolvedContent()), $page->status),
             'locked' => $locked,
             'unlockUrl' => $locked ? route('unlock', ['dataset' => 'page', 'id' => $page->id], false) : null,
             // A locked page offers no formats: each would 404, and there is
@@ -68,9 +68,9 @@ class PageController extends Controller
                     ...(Auth::check() ? ['password' => $page->password] : []),
                     ...app(AttachedMediaValues::class)($page, $fields),
                 ],
-                'content' => $page->content,
-                'linkPreviews' => app(BuildLinkPreviews::class)($page->content),
-                'linkFavicons' => (new BuildLinkFavicons)($page->content),
+                'content' => $page->resolvedContent(),
+                'linkPreviews' => app(BuildLinkPreviews::class)($page->resolvedContent()),
+                'linkFavicons' => (new BuildLinkFavicons)($page->resolvedContent()),
             ]),
         ])->toResponse(request());
 
