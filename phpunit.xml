@@ -41,6 +41,7 @@
         <env name="TELESCOPE_ENABLED" value="false"/>
         <env name="NIGHTWATCH_ENABLED" value="false"/>
         <env name="LOGODEV_TOKEN" value=""/>
+        <env name="PROFILE_PERSONAL_EMAIL" value="taylor@example.com"/>
         <!-- Blanked so a failure alert cannot reach a real phone. Pushover is
              the one client that fires on an unhappy path, and its send() bails
              before making a request when it has no credentials. -->
