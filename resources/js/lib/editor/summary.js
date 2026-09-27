@@ -1,7 +1,7 @@
 import { clock } from '../format.js';
 import { formatDate } from '../dateFormat.js';
 import { plainTextOf } from './defaults.js';
-import { wallClockParts } from './wallClock.js';
+import { stampWallClock, wallClockParts } from './wallClock.js';
 
 /**
  * A wall clock the way the editor shows it, e.g. "Mon 21 Sep, 12:57pm", with
@@ -20,15 +20,16 @@ export function readableWallClock({ date, time }, now = new Date()) {
 /**
  * One field's value on a line, or '' when it is unset: tags joined with commas,
  * a select by its option label, a date in the editor's own format. A date the
- * server stamps at save reads "Now", as DateTimeField shows it.
+ * server stamps at save reads as the time it would get, as DateTimeField shows it.
  *
  * @param {object} field One serialised FieldData.
  * @param {*} value The field's current value on the form.
+ * @param {Date} now The clock an unset stamped-at-save date reads as.
  * @returns {string}
  */
-export function summariseValue(field, value) {
+export function summariseValue(field, value, now = new Date()) {
     if (value === null || value === undefined || value === '') {
-        return field.defaultsToNow ? 'Now' : '';
+        return field.defaultsToNow ? readableWallClock(wallClockParts(stampWallClock(now)), now) : '';
     }
 
     switch (field.type) {
@@ -64,11 +65,12 @@ export function summariseValue(field, value) {
  *
  * @param {Array<object>} fields
  * @param {object} form The editor's form, read for values.
+ * @param {Date} now The clock an unset stamped-at-save date reads as.
  * @returns {string}
  */
-export function summariseFields(fields, form) {
+export function summariseFields(fields, form, now = new Date()) {
     return fields
-        .map((field) => summariseValue(field, form[field.name]))
+        .map((field) => summariseValue(field, form[field.name], now))
         .filter(Boolean)
         .join(', ');
 }

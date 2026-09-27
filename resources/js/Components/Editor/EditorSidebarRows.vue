@@ -1,5 +1,5 @@
 <script setup>
-import { computed, nextTick, ref, watch } from 'vue';
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import { fieldRows } from '../../lib/editor/placement.js';
 import { summariseFields, summariseValue } from '../../lib/editor/summary.js';
 import Icon from '../Ui/Icon.vue';
@@ -40,11 +40,27 @@ function fieldsOf(row) {
 
 const isInvalid = (row) => fieldsOf(row).some((field) => props.form.errors[field.name]);
 
-/** The row's value on one line; a date row reads as the date alone. */
+// Ticks so an unset date keeps reading as the time it would be stamped with.
+const now = ref(new Date());
+let ticker = null;
+
+onMounted(() => {
+    ticker = setInterval(() => {
+        now.value = new Date();
+    }, 30_000);
+});
+
+onBeforeUnmount(() => clearInterval(ticker));
+
+/** The row's value on one line, or what the empty input would show, e.g. the slug the title gives. */
 function summaryOf(row) {
-    return row.kind === 'group'
-        ? summariseFields(row.fields, props.form)
-        : summariseValue(row.field, props.form[row.field.name]);
+    if (row.kind === 'group') {
+        return summariseFields(row.fields, props.form, now.value);
+    }
+
+    return summariseValue(row.field, props.form[row.field.name], now.value)
+        || props.bindings(row.field).placeholder
+        || '';
 }
 
 /** Open a row closing any other, or close it again; opening puts the cursor in its input. */
