@@ -4,6 +4,7 @@ import PortableTextBlocks from './PortableTextBlocks.js';
 import Lightbox from '../Overlays/Lightbox.vue';
 import LinkPreviewLayer from './LinkPreviewLayer.vue';
 import { useLinkContext } from '../../lib/linkContext.js';
+import { morphFromProse } from '../../lib/entryMorph.js';
 
 // Read-only renderer for a Portable Text document. Accepts the bare node
 // array (content is cast to an array server-side) or a raw JSON string.
@@ -54,7 +55,7 @@ const contentEl = ref(null);
 <template>
     <!-- prose supplies the inter-element rhythm; its :where() selectors have zero
          specificity, so the renderer's explicit classes always win. -->
-    <div v-if="nodes.length" ref="contentEl" v-twemoji v-bind="$attrs" class="block-content prose max-w-none text-base text-neutral-900">
+    <div v-if="nodes.length" ref="contentEl" v-twemoji v-bind="$attrs" class="block-content prose max-w-none text-base text-neutral-900" @click="morphFromProse($event, links.previews)">
         <PortableTextBlocks :nodes="nodes" :favicons="links.favicons" :previews="links.previews" @image-click="openImage" />
     </div>
 

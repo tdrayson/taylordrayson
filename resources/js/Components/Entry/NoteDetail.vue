@@ -23,13 +23,14 @@ const lightboxIndex = ref(null);
         <ReplyContext v-if="entry.response" :response="entry.response" class="mb-6" />
 
         <!-- Notes have no headline, so the content is the page's primary text. -->
-        <BlockContent :document="entry.content" class="e-content text-lg leading-relaxed" />
+        <BlockContent :document="entry.content" data-morph="body" class="e-content text-lg leading-relaxed" />
 
         <ul v-if="photos.length" :class="photos.length > 1 ? 'grid grid-cols-2 gap-2.5' : ''">
             <li v-for="(photo, index) in photos" :key="index">
                 <button
                     type="button"
                     :aria-label="`View photo ${index + 1}`"
+                    :data-morph="index === 0 ? 'image' : undefined"
                     class="group/zoom relative block w-full cursor-zoom-in overflow-hidden rounded-lg border border-neutral-50 bg-neutral-25 transition-opacity hover:opacity-95"
                     :class="photos.length > 1 ? 'aspect-square' : ''"
                     @click="lightboxIndex = index"
