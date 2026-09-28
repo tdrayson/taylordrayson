@@ -9,6 +9,7 @@ import AuthorRef from '../Components/Profile/AuthorRef.vue';
 import Pagination from '../Components/Ui/Pagination.vue';
 import YearJump from '../Components/Timeline/YearJump.vue';
 import { formatRange } from '../lib/dateFormat.js';
+import { filterVisit, useFilterTransition } from '../lib/filterTransition.js';
 
 defineOptions({ layout: AppLayout, inheritAttrs: false });
 
@@ -46,8 +47,10 @@ const filterMenu = props.filters.map((preset) => ({
     icon: FILTER_ICONS[preset.value],
     href: `/?filter=${preset.value}`,
     description: preset.value === props.filter ? 'Showing' : undefined,
-    viewTransition: true,
+    visit: filterVisit(),
 }));
+
+const filtering = useFilterTransition();
 
 setLayoutProps({
     breadcrumb: [
@@ -93,7 +96,7 @@ const currentYear = computed(() => {
             :date="group.date"
             :href="group.href"
             :items="group.items"
-            animate-filter
+            :animate-filter="filtering"
         />
     </div>
 
