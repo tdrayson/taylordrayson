@@ -12,8 +12,10 @@ use Symfony\Component\HttpFoundation\BinaryFileResponse;
 /**
  * Render a Blade view to a 1200x630 OG card PNG via Browsershot, and serve a
  * cached card file back as a response with the right image headers.
+ *
+ * Not final so tests can stand in for Browsershot.
  */
-final class OgRenderer
+class OgRenderer
 {
     /**
      * Screenshot a rendered Blade view to a 1200x630 PNG file via Browsershot.
@@ -21,6 +23,14 @@ final class OgRenderer
     public function screenshot(View $view, string $path): void
     {
         $this->browsershot($view)->save($path);
+    }
+
+    /**
+     * Screenshot a rendered Blade view to 1200x630 PNG bytes, writing nothing to disk.
+     */
+    public function png(View $view): string
+    {
+        return $this->browsershot($view)->screenshot();
     }
 
     /**

@@ -3,6 +3,7 @@
 namespace App\Fields;
 
 use App\Data\FieldData;
+use App\Enums\EditorTab;
 use App\Enums\EntryStatus;
 use App\Enums\FieldType;
 
@@ -22,9 +23,9 @@ final class PageFields
             FieldData::primary('content', 'Content', FieldType::RichText),
             FieldData::primary('status', 'Status', FieldType::Status, EntryStatus::options(draftFirst: true)),
             FieldData::hidden('password', 'Password', FieldType::Text),
-            FieldData::optional('excerpt', 'Summary', FieldType::Textarea),
-            FieldData::optional('cover', 'Cover image', FieldType::Image, collection: 'cover'),
-            FieldData::primary('slug', 'Slug', FieldType::Slug),
+            FieldData::optional('excerpt', 'Summary', FieldType::Textarea, tab: EditorTab::Summary),
+            FieldData::optional('cover', 'Cover image', FieldType::Image, collection: 'cover', tab: EditorTab::Summary),
+            FieldData::primary('slug', 'Slug', FieldType::Slug, sidebar: true),
         ];
     }
 }

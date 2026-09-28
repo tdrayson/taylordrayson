@@ -2,6 +2,7 @@
 
 namespace App\Data;
 
+use App\Enums\EditorTab;
 use App\Enums\FieldType;
 use Illuminate\Contracts\Support\Arrayable;
 use JsonSerializable;
@@ -26,6 +27,8 @@ final readonly class FieldData implements Arrayable, JsonSerializable
      * @param  bool  $checksReservedSlug  Whether a Slug field is rejected when it matches a dataset's reserved day-URL word.
      * @param  array<string, list<string>>|null  $requiredUnless  Field name to the values that excuse a required field, shaped like showWhen; every entry must match.
      * @param  bool  $readOnly  Shown for reference but never posted, since something other than the form writes it.
+     * @param  EditorTab|null  $tab  Editor tab this field is drawn on, when it is not the type's main tab.
+     * @param  bool  $sidebar  Whether this field is drawn in the sidebar instead of a tab.
      */
     private function __construct(
         public string $name,
@@ -48,6 +51,8 @@ final readonly class FieldData implements Arrayable, JsonSerializable
         public bool $checksReservedSlug,
         public ?array $requiredUnless,
         public bool $readOnly,
+        public ?EditorTab $tab,
+        public bool $sidebar,
     ) {}
 
     /**
@@ -56,9 +61,9 @@ final readonly class FieldData implements Arrayable, JsonSerializable
      *
      * @param  list<array{value: string, label: string}>  $options
      */
-    public static function primary(string $name, string $label, FieldType $type, array $options = [], bool $required = false, ?string $source = null, bool $defaultsToNow = false, ?string $relativeTo = null, ?string $prefix = null, ?string $suffix = null, ?string $group = null, ?string $collection = null, ?string $fallback = null, ?int $max = null, ?array $showWhen = null, bool $checksReservedSlug = false, ?array $requiredUnless = null): self
+    public static function primary(string $name, string $label, FieldType $type, array $options = [], bool $required = false, ?string $source = null, bool $defaultsToNow = false, ?string $relativeTo = null, ?string $prefix = null, ?string $suffix = null, ?string $group = null, ?string $collection = null, ?string $fallback = null, ?int $max = null, ?array $showWhen = null, bool $checksReservedSlug = false, ?array $requiredUnless = null, ?EditorTab $tab = null, bool $sidebar = false): self
     {
-        return new self($name, $label, $type, true, $required, $options, $source, $defaultsToNow, $relativeTo, $prefix, $suffix, $group, $collection, false, $fallback, $max, $showWhen, $checksReservedSlug, $requiredUnless, false);
+        return new self($name, $label, $type, true, $required, $options, $source, $defaultsToNow, $relativeTo, $prefix, $suffix, $group, $collection, false, $fallback, $max, $showWhen, $checksReservedSlug, $requiredUnless, false, $tab, $sidebar);
     }
 
     /**
@@ -66,26 +71,26 @@ final readonly class FieldData implements Arrayable, JsonSerializable
      *
      * @param  list<array{value: string, label: string}>  $options
      */
-    public static function optional(string $name, string $label, FieldType $type, array $options = [], ?string $source = null, bool $defaultsToNow = false, ?string $relativeTo = null, ?string $prefix = null, ?string $suffix = null, ?string $group = null, ?string $collection = null, ?string $fallback = null, ?int $max = null, ?array $showWhen = null, bool $checksReservedSlug = false): self
+    public static function optional(string $name, string $label, FieldType $type, array $options = [], ?string $source = null, bool $defaultsToNow = false, ?string $relativeTo = null, ?string $prefix = null, ?string $suffix = null, ?string $group = null, ?string $collection = null, ?string $fallback = null, ?int $max = null, ?array $showWhen = null, bool $checksReservedSlug = false, ?EditorTab $tab = null, bool $sidebar = false): self
     {
-        return new self($name, $label, $type, false, false, $options, $source, $defaultsToNow, $relativeTo, $prefix, $suffix, $group, $collection, false, $fallback, $max, $showWhen, $checksReservedSlug, null, false);
+        return new self($name, $label, $type, false, false, $options, $source, $defaultsToNow, $relativeTo, $prefix, $suffix, $group, $collection, false, $fallback, $max, $showWhen, $checksReservedSlug, null, false, $tab, $sidebar);
     }
 
     /**
      * A field the UI never offers, kept so a lookup can fill it and a save can
      * carry it: coordinates come from picking a place, not from typing.
      */
-    public static function hidden(string $name, string $label, FieldType $type): self
+    public static function hidden(string $name, string $label, FieldType $type, ?EditorTab $tab = null, bool $sidebar = false): self
     {
-        return new self($name, $label, $type, false, false, [], null, false, null, null, null, null, null, true, null, null, null, false, null, false);
+        return new self($name, $label, $type, false, false, [], null, false, null, null, null, null, null, true, null, null, null, false, null, false, $tab, $sidebar);
     }
 
     /**
      * A field drawn read-only, for a value a sync owns.
      */
-    public static function readOnly(string $name, string $label, FieldType $type, ?string $suffix = null): self
+    public static function readOnly(string $name, string $label, FieldType $type, ?string $suffix = null, ?EditorTab $tab = null, bool $sidebar = false): self
     {
-        return new self($name, $label, $type, true, false, [], null, false, null, null, $suffix, null, null, false, null, null, null, false, null, true);
+        return new self($name, $label, $type, true, false, [], null, false, null, null, $suffix, null, null, false, null, null, null, false, null, true, $tab, $sidebar);
     }
 
     /**
@@ -153,6 +158,14 @@ final readonly class FieldData implements Arrayable, JsonSerializable
 
         if ($this->readOnly) {
             $data['readOnly'] = true;
+        }
+
+        if ($this->tab !== null) {
+            $data['tab'] = $this->tab->value;
+        }
+
+        if ($this->sidebar) {
+            $data['sidebar'] = true;
         }
 
         return $data;
