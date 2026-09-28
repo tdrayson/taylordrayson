@@ -228,7 +228,8 @@ function openLightbox(index) {
 const interactions = useInteractions();
 // Keyed on iconKey: that is the timeline type value the reaction endpoint is
 // addressed by. The `type` prop is the display label and is empty in the feed.
-const row = computed(() => (props.id === null ? null : interactions.value[`${props.iconKey}:${props.id}`] ?? null));
+const interactionsPending = computed(() => props.id !== null && interactions.value === null);
+const row = computed(() => (props.id === null || interactionsPending.value ? null : interactions.value[`${props.iconKey}:${props.id}`] ?? null));
 </script>
 
 <template>
@@ -454,24 +455,25 @@ const row = computed(() => (props.id === null ? null : interactions.value[`${pro
         </Button>
         <StageBar v-if="segments?.length" :segments="segments" class="mt-3 max-w-md" />
 
-        <!-- The counts arrive on a second request, so the row fades in rather than
-             appearing all at once. -->
-        <Transition name="fade">
-        <ReactionBar
-            v-if="row"
-            variant="compact"
-            class="mt-3"
-            :type="iconKey"
-            :id="Number(id)"
-            :url="url"
-            :reactions="row.reactions"
-            :like-count="row.likeCount"
-            :reply-count="row.replyCount"
-            :repost-count="row.repostCount"
-            :bookmark-count="row.bookmarkCount"
-            :rsvp-count="row.rsvpCount"
-            :mention-count="row.mentionCount"
-        />
-        </Transition>
+        <!-- The counts arrive on a second request, so the row's height is held
+             until then and the bar fades in rather than pushing the page down. -->
+        <div v-if="interactionsPending || row" class="mt-3 min-h-6.5">
+            <Transition name="fade">
+                <ReactionBar
+                    v-if="row"
+                    variant="compact"
+                    :type="iconKey"
+                    :id="Number(id)"
+                    :url="url"
+                    :reactions="row.reactions"
+                    :like-count="row.likeCount"
+                    :reply-count="row.replyCount"
+                    :repost-count="row.repostCount"
+                    :bookmark-count="row.bookmarkCount"
+                    :rsvp-count="row.rsvpCount"
+                    :mention-count="row.mentionCount"
+                />
+            </Transition>
+        </div>
     </div>
 </template>

@@ -13,13 +13,13 @@ const EMPTY = computed(() => ({}));
  * has to send the prop. Deferred, so it is empty on first paint and fills on
  * the second request.
  *
- * @param {import('vue').Ref<Object>} source Keyed `type:id`.
+ * @param {import('vue').Ref<Object|null>} source Keyed `type:id`, or null while the counts load.
  */
 export function provideInteractions(source) {
     provide(INTERACTION_CONTEXT, source);
 }
 
-/** @return {import('vue').Ref<Object>} */
+/** @return {import('vue').Ref<Object|null>} */
 export function useInteractions() {
     return inject(INTERACTION_CONTEXT, EMPTY);
 }
