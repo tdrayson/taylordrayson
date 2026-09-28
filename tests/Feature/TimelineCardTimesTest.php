@@ -3,9 +3,12 @@
 use App\Models\Food;
 use App\Models\Note;
 use App\Models\Sleep;
+use App\Timeline\TimelineFilter;
 use Illuminate\Support\Facades\Storage;
 
 use function Pest\Laravel\get;
+
+beforeEach(fn () => $this->withCookie(TimelineFilter::COOKIE, 'everything'));
 
 function notePhotoJpegBytes(): string
 {

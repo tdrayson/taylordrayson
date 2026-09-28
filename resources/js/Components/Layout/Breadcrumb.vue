@@ -2,8 +2,11 @@
 import { computed } from 'vue';
 import { Link, usePage } from '@inertiajs/vue3';
 import Icon from '../Ui/Icon.vue';
+import DropdownMenu from '../Ui/DropdownMenu.vue';
 
 const props = defineProps({
+    // list<{ label, href?, ariaLabel?, menu? }>. A current crumb with a `menu`
+    // (DropdownMenu items) opens it, e.g. the timeline filter.
     items: { type: Array, default: () => [] },
 });
 
@@ -11,7 +14,8 @@ const page = usePage();
 
 // On the home page the icon-only link would read as bare, so label it "Home"
 // and make it static (you're already here). Elsewhere it's an icon link home.
-const isHome = computed(() => page.url === '/');
+// Compares the path so older pages of the feed (/?before=) still count as home.
+const isHome = computed(() => page.url.split('?')[0] === '/');
 
 // Every crumb except the current page. The current page is the up-navigation's
 // least useful crumb (the page H1 already shows it), so on mobile we lead with
@@ -24,7 +28,7 @@ const current = computed(() => props.items[props.items.length - 1] ?? null);
     <nav aria-label="Breadcrumb" class="flex min-w-0 items-center text-sm text-neutral-500">
         <span v-if="isHome" class="flex shrink-0 items-center gap-2 text-neutral-700" aria-current="page">
             <Icon name="Home03Icon" class="size-4" />
-            Home
+            <span :class="{ 'sr-only': current }">Home</span>
         </span>
         <Link v-else href="/" aria-label="Home" class="flex shrink-0 items-center transition-colors hover:text-accent-500 focus-visible:text-accent-500">
             <Icon name="Home03Icon" class="size-4" />
@@ -45,7 +49,21 @@ const current = computed(() => props.items[props.items.length - 1] ?? null);
         >
             <span class="mx-2 shrink-0 text-neutral-100" aria-hidden="true">/</span>
             <!-- aria-label gives a short crumb ("29") a self-describing name ("29 June 2026"). -->
-            <span class="min-w-0 truncate" aria-current="page" :aria-label="current.ariaLabel || undefined">{{ current.label }}</span>
+            <DropdownMenu v-if="current.menu" :items="current.menu" :label="current.ariaLabel" align="left" width-class="w-60">
+                <template #trigger="{ open, toggle }">
+                    <button
+                        type="button"
+                        class="inline-flex items-center gap-1 rounded-sm text-neutral-700 hover:text-accent-500"
+                        aria-haspopup="menu"
+                        :aria-expanded="open"
+                        @click="toggle"
+                    >
+                        {{ current.label }}
+                        <Icon name="ArrowDown01Icon" class="size-3.5" />
+                    </button>
+                </template>
+            </DropdownMenu>
+            <span v-else class="min-w-0 truncate" aria-current="page" :aria-label="current.ariaLabel || undefined">{{ current.label }}</span>
         </div>
     </nav>
 </template>

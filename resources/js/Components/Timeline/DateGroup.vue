@@ -15,6 +15,8 @@ const props = defineProps({
     // SectionHead-led <section> so the outline steps down a level instead of
     // colliding with SectionHead's own h2.
     headingLevel: { type: [String, Number], default: 2 },
+    // Name the heading and cards for the timeline filter's view transition.
+    animateFilter: { type: Boolean, default: false },
 });
 
 // Computed client-side so a cached page never shows a stale "Today".
@@ -22,13 +24,18 @@ const relative = computed(() => relativeDay(props.date));
 
 const isToday = computed(() => relative.value === 'Today');
 const displayLabel = computed(() => relative.value ?? props.label);
+// A view-transition name per day, so a heading on both pages slides rather than swaps.
+const headingTransition = computed(() => (props.animateFilter && props.date
+    ? { viewTransitionName: `day-${props.date}`, viewTransitionClass: 'timeline-item' }
+    : undefined));
+
 // The tag name for the date heading, so callers can pass a numeric or string level.
 const headingTag = computed(() => `h${props.headingLevel}`);
 </script>
 
 <template>
     <section>
-        <Heading :as="headingTag" size="title" class="mb-6 flex items-center gap-2.5">
+        <Heading :as="headingTag" size="title" class="mb-6 flex items-center gap-2.5" :style="headingTransition">
             <component :is="href ? Link : 'span'" :href="href || undefined" class="transition-colors" :class="href ? 'underline-offset-4 hover:text-accent-500 hover:underline focus-visible:text-accent-500 focus-visible:underline' : ''">
                 <time v-if="date" :datetime="date">{{ displayLabel }}</time>
                 <template v-else>{{ displayLabel }}</template>
@@ -38,6 +45,6 @@ const headingTag = computed(() => `h${props.headingLevel}`);
                 <span class="relative inline-flex size-2.5 rounded-full bg-accent-500" />
             </span>
         </Heading>
-        <TimelineFeed :items="items" />
+        <TimelineFeed :items="items" :transition-scope="animateFilter ? date : null" />
     </section>
 </template>

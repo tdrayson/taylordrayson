@@ -22,11 +22,12 @@ final class TimelinePage
      *
      * @param  string|null  $before  Instant: start at the newest entry older than this.
      * @param  string|null  $after  Instant: start at the oldest entry newer than this, filling forward.
+     * @param  array<int, string>|null  $datasets  Only these dataset keys, or null for every one.
      */
-    public function __invoke(?string $before = null, ?string $after = null): TimelinePageData
+    public function __invoke(?string $before = null, ?string $after = null, ?array $datasets = null): TimelinePageData
     {
         $forward = $after !== null;
-        $taken = $this->take($forward ? $after : $before, $forward);
+        $taken = $this->take($forward ? $after : $before, $forward, $datasets);
 
         if ($taken->isEmpty()) {
             return new TimelinePageData(collect());
@@ -38,19 +39,20 @@ final class TimelinePage
 
         return new TimelinePageData(
             entries: $entries,
-            olderThan: $this->exists($oldest, older: true) ? str_replace(' ', 'T', $oldest) : null,
-            newerThan: $this->exists($newest, older: false) ? str_replace(' ', 'T', $newest) : null,
+            olderThan: $this->exists($oldest, true, $datasets) ? str_replace(' ', 'T', $oldest) : null,
+            newerThan: $this->exists($newest, false, $datasets) ? str_replace(' ', 'T', $newest) : null,
         );
     }
 
     /**
      * A page of entries walking away from the cursor.
      *
+     * @param  array<int, string>|null  $datasets
      * @return Collection<int, TimelineEntry>
      */
-    private function take(?string $cursor, bool $forward): Collection
+    private function take(?string $cursor, bool $forward, ?array $datasets): Collection
     {
-        $query = TimelineEntry::query()
+        $query = $this->query($datasets)
             ->withCardRelations()
             ->when($cursor !== null, fn (Builder $query) => $query->whereRaw(self::INSTANT.($forward ? ' > ?' : ' < ?'), [$cursor]))
             ->orderByInstant($forward ? 'asc' : 'desc');
@@ -70,12 +72,27 @@ final class TimelinePage
         return $entries->concat($ties);
     }
 
-    /** Whether any entry lies past an instant, which is what decides the links. */
-    private function exists(string $instant, bool $older): bool
+    /**
+     * Whether any entry lies past an instant, which is what decides the links.
+     *
+     * @param  array<int, string>|null  $datasets
+     */
+    private function exists(string $instant, bool $older, ?array $datasets): bool
     {
-        return TimelineEntry::query()
+        return $this->query($datasets)
             ->whereRaw(self::INSTANT.($older ? ' < ?' : ' > ?'), [$instant])
             ->exists();
+    }
+
+    /**
+     * Timeline entries, narrowed to the given datasets.
+     *
+     * @param  array<int, string>|null  $datasets
+     * @return Builder<TimelineEntry>
+     */
+    private function query(?array $datasets): Builder
+    {
+        return TimelineEntry::query()->when($datasets !== null, fn (Builder $query) => $query->whereIn('dataset', $datasets));
     }
 
     /** The raw instant the feed is ordered by, as stored. */

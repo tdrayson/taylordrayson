@@ -15,8 +15,11 @@ use App\Queries\TimelineYears;
 use App\Support\FeedInteractions;
 use App\Support\GalleryPhotos;
 use App\Support\OgMeta;
+use App\Timeline\FeedPresets;
+use App\Timeline\TimelineFilter;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection as EloquentCollection;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Pagination\Paginator;
 use Illuminate\Support\Carbon;
@@ -40,11 +43,18 @@ class TimelineController extends Controller
         private readonly TimelineYears $years,
     ) {}
 
-    public function index(Request $request): Response
+    public function index(Request $request): Response|RedirectResponse
     {
+        if (($requested = TimelineFilter::requested($request)) !== null) {
+            return redirect('/')->withCookie(TimelineFilter::remember($requested));
+        }
+
+        $filter = TimelineFilter::for($request);
+
         $page = ($this->page)(
             $this->cursor($request->query('before'), '00:00:00'),
             $this->cursor($request->query('after'), '23:59:59'),
+            TimelineFilter::datasets($filter),
         );
 
         $groups = $this->feed->groupByDay($page->entries);
@@ -60,6 +70,10 @@ class TimelineController extends Controller
             'newerUrl' => $page->newerThan === null ? null : '/?after='.$page->newerThan,
             'years' => ($this->years)(),
             'thisWeekWithEpisodes' => ($this->thisWeekWithEpisodes)(),
+            'filter' => $filter,
+            'filters' => collect(FeedPresets::all())
+                ->map(fn (array $preset, string $key): array => ['value' => $key, 'label' => $preset['label']])
+                ->values(),
         ]);
     }
 
