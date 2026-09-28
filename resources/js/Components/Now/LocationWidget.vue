@@ -62,7 +62,10 @@ onBeforeUnmount(() => {
 
 <template>
     <div class="group @container relative aspect-square overflow-hidden rounded-3xl bg-neutral-100 shadow-card">
-        <div ref="mapContainer" class="location-map absolute inset-0 z-0 overflow-hidden rounded-3xl" />
+        <!-- MapLibre's stylesheet forces the map element to position: relative, so it can't be the absolute layer itself. -->
+        <div class="absolute inset-0 z-0">
+            <div ref="mapContainer" class="location-map size-full overflow-hidden rounded-3xl" />
+        </div>
         <div class="location-scrim pointer-events-none absolute inset-0 z-2" />
 
         <div class="absolute top-47/100 left-1/2 z-4 size-3/14 -translate-1/2">
