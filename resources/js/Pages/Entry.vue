@@ -15,6 +15,7 @@ import { useTokenText } from '../composables/useTokenText';
 import EntryEditor from '../Components/Editor/EntryEditor.vue';
 import { valuesFor } from '../lib/editor/defaults.js';
 import { provideLinkContext } from '../lib/linkContext.js';
+import { useMorphTarget } from '../lib/entryMorph.js';
 
 defineOptions({ layout: AppLayout, inheritAttrs: false });
 
@@ -59,6 +60,9 @@ const titleText = computed(() => (props.titleTokens ? tokenText(props.titleToken
 const titleExact = computed(() => tokenTitle(props.titleTokens));
 
 const signedIn = computed(() => usePage().props.signedIn === true);
+
+// Names the [data-morph] parts while a timeline card or link chip morphs into this page.
+const morphing = useMorphTarget();
 
 // This entry's own URL, for the u-url a parser needs on a permalink.
 const permalink = computed(() => usePage().url);
@@ -146,17 +150,17 @@ setLayoutProps({ minimal: props.editing, breadcrumb: breadcrumb() });
     <!-- Spans the page and re-establishes the grid, as Page.vue does, so a
          child can opt into breakout or full width. Children with no column
          of their own still default to `content`. -->
-    <article v-else class="h-entry full-width content-grid">
+    <article v-else class="h-entry full-width content-grid" :class="{ 'morph-target': morphing }">
         <header class="relative">
             <div class="min-w-0">
                 <div class="relative">
-                    <span class="absolute -left-16 top-1/2 hidden size-12 -translate-y-1/2 shrink-0 items-center justify-center rounded-full bg-neutral-25 lg:flex" :style="accentStyle">
+                    <span data-morph="icon" class="absolute -left-16 top-1/2 hidden size-12 -translate-y-1/2 shrink-0 items-center justify-center rounded-full bg-neutral-25 lg:flex" :style="accentStyle">
                         <Icon :icon="meta.icon" class="size-6" />
                     </span>
-                    <Link :href="meta.href" class="text-2xs font-semibold uppercase tracking-wider underline-offset-4 hover:underline focus-visible:underline" :style="accentStyle">{{ meta.label }}</Link>
+                    <Link :href="meta.href" data-morph="label" class="inline-block text-2xs font-semibold uppercase tracking-wider underline-offset-4 hover:underline focus-visible:underline" :style="accentStyle">{{ meta.label }}</Link>
                 </div>
                 <!-- Universal headline measure across every entry type, matching StoryChapter's heading. -->
-                <h1 v-if="title" v-twemoji :title="titleExact" class="mt-1 max-w-2xl p-name font-display text-5xl font-extrabold tracking-tight">{{ titleText }}</h1>
+                <h1 v-if="title" v-twemoji :title="titleExact" data-morph="title" class="mt-1 w-fit max-w-2xl p-name font-display text-5xl font-extrabold tracking-tight">{{ titleText }}</h1>
                 <!-- No p-name: a title-less type is a note, and mf2 readers tell
                      a note from an article by the absence of a name separate
                      from the content. This heading is for the outline only. -->

@@ -14,6 +14,7 @@ defineProps({
     <div class="relative sm:pb-8">
         <section
             data-testid="entry-hero"
+            data-morph="image"
             class="relative aspect-video overflow-hidden rounded-lg border border-neutral-50 bg-neutral-25 bg-cover bg-center"
             :style="{ backgroundImage: `url(${backdrop})` }"
         >

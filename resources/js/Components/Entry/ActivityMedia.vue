@@ -33,6 +33,7 @@ defineEmits(['open']);
                 :key="index"
                 type="button"
                 :aria-label="`View photo ${index + 1}`"
+                :data-morph="index === 0 ? 'image' : undefined"
                 class="group/zoom relative aspect-square cursor-zoom-in overflow-hidden rounded-lg border border-neutral-50 bg-neutral-25 transition-opacity hover:opacity-95"
                 @click="$emit('open', index)"
             >

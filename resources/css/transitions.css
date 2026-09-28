@@ -77,6 +77,44 @@
     }
 }
 
+/* Entry morph (lib/entryMorph.js). The leaving card or chip names its parts
+   inline; the entry page names its own only while it is the one landing. */
+.morph-target [data-morph='icon'] { view-transition-name: morph-icon; }
+.morph-target [data-morph='label'] { view-transition-name: morph-label; }
+.morph-target [data-morph='title'] { view-transition-name: morph-title; }
+.morph-target [data-morph='excerpt'] { view-transition-name: morph-excerpt; }
+.morph-target [data-morph='body'] { view-transition-name: morph-body; }
+.morph-target [data-morph='image'] { view-transition-name: morph-image; }
+
+::view-transition-group(*),
+::view-transition-old(*),
+::view-transition-new(*) {
+    animation-duration: var(--duration-morph);
+}
+
+::view-transition-group(*) {
+    animation-timing-function: var(--ease-out-expo);
+}
+
+/* A timeline thumbnail and an entry page's photo rarely share an aspect
+   ratio, so both crop to the moving box instead of stretching. */
+::view-transition-group(morph-image) {
+    overflow: clip;
+}
+
+::view-transition-old(morph-image),
+::view-transition-new(morph-image) {
+    height: 100%;
+    object-fit: cover;
+}
+
+/* Same rule as the families: the crossfade stays, the travel goes. */
+@media (prefers-reduced-motion: reduce) {
+    ::view-transition-group(*) {
+        animation: none;
+    }
+}
+
 /* Set by useTheme for the frame the theme changes in. */
 .theme-swapping,
 .theme-swapping * {

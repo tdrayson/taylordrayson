@@ -118,6 +118,7 @@
     --duration-pop-fade: 0.14s;
     --duration-rise: 0.3s;
     --duration-rise-fade: 0.25s;
+    --duration-morph: 0.4s;
 
     --animate-fade-in: fade-in 0.25s ease;
     --animate-avatar-boop: avatar-boop 0.7s cubic-bezier(0.34, 1.56, 0.64, 1);

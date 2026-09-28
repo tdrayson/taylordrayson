@@ -22,6 +22,7 @@ import { player, playAudio, playVideo, togglePlay, isCurrent, dockVideo, undockV
 import { useFormat } from '../../composables/useFormat';
 import { useTokenText } from '../../composables/useTokenText';
 import { useTheme } from '../../useTheme';
+import { cardMorph } from '../../lib/entryMorph.js';
 
 const props = defineProps({
     // Registry name string (from entryTypes) or a raw hugeicons object.
@@ -229,11 +230,15 @@ const interactions = useInteractions();
 // Keyed on iconKey: that is the timeline type value the reaction endpoint is
 // addressed by. The `type` prop is the display label and is empty in the feed.
 const row = computed(() => (props.id === null ? null : interactions.value[`${props.iconKey}:${props.id}`] ?? null));
+
+// Every link to the entry page morphs the card's [data-morph] parts into it.
+const card = ref(null);
+const morph = computed(() => (props.url ? cardMorph(card, props.url) : {}));
 </script>
 
 <template>
-    <div class="relative block h-entry" :style="{ '--type-color': typeColor }">
-        <span class="absolute -left-14 top-px flex size-9 items-center justify-center rounded-full bg-neutral-25 text-(--type-color) lg:-left-12">
+    <div ref="card" class="relative block h-entry" :style="{ '--type-color': typeColor }">
+        <span data-morph="icon" class="absolute -left-14 top-px flex size-9 items-center justify-center rounded-full bg-neutral-25 text-(--type-color) lg:-left-12">
             <Icon :icon="displayIcon" class="size-5" />
         </span>
         <div class="flex min-h-9 items-center">
@@ -241,11 +246,12 @@ const row = computed(() => (props.id === null ? null : interactions.value[`${pro
                 <component
                     :is="typeHref ? Link : 'div'"
                     :href="typeHref || undefined"
+                    data-morph="label"
                     class="p-category text-2xs font-semibold uppercase tracking-wider text-(--type-color)"
                     :class="typeHref ? 'underline-offset-2 hover:underline focus-visible:underline' : ''"
                 >{{ displayType }}</component>
                 <Tooltip v-if="datetime" :label="fullTimestamp" placement="top">
-                    <Link v-if="url" :href="url" :aria-label="fullTimestamp" class="u-url underline-offset-2 transition-colors hover:text-accent-500 hover:underline focus-visible:text-accent-500 focus-visible:underline">
+                    <Link v-if="url" :href="url" v-bind="morph" :aria-label="fullTimestamp" class="u-url underline-offset-2 transition-colors hover:text-accent-500 hover:underline focus-visible:text-accent-500 focus-visible:underline">
                         <time :datetime="datetime" class="dt-published text-xs text-neutral-500 tabular-nums transition-colors hover:text-accent-500">{{ time }}</time>
                     </Link>
                     <time v-else :datetime="datetime" :aria-label="fullTimestamp" class="dt-published text-xs text-neutral-500 tabular-nums">{{ time }}</time>
@@ -257,15 +263,16 @@ const row = computed(() => (props.id === null ? null : interactions.value[`${pro
         <!-- Above the words, the same order the entry page reads in. -->
         <ResponseContext v-if="response" :response="response" class="mt-1.5" />
 
-        <NoteBody v-if="hasBody" :document="body" />
+        <NoteBody v-if="hasBody" :document="body" data-morph="body" />
         <!-- A real h3: each card is a subsection of its DateGroup's h2/h3
              heading. A gesture has none, because the line above is the card:
              its title only restates that line in a display face. -->
-        <Heading v-else-if="! response?.namedInTitle" as="h3" size="title" class="mt-1 max-w-md">
+        <Heading v-else-if="! response?.namedInTitle" as="h3" size="title" data-morph="title" class="mt-1 w-fit max-w-md">
             <component
                 :is="url ? Link : 'span'"
                 v-twemoji
                 :href="url || undefined"
+                v-bind="morph"
                 :aria-label="titleLabel || undefined"
                 :title="titleExact"
                 class="p-name"
@@ -298,7 +305,7 @@ const row = computed(() => (props.id === null ? null : interactions.value[`${pro
             :duration-title="routeView.durationTitle"
             class="mt-3 max-w-sm"
         />
-        <p v-else-if="metaText" v-twemoji :title="metaTitle" class="p-summary mt-2 line-clamp-3 max-w-prose text-sm" :class="pb ? 'font-semibold text-accent-500' : 'text-neutral-700'">{{ metaText }}</p>
+        <p v-else-if="metaText" v-twemoji data-morph="excerpt" :title="metaTitle" class="p-summary mt-2 line-clamp-3 max-w-prose text-sm" :class="pb ? 'font-semibold text-accent-500' : 'text-neutral-700'">{{ metaText }}</p>
         <!-- Map alone when there is no photo, and it opens the lightbox like a
              photo would. Light/dark PNGs are both rendered and the `dark:` class
              picks the right one, no JS needed. -->
@@ -334,8 +341,10 @@ const row = computed(() => (props.id === null ? null : interactions.value[`${pro
             :is="url ? Link : 'div'"
             v-if="backdrop"
             :href="url || undefined"
+            v-bind="morph"
             :tabindex="url ? -1 : undefined"
             :aria-hidden="url ? 'true' : undefined"
+            data-morph="image"
             class="mt-3 block aspect-video w-full max-w-lg overflow-hidden rounded-lg border border-neutral-50"
         >
             <img :src="backdrop" alt="" loading="lazy" decoding="async" class="size-full object-cover">
@@ -345,6 +354,7 @@ const row = computed(() => (props.id === null ? null : interactions.value[`${pro
              ride inside it as decoration, so the whole image is one hit target. -->
         <div
             v-if="coverPhoto && !routeImageUrl"
+            data-morph="image"
             class="focus-frame group/zoom relative mt-3 block aspect-video w-full max-w-lg overflow-hidden rounded-lg border border-neutral-50"
         >
             <button
