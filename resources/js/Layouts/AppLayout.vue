@@ -22,8 +22,11 @@ const page = usePage();
 
 // Provided here rather than per page: every view that draws feed cards sends
 // the same deferred `interactions` prop, and the cards are several components
-// below whichever page is in the slot.
-provideInteractions(computed(() => page.props.interactions ?? {}));
+// below whichever page is in the slot. Null while that prop is still on its way,
+// so a card can hold its row's space.
+const interactionsPending = computed(() => Object.values(page.deferredProps ?? {}).flat().includes('interactions'));
+
+provideInteractions(computed(() => page.props.interactions ?? (interactionsPending.value ? null : {})));
 </script>
 
 <template>

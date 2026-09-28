@@ -6,7 +6,7 @@ it('shows the stored fuel map image on the timeline', function () {
     $fuel = Fuel::factory()->create(['station_name' => 'Test Garage', 'occurred_at' => now()]);
     $fuel->addMediaFromString(mapPng())->usingFileName('m.png')->toMediaCollection('map');
 
-    $page = visit('/');
+    $page = visit('/?filter=everything');
 
     // Assert the rendered <img>, not the props JSON: the fuel card's stored map
     // image is present, served from the public disk's /storage symlink.

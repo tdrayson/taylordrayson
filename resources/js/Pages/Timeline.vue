@@ -9,6 +9,7 @@ import AuthorRef from '../Components/Profile/AuthorRef.vue';
 import Pagination from '../Components/Ui/Pagination.vue';
 import YearJump from '../Components/Timeline/YearJump.vue';
 import { formatRange } from '../lib/dateFormat.js';
+import { filterVisit, useFilterTransition } from '../lib/filterTransition.js';
 
 defineOptions({ layout: AppLayout, inheritAttrs: false });
 
@@ -22,10 +23,43 @@ const props = defineProps({
     // list<{ year, href }>, newest first.
     years: { type: Array, default: () => [] },
     thisWeekWithEpisodes: { type: Number, default: 0 },
+    // The feed preset key the page is filtered to.
+    filter: { type: String, default: 'curated' },
+    // list<{ value, label }>, every preset the filter offers.
+    filters: { type: Array, default: () => [] },
 });
 
+// Hugeicons per FeedPresets key; a preset missing here just has no icon.
+const FILTER_ICONS = {
+    curated: 'SparklesIcon',
+    everything: 'GridViewIcon',
+    writing: 'File01Icon',
+    watching: 'TvMinimalPlayIcon',
+    travel: 'AirplaneTakeOff01Icon',
+    health: 'WorkoutRunIcon',
+    'going-out': 'Ticket01Icon',
+    speaking: 'Mic01Icon',
+};
+
+// `?filter=` saves the choice in a cookie and redirects to the front of the feed.
+const filterMenu = props.filters.map((preset) => ({
+    label: preset.label,
+    icon: FILTER_ICONS[preset.value],
+    href: `/?filter=${preset.value}`,
+    description: preset.value === props.filter ? 'Showing' : undefined,
+    visit: filterVisit(),
+}));
+
+const filtering = useFilterTransition();
+
 setLayoutProps({
-    breadcrumb: [],
+    breadcrumb: [
+        {
+            label: props.filters.find((preset) => preset.value === props.filter)?.label ?? 'Everything',
+            ariaLabel: 'Filter the timeline',
+            menu: filterMenu,
+        },
+    ],
 });
 
 // The intro only belongs on the front of the feed, which is now the page with
@@ -62,6 +96,7 @@ const currentYear = computed(() => {
             :date="group.date"
             :href="group.href"
             :items="group.items"
+            :animate-filter="filtering"
         />
     </div>
 
@@ -81,3 +116,54 @@ const currentYear = computed(() => {
     </div>
 </template>
 
+<style>
+/* Switching filter runs a view transition over the named cards and headings:
+   ones on both pages slide to their new place, the rest leave or arrive.
+   Global because the pseudo-elements live on the document. */
+::view-transition-group(.timeline-item) {
+    animation-duration: 0.45s;
+    animation-timing-function: var(--ease-out-expo);
+}
+
+::view-transition-old(.timeline-item):only-child {
+    animation: timeline-item-out 0.2s ease-in both;
+}
+
+::view-transition-new(.timeline-item):only-child {
+    animation: timeline-item-in 0.4s var(--ease-out-expo) 0.12s both;
+}
+
+@keyframes timeline-item-out {
+    to {
+        opacity: 0;
+        transform: translateX(-2rem);
+    }
+}
+
+@keyframes timeline-item-in {
+    from {
+        opacity: 0;
+        transform: translateX(2rem);
+    }
+}
+
+@keyframes timeline-item-fade {
+    from {
+        opacity: 0;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    ::view-transition-group(.timeline-item) {
+        animation: none;
+    }
+
+    ::view-transition-old(.timeline-item):only-child {
+        animation: timeline-item-fade 0.2s ease reverse both;
+    }
+
+    ::view-transition-new(.timeline-item):only-child {
+        animation: timeline-item-fade 0.2s ease both;
+    }
+}
+</style>
