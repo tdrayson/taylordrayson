@@ -3,6 +3,7 @@ import { computed, ref } from 'vue';
 import PortableTextBlocks from './PortableTextBlocks.js';
 import LinkPreviewLayer from './LinkPreviewLayer.vue';
 import { useLinkContext } from '../../lib/linkContext.js';
+import { morphFromProse } from '../../lib/entryMorph.js';
 
 // Two roots, so the class a caller passes still lands on the content element
 // rather than on a wrapper around it.
@@ -45,6 +46,7 @@ const contentEl = ref(null);
         v-twemoji
         v-bind="$attrs"
         class="e-content mt-1.5 space-y-3 text-base leading-relaxed text-neutral-900"
+        @click="morphFromProse($event, links.previews)"
     >
         <PortableTextBlocks :nodes="nodes" :favicons="links.favicons" :previews="links.previews" />
     </div>
