@@ -6,6 +6,7 @@ use App\Models\Appearance;
 use App\Models\Book;
 use App\Models\Concerns\Timelineable;
 use App\Models\Film;
+use App\Models\ThisWeekWith;
 use App\Models\TvEpisode;
 use App\Presenters\PhotoCaption;
 use App\Timeline\TypeRegistry;
@@ -21,12 +22,12 @@ class GalleryPhotos
 {
     /**
      * Models whose cover/photos collections hold enrichment art rather than
-     * photographs: appearance thumbnails derived from video, and film/TV/book
-     * posters fetched from TMDB.
+     * photographs: appearance thumbnails derived from video, film/TV/book
+     * posters, and This Week With episode art.
      *
      * @var list<class-string>
      */
-    public const ENRICHMENT_MODELS = [Appearance::class, Film::class, TvEpisode::class, Book::class];
+    public const ENRICHMENT_MODELS = [Appearance::class, Film::class, TvEpisode::class, Book::class, ThisWeekWith::class];
 
     /**
      * Dataset aliases (the morph column value) whose photos reach the gallery,
