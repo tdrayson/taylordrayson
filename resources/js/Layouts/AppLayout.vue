@@ -27,6 +27,14 @@ const page = usePage();
 const interactionsPending = computed(() => Object.values(page.deferredProps ?? {}).flat().includes('interactions'));
 
 provideInteractions(computed(() => page.props.interactions ?? (interactionsPending.value ? null : {})));
+
+// Decided once per arrival. A view transition already animates the swap, and
+// the fade's 5px rise would have every morphed part land short and then jump.
+const fadesIn = computed(() => {
+    void page.url;
+
+    return typeof document === 'undefined' || ! document.activeViewTransition;
+});
 </script>
 
 <template>
@@ -48,7 +56,7 @@ provideInteractions(computed(() => page.props.interactions ?? (interactionsPendi
                 <AppTopbar :breadcrumb="breadcrumb" :minimal="minimal" />
             </header>
             <main id="main-content" class="flex min-w-0 flex-1 flex-col">
-                <div :key="page.url" class="content-grid w-full animate-fade-in pb-40 pt-8">
+                <div :key="page.url" class="content-grid w-full pb-40 pt-8" :class="{ 'animate-fade-in': fadesIn }">
                     <slot />
                 </div>
             </main>
