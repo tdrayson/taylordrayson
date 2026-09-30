@@ -8,8 +8,9 @@ $description = 'Everything, logged — activities, places, films, flights and mo
 $language = 'en-GB';
 
 return [
-    'author_name' => 'Taylor Drayson',
-    'author_email' => 'hello@taylordrayson.com',
+    // Set from config/identity.php at boot: this file loads before it.
+    'author_name' => null,
+    'author_email' => null,
 
     'feeds' => [
         'atom' => [

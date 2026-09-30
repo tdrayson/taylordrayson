@@ -45,3 +45,12 @@ it('summarises a check-in in the feed even though its card carries no subtitle',
 
     $this->get('/feed')->assertOk()->assertSee('I checked in at Blue Bottle', false);
 });
+
+it('serves every feed without an author email when none is configured', function () {
+    config(['feed.author_email' => null]);
+    Activity::factory()->create(['name' => 'Anonymous Run', 'occurred_at' => now()]);
+
+    $this->get('/feed')->assertOk()->assertSee('Anonymous Run')->assertDontSee('<email>', false);
+    $this->get('/feed/rss')->assertOk()->assertSee('Anonymous Run');
+    $this->get('/feed/json')->assertOk()->assertSee('Anonymous Run');
+});

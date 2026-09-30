@@ -148,7 +148,7 @@ class TimelineEntry extends Model implements Feedable
             'updated' => $this->occurred_at,
             'link' => $link,
             'authorName' => config('feed.author_name'),
-            'authorEmail' => config('feed.author_email'),
+            'authorEmail' => config('feed.author_email') ?? '',
             'category' => $card->type->value,
         ]);
     }
