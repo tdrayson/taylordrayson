@@ -2,12 +2,13 @@
 
 namespace App\Stories;
 
+use App\Data\Head\HeadData;
 use App\Enums\FlightReason;
 use App\Models\Airline;
 use App\Models\Airport;
 use App\Models\Flight;
+use App\Presenters\Heads\SiteHeads;
 use App\Support\Distance;
-use App\Support\OgMeta;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
 
@@ -37,12 +38,9 @@ class FlightStory implements Story
         return 'Stories/Flights';
     }
 
-    /**
-     * @return array<string, mixed>
-     */
-    public function og(): array
+    public function head(): HeadData
     {
-        return OgMeta::flightStory();
+        return SiteHeads::flightStory();
     }
 
     /**
@@ -50,14 +48,14 @@ class FlightStory implements Story
      */
     public function card(): array
     {
-        $og = $this->og();
+        $head = $this->head();
 
         return [
             'slug' => $this->slug(),
             'type' => 'flight',
-            'title' => $og['heading'],
-            'description' => $og['description'],
-            'accent' => $og['accent'],
+            'title' => $head->card->heading,
+            'description' => $head->description,
+            'accent' => $head->card->accent,
         ];
     }
 

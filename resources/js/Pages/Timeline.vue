@@ -14,7 +14,6 @@ import { filterVisit, useFilterTransition } from '../lib/filterTransition.js';
 defineOptions({ layout: AppLayout, inheritAttrs: false });
 
 const props = defineProps({
-    og: { type: Object, default: () => ({}) },
     groups: { type: Array, default: () => [] },
     // { from, to } as Y-m-d, the oldest and newest day on this page.
     range: { type: Object, default: null },
@@ -82,7 +81,7 @@ const currentYear = computed(() => {
 </script>
 
 <template>
-    <AppHead :og="og" />
+    <AppHead />
 
     <IntroBlock v-if="isFront" :this-week-with-episodes="thisWeekWithEpisodes" class="mb-14" />
 

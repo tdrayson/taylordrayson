@@ -26,7 +26,7 @@ function act(item, action) {
 </script>
 
 <template>
-    <AppHead :og="{ title: 'Moderation' }" />
+    <AppHead />
 
     <div class="max-w-2xl">
         <Heading as="h1" size="display">Moderation</Heading>

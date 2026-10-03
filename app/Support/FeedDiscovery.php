@@ -8,9 +8,9 @@ use Illuminate\Routing\Route;
 /**
  * Builds the feed-autodiscovery <link>s for the current route, advertising a
  * type-narrowed feed alongside the site-wide ones on any page with a `type` route
- * default. Shared as an Inertia prop and rendered by AppHead; readers that parse
- * HTML without running JavaScript still see the links because production has SSR
- * on, and they only ever request cold loads anyway.
+ * default. Folded into the shared head by {@see Head}, so AppHead rewrites them on
+ * a client-side visit; readers that parse HTML without running JavaScript still
+ * see them because production has SSR on.
  */
 class FeedDiscovery
 {

@@ -2,8 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Presenters\Heads\SiteHeads;
 use App\Queries\PhotoStream;
-use App\Support\OgMeta;
+use App\Support\Head;
 use Illuminate\Pagination\Paginator;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -28,8 +29,9 @@ class GalleryController extends Controller
      */
     public function index(): Response
     {
+        app(Head::class)->set(SiteHeads::gallery());
+
         return Inertia::render('Photos', [
-            'og' => OgMeta::gallery(),
             'total' => $this->photos->count(),
             'photos' => Inertia::scroll(
                 fn () => $this->photos->paginate(self::PER_PAGE, Paginator::resolveCurrentPage()),

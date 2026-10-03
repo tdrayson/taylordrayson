@@ -67,3 +67,17 @@ it('refuses tags the typed fields own', function (Closure $write) {
     'twitter' => [fn (Head $head) => $head->meta(MetaAttribute::Name, 'twitter:card', 'x')],
     'canonical' => [fn (Head $head) => $head->link('canonical', 'https://example.com')],
 ]);
+
+it('builds a deferred definition only when the head is resolved', function () {
+    $built = 0;
+
+    $head = (new Head)->set(function () use (&$built): HeadData {
+        $built++;
+
+        return new HeadData(title: 'Deferred', description: 'Built late');
+    });
+
+    expect($built)->toBe(0)
+        ->and($head->resolve()->title)->toBe('Deferred')
+        ->and($built)->toBe(1);
+});

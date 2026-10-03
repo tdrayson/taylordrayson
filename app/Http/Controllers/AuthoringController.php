@@ -12,8 +12,10 @@ use App\Fields\AuthorableTypes;
 use App\Fields\FieldRegistry;
 use App\Fields\FieldRules;
 use App\Presenters\CardPresenter;
+use App\Presenters\Heads\SiteHeads;
 use App\Support\EntryInstant;
 use App\Support\EntryZone;
+use App\Support\Head;
 use App\Support\PortableText;
 use App\Support\TypeCatalogue;
 use Illuminate\Database\Eloquent\Model;
@@ -38,6 +40,8 @@ class AuthoringController extends Controller
         if ($type !== null && ! AuthorableTypes::has($type)) {
             throw new NotFoundHttpException;
         }
+
+        app(Head::class)->set(SiteHeads::newEntry());
 
         return Inertia::render('New', [
             'types' => AuthorableTypes::forPicker(),
@@ -228,6 +232,8 @@ class AuthoringController extends Controller
                 $groups[] = ['type' => $type, 'label' => TypeCatalogue::for($type)->plural, 'rows' => $rows];
             }
         }
+
+        app(Head::class)->set(SiteHeads::drafts());
 
         return Inertia::render('Drafts', ['groups' => $groups]);
     }

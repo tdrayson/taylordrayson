@@ -48,7 +48,7 @@ it('renders a note entry via Inertia', function () {
         ->assertInertia(fn ($page) => $page->component('Entry')
             ->where('type', 'note')
             ->where('title', null)
-            ->where('og.title', fn ($title) => str_contains((string) $title, 'Finished the migration')));
+            ->where('head.title', fn ($title) => str_contains((string) $title, 'Finished the migration')));
 });
 
 it('exposes the polyline when present', function () {

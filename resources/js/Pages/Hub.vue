@@ -27,7 +27,7 @@ setLayoutProps({ breadcrumb: [{ label: 'HQ' }] });
 </script>
 
 <template>
-    <AppHead :og="{ title: 'HQ' }" />
+    <AppHead />
 
     <div class="max-w-2xl">
         <Heading as="h1" size="display">HQ</Heading>

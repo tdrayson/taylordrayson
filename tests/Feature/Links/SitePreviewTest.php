@@ -11,7 +11,7 @@ function previewFor(string $path): ?array
 }
 
 it('previews the site\'s own pages from the metadata they publish', function () {
-    // Title and description come from OgMeta, so a page cannot describe itself
+    // Title and description come from SiteHeads, so a page cannot describe itself
     // one way in its head and another way on a hover card.
     expect(previewFor('/more'))->not->toBeNull()
         ->and(previewFor('/on-this-day'))->not->toBeNull()

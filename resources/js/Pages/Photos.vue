@@ -11,7 +11,6 @@ import Heading from '../Components/Ui/Heading.vue';
 defineOptions({ layout: AppLayout, inheritAttrs: false });
 
 const props = defineProps({
-    og: { type: Object, default: () => ({}) },
     total: { type: Number, default: 0 },
     // A paginator: photos land in `data` and grow as pages are appended. Absent
     // until the deferred first page arrives.
@@ -28,7 +27,7 @@ const lightboxIndex = ref(null);
 </script>
 
 <template>
-    <AppHead :og="og" />
+    <AppHead />
 
     <header>
         <Heading as="h1" size="display">Photos</Heading>

@@ -3,17 +3,17 @@
 namespace App\Http\Controllers;
 
 use App\Data\EntryDay;
-use App\Data\ExportData;
+use App\Data\Head\HeadData;
 use App\Models\Sleep;
-use App\Presenters\Exports\Formats\Format;
-use App\Presenters\Exports\Formats\Formats;
 use App\Presenters\Exports\NowExport;
+use App\Presenters\Heads\FormatLinks;
+use App\Presenters\Heads\SiteHeads;
 use App\Queries\CurrentlyReading;
 use App\Queries\EntryDays;
 use App\Queries\LastNightSleep;
 use App\Queries\LatestEpisode;
 use App\Queries\PhotoStream;
-use App\Support\OgMeta;
+use App\Support\Head;
 use Illuminate\Support\Carbon;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -27,14 +27,19 @@ class NowController extends Controller
      */
     public function index(): Response
     {
+        // Deferred: the export behind the format links is skipped by the reading poll.
+        app(Head::class)->set(function (): HeadData {
+            $head = SiteHeads::now();
+
+            return $head->with(links: FormatLinks::for((new NowExport)->present(), $head->title));
+        });
+
         return Inertia::render('Now', [
-            'og' => fn (): array => OgMeta::now(),
             'episode' => fn (): ?array => $this->latestEpisode(),
             'sleep' => fn (): array => $this->recentSleep(),
             'entryDays' => fn (): array => $this->entryDays(),
             'photos' => fn (): array => $this->recentPhotos(),
             'reading' => fn (): ?array => app(CurrentlyReading::class)()?->toArray(),
-            'formats' => fn (): array => $this->formats((new NowExport)->present()),
         ]);
     }
 
@@ -156,23 +161,5 @@ class NowController extends Controller
                 'caption' => $photo['caption'] ?? null,
             ])
             ->all();
-    }
-
-    /**
-     * Every format the /now export supports, shaped for AppHead's alternate links.
-     *
-     * @return list<array{extension: string, type: string, label: string, url: string}>
-     */
-    private function formats(ExportData $export): array
-    {
-        return array_values(array_map(
-            fn (Format $format): array => [
-                'extension' => $format->format()->value,
-                'type' => $format->format()->contentType(),
-                'label' => $format->format()->label(),
-                'url' => $export->url.'.'.$format->format()->value,
-            ],
-            Formats::for($export),
-        ));
     }
 }

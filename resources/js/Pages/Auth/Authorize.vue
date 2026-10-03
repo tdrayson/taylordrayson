@@ -16,7 +16,7 @@ defineProps({
 </script>
 
 <template>
-    <AppHead :og="{ title: 'Authorise' }" />
+    <AppHead />
 
     <div class="mx-auto w-full max-w-sm py-12">
         <Heading as="h1" size="section" class="text-neutral-900">Authorise</Heading>

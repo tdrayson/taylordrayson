@@ -2,15 +2,16 @@
 
 namespace App\Links\Resolvers;
 
+use App\Data\Head\HeadData;
 use App\Data\LinkPreviewData;
 use App\Links\LinkResolver;
-use App\Support\OgMeta;
+use App\Presenters\Heads\SiteHeads;
 use Illuminate\Support\Carbon;
 
 /**
  * The site's own fixed pages: /more, /photos, /on-this-day and the rest.
  *
- * The title and description come from the same {@see OgMeta} payload the page
+ * The title and description come from the same {@see SiteHeads} head the page
  * puts in its own head, so a preview can never drift from what the page says
  * about itself, and giving a page metadata is the only step needed to make
  * every link to it resolve.
@@ -21,7 +22,7 @@ use Illuminate\Support\Carbon;
 class SiteResolver implements LinkResolver
 {
     /**
-     * Path => the OgMeta method describing it, and the accent its glyph takes.
+     * Path => the SiteHeads method describing it, and the accent its glyph takes.
      * Pages behind auth (/drafts, /new) and the shuffle routes (/lucky) are
      * absent: nothing links to a redirect, and a preview of one would lie.
      *
@@ -49,7 +50,7 @@ class SiteResolver implements LinkResolver
 
         // Dated, so it cannot be a constant like the rest.
         if ($path === '/on-this-day') {
-            return $this->from($path, OgMeta::onThisDay(Carbon::today()), 'article');
+            return $this->from($path, SiteHeads::onThisDay(Carbon::today()), 'article');
         }
 
         if (! isset(self::PAGES[$path])) {
@@ -58,18 +59,15 @@ class SiteResolver implements LinkResolver
 
         [$method, $accent] = self::PAGES[$path];
 
-        return $this->from($path, OgMeta::{$method}(), $accent);
+        return $this->from($path, SiteHeads::{$method}(), $accent);
     }
 
-    /**
-     * @param  array<string, mixed>  $meta
-     */
-    private function from(string $path, array $meta, string $accent): LinkPreviewData
+    private function from(string $path, HeadData $head, string $accent): LinkPreviewData
     {
         return LinkPreviewData::site(
             url: $path,
-            title: $meta['heading'] ?? $meta['title'] ?? $path,
-            excerpt: $meta['description'] ?? null,
+            title: $head->card->heading ?? $head->title ?? $path,
+            excerpt: $head->description,
             accent: $accent,
         );
     }

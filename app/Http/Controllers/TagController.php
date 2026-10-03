@@ -6,9 +6,10 @@ use App\Actions\BuildTimelineFeed;
 use App\Models\Tag;
 use App\Models\Taggable;
 use App\Models\TimelineEntry;
+use App\Presenters\Heads\SiteHeads;
 use App\Queries\TagUsage;
 use App\Support\FeedInteractions;
-use App\Support\OgMeta;
+use App\Support\Head;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
 use Inertia\Inertia;
@@ -24,8 +25,9 @@ class TagController extends Controller
      */
     public function index(TagUsage $tags): Response
     {
+        app(Head::class)->set(SiteHeads::tags());
+
         return Inertia::render('Tags', [
-            'og' => OgMeta::tags(),
             'tags' => $tags(),
         ]);
     }
@@ -47,8 +49,9 @@ class TagController extends Controller
 
         abort_if($entries->isEmpty(), 404);
 
+        app(Head::class)->set(SiteHeads::tag($tag->name, $entries->count()));
+
         return Inertia::render('Tag', [
-            'og' => OgMeta::tag($tag->name, $entries->count()),
             'name' => $tag->name,
             'groups' => $this->feed->groupByDay($entries),
             'interactions' => FeedInteractions::defer($entries),

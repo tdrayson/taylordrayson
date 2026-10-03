@@ -2,7 +2,8 @@
 
 namespace App\Http\Controllers;
 
-use App\Support\OgMeta;
+use App\Presenters\Heads\SiteHeads;
+use App\Support\Head;
 use App\Timeline\FeedPresets;
 use App\Timeline\TypeRegistry;
 use Inertia\Inertia;
@@ -17,8 +18,9 @@ class FeedsController extends Controller
      */
     public function index(): Response
     {
+        app(Head::class)->set(SiteHeads::feeds());
+
         return Inertia::render('Feeds', [
-            'og' => OgMeta::feeds(),
             'types' => $this->types(),
             'presets' => $this->presets(),
         ]);

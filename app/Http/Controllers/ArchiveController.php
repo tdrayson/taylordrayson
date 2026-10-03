@@ -8,9 +8,10 @@ use App\Models\Flight;
 use App\Models\Fuel;
 use App\Models\Place;
 use App\Models\TimelineEntry;
+use App\Presenters\Heads\SiteHeads;
 use App\Queries\ArchiveTagBridge;
 use App\Support\FeedInteractions;
-use App\Support\OgMeta;
+use App\Support\Head;
 use App\Timeline\TypeRegistry;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Str;
@@ -77,10 +78,11 @@ class ArchiveController extends Controller
         $title = $this->title($definition, $taxonomy, $taxonomyLabel);
         $subtitle = $page->total().' '.Str::plural($noun, $page->total());
 
+        app(Head::class)->set(SiteHeads::archive($type, $definition['label'], $title, $accentToken, $value !== null, $noun, $page->total()));
+
         return Inertia::render('Archive', [
             'type' => $type,
             'accent' => $accentToken,
-            'og' => OgMeta::archive($type, $definition['label'], $title, $accentToken, $value !== null, $noun, $page->total()),
             'title' => $title,
             'crumb' => $taxonomyLabel ?? $definition['label'],
             'subtitle' => $subtitle,

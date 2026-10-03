@@ -19,7 +19,6 @@ defineOptions({ layout: AppLayout, inheritAttrs: false });
 const props = defineProps({
     type: { type: String, required: true },
     accent: { type: String, required: true },
-    og: { type: Object, default: () => ({}) },
     title: { type: String, required: true },
     crumb: { type: String, default: '' },
     subtitle: { type: String, default: '' },
@@ -48,7 +47,7 @@ setLayoutProps({
 </script>
 
 <template>
-    <AppHead :og="og" />
+    <AppHead />
 
     <header class="relative">
         <span class="absolute top-0 hidden size-12 shrink-0 items-center justify-center rounded-full bg-neutral-25 lg:-left-16 lg:flex" :style="accentStyle">

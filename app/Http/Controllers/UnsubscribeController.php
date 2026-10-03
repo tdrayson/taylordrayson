@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\Comment;
+use App\Presenters\Heads\SiteHeads;
+use App\Support\Head;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -24,6 +26,8 @@ class UnsubscribeController extends Controller
         // Stamped rather than blanking the address, so a reply already queued
         // still knows who it was for and simply does not send.
         $found->update(['unsubscribed_at' => now(), 'notify_replies' => false]);
+
+        app(Head::class)->set(SiteHeads::unsubscribed());
 
         return Inertia::render('Unsubscribed');
     }

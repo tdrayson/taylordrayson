@@ -13,7 +13,6 @@ import Heading from '../Components/Ui/Heading.vue';
 defineOptions({ layout: AppLayout, inheritAttrs: false });
 
 const props = defineProps({
-    og: { type: Object, default: () => ({}) },
     types: { type: Array, default: () => [] },
     presets: { type: Array, default: () => [] },
 });
@@ -74,7 +73,7 @@ const jsonUrl = computed(() => `${origin.value}/feed/json${querySuffix.value ?? 
 
 <template>
     <div class="mx-auto max-w-2xl">
-        <AppHead :og="og" />
+        <AppHead />
 
         <header class="relative mb-10">
             <span class="absolute top-0 hidden size-12 shrink-0 items-center justify-center rounded-full bg-neutral-25 text-accent-500 lg:-left-16 lg:flex">

@@ -9,7 +9,6 @@ import Heading from '../Components/Ui/Heading.vue';
 defineOptions({ layout: AppLayout, inheritAttrs: false });
 
 const props = defineProps({
-    og: { type: Object, default: () => ({}) },
     status: { type: Number, default: 404 },
     entries: { type: Number, default: 0 },
     leaderboard: { type: Array, default: () => [] },
@@ -31,7 +30,7 @@ const streakDays = computed(() => Number(page.props.streakDays ?? 0));
 </script>
 
 <template>
-    <AppHead :og="og" />
+    <AppHead />
 
     <Heading as="h1" size="display" class="mt-3">{{ copy.title }}</Heading>
 

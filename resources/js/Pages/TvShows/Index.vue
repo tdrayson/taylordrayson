@@ -29,7 +29,7 @@ setLayoutProps({
 </script>
 
 <template>
-    <AppHead :og="{ title: 'TV shows', heading: 'TV shows', accent: 'tv-episode' }" />
+    <AppHead />
 
     <header class="relative">
         <span class="absolute top-0 hidden size-12 shrink-0 items-center justify-center rounded-full bg-neutral-25 lg:-left-16 lg:flex" :style="accentStyle">

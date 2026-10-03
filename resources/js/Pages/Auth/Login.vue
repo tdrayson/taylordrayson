@@ -32,7 +32,7 @@ function submit() {
 </script>
 
 <template>
-    <AppHead :og="{ title: 'Sign in' }" />
+    <AppHead />
 
     <div class="mx-auto w-full max-w-sm py-12">
         <Heading as="h1" size="section" class="text-neutral-900">Sign in</Heading>
