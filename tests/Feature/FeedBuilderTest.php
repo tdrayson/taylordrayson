@@ -83,6 +83,6 @@ it('renders the subscribe page with every type and preset', function () {
             ->component('Feeds')
             ->has('types', 15)
             ->has('presets', 8)
-            ->where('presets.0.key', 'curated')
+            ->where('presets.0.key', 'everything')
         );
 });

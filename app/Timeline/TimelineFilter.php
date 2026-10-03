@@ -13,7 +13,7 @@ final class TimelineFilter
 {
     public const COOKIE = 'timeline_filter';
 
-    public const DEFAULT = 'curated';
+    public const DEFAULT = 'everything';
 
     /** The visitor's preset key, or the default when unset or unknown. */
     public static function for(Request $request): string

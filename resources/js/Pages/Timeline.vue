@@ -24,7 +24,7 @@ const props = defineProps({
     years: { type: Array, default: () => [] },
     thisWeekWithEpisodes: { type: Number, default: 0 },
     // The feed preset key the page is filtered to.
-    filter: { type: String, default: 'curated' },
+    filter: { type: String, default: 'everything' },
     // list<{ value, label }>, every preset the filter offers.
     filters: { type: Array, default: () => [] },
 });

@@ -138,14 +138,14 @@ it('filters the feed to the remembered preset', function () {
         );
 });
 
-it('falls back to curated for an unknown preset', function () {
+it('falls back to everything for an unknown preset', function () {
     Flight::factory()->create(['occurred_at' => now()->subDay()]);
     Note::factory()->create(['occurred_at' => now()->subDays(2)]);
 
     $this->withCookie(TimelineFilter::COOKIE, 'nonsense')->get('/')->assertInertia(fn ($page) => $page
-        ->where('filter', 'curated')
-        ->has('groups', 1)
-        ->where('groups.0.items.0.iconKey', 'note')
+        ->where('filter', 'everything')
+        ->has('groups', 2)
+        ->where('groups.0.items.0.iconKey', 'flight')
     );
 });
 

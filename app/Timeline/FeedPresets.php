@@ -7,8 +7,8 @@ use App\Datasets\Datasets;
 use App\Enums\DatasetKind;
 
 /**
- * Named feed bundles addressable by `?filter=` on any feed URL. `curated` and
- * `everything` are bespoke; the rest are derived one per DatasetKind, so a
+ * Named feed bundles addressable by `?filter=` on any feed URL. `everything` and
+ * `curated` are bespoke; the rest are derived one per DatasetKind, so a
  * shared preset link (e.g. /feed/rss?filter=writing) is stable and cache-friendly
  * even as the underlying type set evolves.
  */
@@ -20,15 +20,15 @@ class FeedPresets
     public static function all(): array
     {
         return [
-            'curated' => [
-                'label' => 'Curated',
-                'description' => 'My highlights. The good stuff, minus the 3am sleep logs.',
-                'types' => ['note', 'article', 'project', 'film', 'tv-episode', 'book', 'this-week-with', 'appearance'],
-            ],
             'everything' => [
                 'label' => 'Everything',
                 'description' => 'The whole kitchen sink. Every last thing I track.',
                 'types' => array_keys(TypeRegistry::all()),
+            ],
+            'curated' => [
+                'label' => 'Curated',
+                'description' => 'My highlights. The good stuff, minus the 3am sleep logs.',
+                'types' => ['note', 'article', 'project', 'film', 'tv-episode', 'book', 'this-week-with', 'appearance'],
             ],
             ...collect(DatasetKind::cases())
                 ->mapWithKeys(fn (DatasetKind $kind): array => [$kind->value => [
