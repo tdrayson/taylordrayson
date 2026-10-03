@@ -43,7 +43,8 @@ const extraTags = computed(() => [
         [tag.attribute]: tag.key,
         content: tag.content,
     })),
-    ...head.value.links.map((link) => h('link', { 'head-key': `link:${link.rel}:${link.href}`, ...link })),
+    // Keyed on type as well, matching Head's dedupe, so two formats at one href both survive.
+    ...head.value.links.map((link) => h('link', { 'head-key': `link:${link.rel}:${link.href}:${link.type ?? ''}`, ...link })),
 ]);
 </script>
 
