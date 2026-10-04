@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed, onMounted, onBeforeUnmount, nextTick } from 'vue';
+import { ref, computed, watch, onMounted, onBeforeUnmount, nextTick } from 'vue';
 import { Link } from '@inertiajs/vue3';
 import Icon from './Icon.vue';
 import { DEFAULT_COLUMNS, GAP, ROW, SQUARE_SPAN, preset as presetFor, spanForRatio } from '../../lib/photoGrid.js';
@@ -52,10 +52,20 @@ function startReveal() {
         { rootMargin: '0px 0px -8% 0px', threshold: 0.05 },
     );
 
+    observeTiles();
+}
+
+// Watch any tile not yet revealed, so tiles added after mount (a "show all"
+// or the next infinite-scroll page) fade in too instead of staying hidden.
+function observeTiles() {
     for (const tile of grid.value?.children ?? []) {
-        revealObserver.observe(tile);
+        if (!revealed.value.has(Number(tile.dataset.index))) {
+            revealObserver?.observe(tile);
+        }
     }
 }
+
+watch(() => props.photos.length, observeTiles, { flush: 'post' });
 
 function measure() {
     const width = window.innerWidth;
