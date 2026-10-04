@@ -309,3 +309,11 @@ House style, adopted from The Laravel Architect's project structure. Follow thes
 - Snapshot before acting, and again after anything that changes the page: element references go stale on navigation.
 
 **One branch per worktree, and it never changes.** Never `git checkout -b` or `git switch` in a workspace, and never start new work in the main checkout. For a new piece of work or a pull request to review, start a workspace with `workspace_start`: `base_branch` to cut a new branch, `existing_branch` to continue one, `pull_request` to review a PR. `.bloom/setup.sh` gives each workspace its own Herd site and database, and `.bloom/archive.sh` takes them away again.
+
+## Design files (pen.dev)
+
+`design/site.pen` is the pen.dev design file: light/dark tokens mirrored from `resources/css/theme.css` and `dark.css`, reusable components (Button, Pill, Nav Item, Type Icon, Feed Item, Stage Breakdown, Sidebar, Topbar) and reference pages.
+
+- Read and edit it only through the `pencil` MCP tools, never Read/Grep. The MCP writes to whichever file is active in the Pen app, so open `design/site.pen` there first (`open -a Pen design/site.pen`) and confirm with `get_app_state`.
+- Pen holds edits in memory until saved in the app; the file on disk only changes after a save.
+- When a token changes in `theme.css`/`dark.css`, update the matching variable in the `.pen` file too. The CSS is the source of truth.
