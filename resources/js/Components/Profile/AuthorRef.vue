@@ -17,5 +17,9 @@ const page = usePage();
 </script>
 
 <template>
-    <a class="p-author h-card" href="/" hidden>{{ page.props.identity.name }}</a>
+    <span class="p-author h-card" hidden>
+        <a class="p-name u-url" href="/">{{ page.props.identity.name }}</a>
+        <!-- Receivers stop at this card rather than finding the full one, so it carries the photo; <data> so nothing downloads. -->
+        <data class="u-photo" :value="page.props.appUrl + page.props.identity.photo"></data>
+    </span>
 </template>

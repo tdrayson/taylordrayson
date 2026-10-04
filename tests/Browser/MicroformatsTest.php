@@ -30,7 +30,8 @@ it('marks an article permalink up as an h-entry', function () {
         ->and($entry['properties']['published'][0])->toStartWith('2024-03-01')
         ->and($entry['properties']['url'][0])->toEndWith($article->url())
         ->and($entry['properties']['content'][0]['value'])->toContain('The body of the piece.')
-        ->and($entry['properties']['author'][0]['properties']['name'][0])->toBe('Taylor Drayson');
+        ->and($entry['properties']['author'][0]['properties']['name'][0])->toBe('Taylor Drayson')
+        ->and($entry['properties']['author'][0]['properties']['photo'][0])->toEndWith(config('identity.photo'));
 });
 
 // The distinction readers use to tell the two apart: a note is content with no
