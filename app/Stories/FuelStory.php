@@ -152,7 +152,7 @@ class FuelStory implements Story
             // A relatable yardstick: laps of the Earth (circumference 24,901 mi).
             'aroundEarth' => round($miles / 24901, 1),
             'litres' => (int) round($fills->sum('litres')),
-            'spend' => round($fills->sum('cost'), 2),
+            'spend' => round($fills->sum('paid'), 2),
             'avgMpg' => round($legs->avg('mpg') ?? 0, 1),
             'avgPrice' => round($fills->whereNotNull('price_per_litre')->where('price_per_litre', '>', 0)->avg('price_per_litre'), 3),
         ];
@@ -194,7 +194,7 @@ class FuelStory implements Story
             ->map(function (Collection $yearFills, int $year) use ($legsByYear): array {
                 $yearLegs = $legsByYear->get($year, collect());
                 $miles = (int) $yearLegs->sum('miles');
-                $cost = round($yearFills->sum('cost'), 2);
+                $cost = round($yearFills->sum('paid'), 2);
                 $priced = $yearFills->whereNotNull('price_per_litre')->where('price_per_litre', '>', 0);
 
                 return [

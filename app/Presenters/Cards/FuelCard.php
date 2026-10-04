@@ -38,9 +38,9 @@ final class FuelCard
     }
 
     /**
-     * Cost leads, since it is the one figure every row has. The imported rows
-     * carry no station, city, brand or coordinates at all, so they name no
-     * place rather than inventing one.
+     * What was paid leads, since it is the one figure every row has. The
+     * imported rows carry no station, city, brand or coordinates at all, so
+     * they name no place rather than inventing one.
      */
     public function title(Fuel $model): string
     {
@@ -53,7 +53,7 @@ final class FuelCard
     private function titleTokens(Fuel $model): array
     {
         return [
-            SubtitleToken::gbp((float) $model->cost),
+            SubtitleToken::gbp($model->paid),
             SubtitleToken::text($model->station_name ? "at {$model->station_name}" : 'at the pump', ' '),
         ];
     }
@@ -83,12 +83,21 @@ final class FuelCard
 
         // "Fuel was", not "That was": the "that" pointed at the fill-up, which
         // was not what cost a tenth of a penny.
-        return [
+        $tokens = [
             ...$tokens,
             SubtitleToken::text('Fuel was', ' '),
             SubtitleToken::ppl((float) $model->price_per_litre, ' '),
-            SubtitleToken::text('.', ''),
         ];
+
+        if ($model->card_price_per_litre !== null) {
+            $tokens = [
+                ...$tokens,
+                SubtitleToken::text('but my fuel card brought it down to'),
+                SubtitleToken::ppl($model->card_price_per_litre, ' '),
+            ];
+        }
+
+        return [...$tokens, SubtitleToken::text('.', '')];
     }
 
     public function type(): TimelineType
