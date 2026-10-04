@@ -4,16 +4,15 @@ namespace App\Jobs;
 
 use App\Models\WebmentionSend;
 use App\Support\OutboundLinks;
-use App\Support\WebmentionEndpoint;
 use Illuminate\Contracts\Queue\ShouldBeUnique;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Queue\SerializesModels;
-use Illuminate\Support\Facades\Http;
 
 /**
- * Tells every site an entry links to that it has been linked to.
+ * Works out which sites an entry links to need telling, and queues one
+ * SendWebmention per site so a slow one cannot stall the rest.
  *
  * Which links get a send is not "all of them, every save". The spec asks a
  * sender to re-send when the source is updated, including to a URL the link
@@ -36,8 +35,6 @@ use Illuminate\Support\Facades\Http;
 class SendWebmentions implements ShouldBeUnique, ShouldQueue
 {
     use Queueable, SerializesModels;
-
-    private const TIMEOUT_SECONDS = 15;
 
     /**
      * How long a response waits before the world is told, so a conversation
@@ -88,46 +85,7 @@ class SendWebmentions implements ShouldBeUnique, ShouldQueue
         ]);
 
         foreach ($targets as $target) {
-            $this->send($sourceUrl, $target, $hash);
+            SendWebmention::dispatch($sourceUrl, $target, $hash, $this->source->getMorphClass(), $this->source->getKey());
         }
-    }
-
-    private function send(string $sourceUrl, string $target, string $hash): void
-    {
-        $endpoint = WebmentionEndpoint::discover($target);
-
-        $send = WebmentionSend::query()->firstOrNew([
-            'source_url' => $sourceUrl,
-            'target_url' => $target,
-        ]);
-
-        $send->source()->associate($this->source);
-        $send->endpoint = $endpoint;
-        $send->attempts = (int) $send->attempts + 1;
-        $send->last_sent_at = now();
-        $send->content_hash = $hash;
-
-        if ($endpoint === null) {
-            // Not a failure to retry: the target simply does not take them.
-            $send->status = 'unsupported';
-            $send->save();
-
-            return;
-        }
-
-        $response = rescue(
-            fn () => Http::timeout(self::TIMEOUT_SECONDS)
-                ->asForm()
-                ->post($endpoint, ['source' => $sourceUrl, 'target' => $target]),
-            null,
-            report: false,
-        );
-
-        $send->status_code = $response?->status();
-
-        // Anything but a 2xx stays un-delivered, so the next run picks it up
-        // rather than the attempt being mistaken for a success.
-        $send->status = $response !== null && $response->successful() ? 'sent' : 'failed';
-        $send->save();
     }
 }
