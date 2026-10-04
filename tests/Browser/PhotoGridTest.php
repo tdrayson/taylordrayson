@@ -65,3 +65,22 @@ it('renders the /photos gallery through the shared PhotoGrid component', functio
         true,
     );
 });
+
+it('reveals the tiles added by "Show all" on a month page', function () {
+    config(['queue.default' => 'sync']);
+    Storage::fake('public');
+
+    $note = Note::factory()->create([
+        'content' => 'A busy month',
+        'occurred_at' => '2019-05-15 12:00:00',
+    ]);
+
+    foreach (range(1, 13) as $number) {
+        $note->addMediaFromString(photoGridJpeg(400, 300))->usingFileName("photo-{$number}.jpg")->toMediaCollection('photos');
+    }
+
+    $page = visit('/2019/05')->click('Show all 13 photos');
+    $page->script("document.querySelector('ul.grid li:last-child').scrollIntoView()");
+
+    $page->wait(1)->assertScript("document.querySelector('ul.grid li:last-child').classList.contains('is-revealed')", true);
+});
