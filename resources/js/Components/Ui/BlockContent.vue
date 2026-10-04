@@ -14,7 +14,12 @@ defineOptions({ inheritAttrs: false });
 
 const props = defineProps({
     document: { type: [Array, String], default: null },
+    // 'lead' sets the whole document a step up, for a short standfirst that
+    // would otherwise read as an orphaned caption in a wide column.
+    size: { type: String, default: 'body' },
 });
+
+const sizeClass = computed(() => (props.size === 'lead' ? 'text-lg leading-relaxed' : 'text-base'));
 
 // href -> preview data for internal links, host -> favicon for external ones.
 // Empty when no page provided it, as on the design-system page.
@@ -55,7 +60,7 @@ const contentEl = ref(null);
 <template>
     <!-- prose supplies the inter-element rhythm; its :where() selectors have zero
          specificity, so the renderer's explicit classes always win. -->
-    <div v-if="nodes.length" ref="contentEl" v-twemoji v-bind="$attrs" class="block-content prose max-w-none text-base text-neutral-900" @click="morphFromProse($event, links.previews)">
+    <div v-if="nodes.length" ref="contentEl" v-twemoji v-bind="$attrs" class="block-content prose max-w-none text-neutral-900" :class="sizeClass" @click="morphFromProse($event, links.previews)">
         <PortableTextBlocks :nodes="nodes" :favicons="links.favicons" :previews="links.previews" @image-click="openImage" />
     </div>
 

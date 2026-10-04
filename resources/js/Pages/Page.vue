@@ -18,7 +18,7 @@ const props = defineProps({
     conversation: { type: Object, default: null },
     title: { type: String, required: true },
     excerpt: { type: String, default: null },
-    // { src, srcset, full } or null, the same shape an article's cover takes.
+    // { src, srcset, full, alt } or null, the same shape an article's cover takes.
     cover: { type: Object, default: null },
     content: { type: [Object, Array, String], default: null },
     editing: { type: Boolean, default: false },
@@ -85,7 +85,7 @@ const editorValues = computed(() => valuesFor(props.fields, props.values));
              rather than the 640px card conversion, which a hero renders at
              roughly twice the width of. -->
         <div v-if="cover" class="mt-8 aspect-video overflow-hidden border-y border-neutral-50 full-width md:rounded-lg md:border-x md:breakout">
-            <img :src="cover.full" alt="" class="size-full object-cover">
+            <img :src="cover.full" :alt="cover.alt || ''" class="size-full object-cover">
         </div>
 
         <BlockContent v-if="! locked" :document="content" class="mt-8" />

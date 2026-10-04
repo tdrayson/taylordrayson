@@ -55,7 +55,7 @@ class Page extends Model implements HasMedia
      * The cover image in the card/lightbox payload shape shared with articles,
      * or null when none is attached.
      *
-     * @return array{src: string, srcset: ?string, full: string}|null
+     * @return array{src: string, srcset: ?string, full: string, alt: ?string}|null
      */
     public function coverPhoto(): ?array
     {
@@ -69,6 +69,7 @@ class Page extends Model implements HasMedia
             'src' => $media->getUrl('card'),
             'srcset' => $media->getSrcset('card') ?: null,
             'full' => $media->getUrl(),
+            'alt' => $media->getCustomProperty('alt'),
         ];
     }
 

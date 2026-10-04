@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Models\Concerns\HasAttachments;
 use App\Models\Concerns\HasSpan;
 use App\Models\Concerns\HasStatus;
+use App\Models\Concerns\HasSubjects;
 use App\Models\Concerns\HasTimelineEntry;
 use App\Models\Concerns\Timelineable;
 use App\Observers\TimelineEntryObserver;
@@ -34,7 +35,7 @@ use Spatie\MediaLibrary\HasMedia;
 ])]
 class Sleep extends Model implements HasMedia, Timelineable
 {
-    use HasAttachments, HasFactory, HasSpan, HasStatus, HasTimelineEntry;
+    use HasAttachments, HasFactory, HasSpan, HasStatus, HasSubjects, HasTimelineEntry;
 
     protected $table = 'sleep';
 

@@ -16,6 +16,7 @@ import DurationInput from './DurationInput.vue';
 import DistanceInput from './DistanceInput.vue';
 import ImageField from './ImageField.vue';
 import BookCoverField from './BookCoverField.vue';
+import RepeaterInput from './RepeaterInput.vue';
 import LengthRing from './LengthRing.vue';
 import CitationField from './CitationField.vue';
 import StatusInput from './StatusInput.vue';
@@ -215,6 +216,14 @@ function textToTags(value) {
             :id="field.name"
             :model-value="Array.isArray(modelValue) ? modelValue : []"
             :readonly="readonly"
+            @update:model-value="$emit('update:modelValue', $event)"
+        />
+
+        <RepeaterInput
+            v-else-if="field.type === 'facts'"
+            :id="field.name"
+            :model-value="Array.isArray(modelValue) ? modelValue : []"
+            :columns="field.options?.length ? field.options : undefined"
             @update:model-value="$emit('update:modelValue', $event)"
         />
 

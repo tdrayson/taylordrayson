@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Models\Concerns\HasAttachments;
 use App\Models\Concerns\HasStatus;
+use App\Models\Concerns\HasSubjects;
 use App\Models\Concerns\HasTimelineEntry;
 use App\Models\Concerns\Timelineable;
 use App\Observers\TimelineEntryObserver;
@@ -32,7 +33,7 @@ use Spatie\MediaLibrary\HasMedia;
 ])]
 class Appearance extends Model implements HasMedia, Timelineable
 {
-    use HasAttachments, HasFactory, HasStatus, HasTimelineEntry;
+    use HasAttachments, HasFactory, HasStatus, HasSubjects, HasTimelineEntry;
 
     /**
      * @return array<string, string>

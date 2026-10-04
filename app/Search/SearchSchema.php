@@ -5,6 +5,8 @@ namespace App\Search;
 use App\Datasets\Dataset;
 use App\Datasets\Datasets;
 use App\Enums\EntryStatus;
+use App\Enums\SubjectKind;
+use App\Models\Subject;
 use BackedEnum;
 
 /**
@@ -41,6 +43,7 @@ class SearchSchema
             'enum' => ['is', 'is_not', 'contains', 'not_contains'],
             'number', 'duration' => ['eq', 'neq', 'gt', 'gte', 'lt', 'lte', 'between', 'not_between'],
             'media' => ['has_any', 'has_none', 'gte', 'gt', 'lt', 'lte', 'eq', 'neq', 'between'],
+            'subject' => ['includes', 'includes_all', 'excludes', 'has_any', 'has_none'],
             'day' => ['on', 'not_on', 'before', 'after', 'between', 'not_between'],
             'month', 'year' => ['in', 'not_in', 'before', 'after', 'between', 'not_between'],
             default => [],
@@ -62,6 +65,13 @@ class SearchSchema
                 'fields' => self::normalise([
                     'text' => ['label' => 'Text', 'dataType' => 'text', 'column' => null, 'category' => 'Where', 'operators' => ['contains']],
                     'photos' => ['label' => 'Media', 'dataType' => 'media', 'column' => null, 'category' => 'Where', 'suffix' => 'photos'],
+                    // any-only by design, so they work across every entry type at
+                    // once rather than being repeated per type; SearchCompiler has
+                    // no per-type 'subject' dispatch to match.
+                    'person' => ['label' => 'People', 'dataType' => 'subject', 'column' => null, 'category' => 'Who', 'kind' => SubjectKind::Person],
+                    'pet' => ['label' => 'Pets', 'dataType' => 'subject', 'column' => null, 'category' => 'Who', 'kind' => SubjectKind::Pet],
+                    'spot' => ['label' => 'Spots', 'dataType' => 'subject', 'column' => null, 'category' => 'Who', 'kind' => SubjectKind::Spot],
+                    'thing' => ['label' => 'Things', 'dataType' => 'subject', 'column' => null, 'category' => 'Who', 'kind' => SubjectKind::Thing],
                     ...ResponseFields::all(),
                 ]),
             ],
@@ -118,7 +128,9 @@ class SearchSchema
                         'suffix' => $field['suffix'] ?? null,
                         'measure' => $field['measure'] ?? null,
                         'store' => $field['store'] ?? null,
-                        'options' => self::optionsFor($type, $field),
+                        'options' => $field['dataType'] === 'subject'
+                            ? self::subjectOptions($field['kind'])
+                            : self::optionsFor($type, $field),
                     ])
                     ->values()
                     ->all(),
@@ -183,6 +195,24 @@ class SearchSchema
             ->orderBy($column)
             ->pluck($column)
             ->map(fn (mixed $value): string => $value instanceof BackedEnum ? (string) $value->value : (string) $value)
+            ->all();
+    }
+
+    /**
+     * Subjects of one kind for the builder's dropdown, as {value: slug, label:
+     * name}, the way enum options are shaped. Excludes Self: no entry is ever
+     * tagged with it.
+     *
+     * @return array<int, array<string, string>>
+     */
+    private static function subjectOptions(SubjectKind $kind): array
+    {
+        return Subject::query()
+            ->where('kind', $kind)
+            ->where('slug', '!=', config('life.self_slug'))
+            ->orderBy('name')
+            ->get(['slug', 'name'])
+            ->map(fn (Subject $subject): array => ['value' => $subject->slug, 'label' => $subject->name])
             ->all();
     }
 

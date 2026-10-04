@@ -8,6 +8,7 @@ use App\Models\Concerns\HasAttachments;
 use App\Models\Concerns\HasDynamicContent;
 use App\Models\Concerns\HasResponse;
 use App\Models\Concerns\HasStatus;
+use App\Models\Concerns\HasSubjects;
 use App\Models\Concerns\HasTags;
 use App\Models\Concerns\HasTimelineEntry;
 use App\Models\Concerns\Timelineable;
@@ -38,7 +39,7 @@ use Spatie\MediaLibrary\HasMedia;
 ])]
 class Article extends Model implements HasMedia, Timelineable
 {
-    use HasAttachments, HasDynamicContent, HasFactory, HasResponse, HasStatus, HasTags, HasTimelineEntry;
+    use HasAttachments, HasDynamicContent, HasFactory, HasResponse, HasStatus, HasSubjects, HasTags, HasTimelineEntry;
 
     /**
      * @return array<string, string>
@@ -62,7 +63,7 @@ class Article extends Model implements HasMedia, Timelineable
      * The featured image in the card/lightbox payload shape shared with
      * activity photos, or null when no cover is attached.
      *
-     * @return array{src: string, srcset: ?string, full: string}|null
+     * @return array{id: int, src: string, srcset: ?string, full: string, alt: ?string, caption: ?string}|null
      */
     public function coverPhoto(): ?array
     {
@@ -73,9 +74,12 @@ class Article extends Model implements HasMedia, Timelineable
         }
 
         return [
+            'id' => $media->id,
             'src' => $media->getUrl('card'),
             'srcset' => $media->getSrcset('card') ?: null,
             'full' => $media->getUrl(),
+            'alt' => $media->getCustomProperty('alt'),
+            'caption' => $media->getCustomProperty('caption'),
         ];
     }
 
