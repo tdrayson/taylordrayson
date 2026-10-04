@@ -86,6 +86,27 @@ it('drops a stray evening reading and keeps the real night session', function ()
         ->and($night['duration'])->toBe(16980); // 4h43m, no evening contamination
 });
 
+it('fills a lie-in only the Apple Watch saw onto the Oura night, as Apple Health does', function () {
+    $watch = "Taylor’s Apple\u{a0}Watch";
+    $segments = [
+        ['value' => 'In Bed', 'source' => 'Oura', 'start' => '2026-09-24 23:11:00 +0100', 'end' => '2026-09-25 08:39:00 +0100'],
+        ['value' => 'Core', 'source' => 'Oura', 'start' => '2026-09-24 23:11:00 +0100', 'end' => '2026-09-25 08:39:00 +0100'],
+        // Overlaps Oura, so Oura's reading of it stands.
+        ['value' => 'Deep', 'source' => $watch, 'start' => '2026-09-25 08:00:00 +0100', 'end' => '2026-09-25 09:00:00 +0100'],
+        ['value' => 'Awake', 'source' => $watch, 'start' => '2026-09-25 09:00:00 +0100', 'end' => '2026-09-25 09:20:00 +0100'],
+        ['value' => 'Core', 'source' => $watch, 'start' => '2026-09-25 09:20:00 +0100', 'end' => '2026-09-25 11:42:31 +0100'],
+    ];
+
+    $night = app(SleepAggregator::class)->aggregate($segments)['2026-09-25'];
+
+    expect($night['source'])->toBe('oura')
+        ->and($night['started_at'])->toBe('2026-09-24 23:11:00')
+        ->and($night['occurred_at'])->toBe('2026-09-25 11:42:31')
+        ->and($night['core'])->toBe(34080 + 8551)
+        ->and($night['deep'])->toBe(1260)
+        ->and($night['awake'])->toBe(1200);
+});
+
 it('keeps the longer night when a real nap is present the same sleep-day', function () {
     $segments = [
         // A 40-minute evening nap, same Apple sleep-day as the night.

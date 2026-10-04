@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Enums\ResponseKind;
 use App\Enums\RsvpValue;
 use App\Models\Concerns\HasAttachments;
+use App\Models\Concerns\HasDynamicContent;
 use App\Models\Concerns\HasResponse;
 use App\Models\Concerns\HasStatus;
 use App\Models\Concerns\HasSubjects;
@@ -38,7 +39,7 @@ use Spatie\MediaLibrary\HasMedia;
 ])]
 class Article extends Model implements HasMedia, Timelineable
 {
-    use HasAttachments, HasFactory, HasResponse, HasStatus, HasSubjects, HasTags, HasTimelineEntry;
+    use HasAttachments, HasDynamicContent, HasFactory, HasResponse, HasStatus, HasSubjects, HasTags, HasTimelineEntry;
 
     /**
      * @return array<string, string>

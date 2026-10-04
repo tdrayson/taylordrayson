@@ -10,6 +10,7 @@ use App\Models\TimelineEntry;
 use App\Models\User;
 use App\Support\OgRenderer;
 use App\Support\PortableText;
+use App\Timeline\TimelineFilter;
 use Illuminate\Support\Facades\Storage;
 use Inertia\Testing\AssertableInertia as Assert;
 
@@ -89,7 +90,7 @@ it('shows each status only where it belongs', function (bool $owner) {
         ->assertInertia(fn (Assert $page) => $page->where('locked', ! $owner)->where('og.noindex', true)->has('og.title'));
 
     // Listings: the same for both viewers.
-    expect(matrixSlugsIn($this->get('/')->inertiaProps('groups')))->toBe($listed)
+    expect(matrixSlugsIn($this->withCookie(TimelineFilter::COOKIE, 'everything')->get('/')->inertiaProps('groups')))->toBe($listed)
         ->and(matrixSlugsIn($this->get('/notes')->inertiaProps('groups')))->toBe($listed)
         ->and(matrixSlugsIn($this->get('/tags/matrix')->inertiaProps('groups')))->toBe($listed)
         ->and(matrixSlugsInText($this->get('/sitemap/2026.xml')->getContent()))->toBe($listed)

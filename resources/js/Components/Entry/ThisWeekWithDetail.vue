@@ -91,7 +91,7 @@ onBeforeUnmount(() => {
                 aria-label="Watch on YouTube"
                 @click="watchVideo"
             >
-                <img v-if="cover" :src="cover" alt="" class="size-full object-cover transition-transform duration-300 group-hover:scale-105">
+                <img v-if="cover" :src="cover" alt="" class="u-featured size-full object-cover transition-transform duration-300 group-hover:scale-105">
                 <!-- Fixed black, not the neutral ramp: an intentional dark surface in both themes. -->
                 <span class="absolute inset-0 flex items-center justify-center bg-black/20 transition-colors group-hover:bg-black/30">
                     <span class="flex size-16 items-center justify-center rounded-full bg-neutral-0/90 text-neutral-900 shadow-card transition-transform group-hover:scale-110">
@@ -100,7 +100,7 @@ onBeforeUnmount(() => {
                 </span>
             </button>
         </div>
-        <img v-else-if="cover" :src="cover" alt="" class="aspect-video w-full rounded-lg border border-neutral-50 object-cover">
+        <img v-else-if="cover" :src="cover" alt="" class="u-featured aspect-video w-full rounded-lg border border-neutral-50 object-cover">
 
         <p v-if="durationLabel" class="text-sm text-neutral-500">
             Duration: <span :title="durationExact" class="tabular-nums text-neutral-700">{{ durationLabel }}</span>

@@ -71,13 +71,15 @@ it('only offers published entries to mention', function () {
     expect(collect(app(MentionSearch::class)('Kettle'))->pluck('label')->all())->toBe(['Kettle published']);
 });
 
-it('gives MCP the owner view: status on an entry, hidden rows off the timeline, searchable when asked', function () {
+it('gives MCP the owner view: status on an entry, hidden rows off the timeline and search unless asked', function () {
     $this->actingAs(User::factory()->create());
 
     $entry = callTool(Entry::class, ['url' => '/2026/06/15/kettle-private'])['data'];
+    $filter = [['type' => 'article', 'conditions' => [['field' => 'title', 'operator' => 'contains', 'value' => 'Kettle']]]];
 
     expect($entry['status'])->toBe('private')
         ->and($entry)->not->toHaveKey('password')
         ->and(callTool(Timeline::class, ['from' => '2026-06-15'])['data']['count'])->toBe(1)
-        ->and(callTool(SearchEntries::class, ['filter' => [['type' => 'article', 'conditions' => [['field' => 'title', 'operator' => 'contains', 'value' => 'Kettle']]]]])['data']['total'])->toBe(3);
+        ->and(callTool(SearchEntries::class, ['filter' => $filter])['data']['total'])->toBe(1)
+        ->and(callTool(SearchEntries::class, ['filter' => $filter, 'status' => 'all'])['data']['total'])->toBe(3);
 });

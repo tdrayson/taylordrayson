@@ -2,6 +2,7 @@
 
 namespace App\Presenters\Exports;
 
+use App\Data\Aspects\Imagery;
 use App\Data\ExportData;
 use App\Data\ExportField;
 use App\Data\ExportInstant;
@@ -10,12 +11,13 @@ use App\Models\Film;
 use App\Presenters\CardPresenter;
 use App\Presenters\EntryDescription;
 use App\Presenters\Exports\Sheets\FilmSheet;
+use App\Queries\EntryArtwork;
 use App\Support\SerialNumber;
 use App\Support\Units;
 
 /**
  * A film as an export: what was watched, its rating, and the named meta
- * values worth publishing. No aspects: a film has neither a place nor a span.
+ * values worth publishing, and the poster the page features.
  */
 final class FilmExport
 {
@@ -27,6 +29,7 @@ final class FilmExport
     public function present(Film $model): ExportData
     {
         $card = CardPresenter::for($model);
+        $artwork = (new EntryArtwork)($model);
 
         return new ExportData(
             type: TimelineType::Film,
@@ -44,6 +47,9 @@ final class FilmExport
                 ExportField::make('ticket_ref', 'Ticket ref', SerialNumber::for($model->occurred_at), $model->id),
             ])),
             links: CommonLinks::for($model),
+            aspects: array_filter([
+                Imagery::class => Imagery::of($artwork['backdrop'] === null ? null : $artwork['poster']),
+            ]),
         );
     }
 }

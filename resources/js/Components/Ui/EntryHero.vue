@@ -14,6 +14,7 @@ defineProps({
     <div class="relative sm:pb-8">
         <section
             data-testid="entry-hero"
+            data-morph="image"
             class="relative aspect-video overflow-hidden rounded-lg border border-neutral-50 bg-neutral-25 bg-cover bg-center"
             :style="{ backgroundImage: `url(${backdrop})` }"
         >
@@ -35,7 +36,7 @@ defineProps({
             v-if="poster"
             :src="poster"
             alt=""
-            class="absolute bottom-0 left-8 hidden w-40 rounded-md border border-neutral-50 bg-neutral-25 shadow-card sm:block"
+            class="u-featured absolute bottom-0 left-8 hidden w-40 rounded-md border border-neutral-50 bg-neutral-25 shadow-card sm:block"
         >
     </div>
 </template>

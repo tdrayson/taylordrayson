@@ -114,3 +114,37 @@ it('withholds p-name and p-summary from a note in both, so neither parses as an 
         ->and($exportEntry['properties'])->not->toHaveKey('name')
         ->and($exportEntry['properties'])->not->toHaveKey('summary');
 });
+
+it('publishes the same u-photo and u-featured images through .mf2 as the page renders', function () {
+    $note = Note::factory()->create([
+        'occurred_at' => '2024-03-04 09:00:00',
+        'content' => PortableText::fromPlainText('Two photos.'),
+    ]);
+    $note->addMediaFromString(parityJpeg())->usingFileName('one.jpg')->toMediaCollection('photos');
+    $note->addMediaFromString(parityJpeg())->usingFileName('two.jpg')->toMediaCollection('photos');
+
+    $article = Article::factory()->create([
+        'status' => 'published',
+        'occurred_at' => '2024-03-05 09:00:00',
+        'content' => PortableText::fromPlainText('With a cover.'),
+    ]);
+    $article->addMediaFromString(parityJpeg())->usingFileName('cover.jpg')->toMediaCollection('cover');
+
+    $pageNote = microformatItem(microformatsOf($note->url()), 'h-entry');
+    $exportNote = json_decode($this->get($note->url().'.mf2')->getContent(), true)['items'][0];
+    $pageArticle = microformatItem(microformatsOf($article->url()), 'h-entry');
+    $exportArticle = json_decode($this->get($article->url().'.mf2')->getContent(), true)['items'][0];
+
+    expect($pageNote['properties']['photo'])->toHaveCount(2)
+        ->and($exportNote['properties']['photo'])->toBe($pageNote['properties']['photo'])
+        ->and($exportArticle['properties']['featured'])->toBe($pageArticle['properties']['featured']);
+});
+
+function parityJpeg(): string
+{
+    $image = imagecreatetruecolor(64, 48);
+    ob_start();
+    imagejpeg($image);
+
+    return (string) ob_get_clean();
+}

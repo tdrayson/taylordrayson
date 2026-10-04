@@ -2,13 +2,14 @@
 
 namespace App\Http\Controllers;
 
+use App\Data\EntryDay;
 use App\Data\ExportData;
 use App\Models\Sleep;
-use App\Models\TimelineEntry;
 use App\Presenters\Exports\Formats\Format;
 use App\Presenters\Exports\Formats\Formats;
 use App\Presenters\Exports\NowExport;
 use App\Queries\CurrentlyReading;
+use App\Queries\EntryDays;
 use App\Queries\LastNightSleep;
 use App\Queries\LatestEpisode;
 use App\Queries\PhotoStream;
@@ -127,32 +128,15 @@ class NowController extends Controller
     }
 
     /**
-     * Per-day timeline entry counts for four Monday-to-Sunday weeks ending this
-     * week, oldest first. Days after today carry a null count.
+     * Four Monday-to-Sunday weeks of entry days ending this week, oldest first.
      *
-     * @return array<int, array{date: string, count: int|null}>
+     * @return list<EntryDay>
      */
     private function entryDays(): array
     {
-        $today = Carbon::today((string) config('app.home_timezone'));
-        $start = $today->copy()->startOfWeek(Carbon::MONDAY)->subWeeks(3);
+        $start = Carbon::today((string) config('app.home_timezone'))->startOfWeek(Carbon::MONDAY)->subWeeks(3);
 
-        $countsByDay = TimelineEntry::query()
-            ->where('occurred_at', '>=', $start)
-            ->where('occurred_at', '<', $today->copy()->addDay())
-            ->get(['occurred_at'])
-            ->countBy(fn (TimelineEntry $entry): string => $entry->occurred_at->toDateString());
-
-        return collect(range(0, 27))
-            ->map(function (int $offset) use ($start, $today, $countsByDay): array {
-                $day = $start->copy()->addDays($offset);
-
-                return [
-                    'date' => $day->toDateString(),
-                    'count' => $day->gt($today) ? null : $countsByDay->get($day->toDateString(), 0),
-                ];
-            })
-            ->all();
+        return app(EntryDays::class)($start, 28);
     }
 
     /**

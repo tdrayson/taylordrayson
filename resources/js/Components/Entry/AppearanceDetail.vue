@@ -89,7 +89,7 @@ onBeforeUnmount(() => {
                 aria-label="Watch video"
                 @click="watchVideo"
             >
-                <img v-if="thumbnail" :src="thumbnail" :srcset="srcset" sizes="(min-width: 768px) 640px, 100vw" alt="" class="size-full object-cover transition-transform duration-300 group-hover:scale-105">
+                <img v-if="thumbnail" :src="thumbnail" :srcset="srcset" sizes="(min-width: 768px) 640px, 100vw" alt="" class="u-featured size-full object-cover transition-transform duration-300 group-hover:scale-105">
                 <!-- Fixed black, not the neutral ramp: an intentional dark surface in both themes. -->
                 <span class="absolute inset-0 flex items-center justify-center bg-black/20 transition-colors group-hover:bg-black/30">
                     <span class="flex size-16 items-center justify-center rounded-full bg-neutral-0/90 text-neutral-900 shadow-card transition-transform group-hover:scale-110">
@@ -98,7 +98,7 @@ onBeforeUnmount(() => {
                 </span>
             </button>
         </div>
-        <img v-else-if="thumbnail" :src="thumbnail" :srcset="srcset" sizes="(min-width: 768px) 640px, 100vw" alt="" class="aspect-video w-full rounded-lg border border-neutral-50 object-cover">
+        <img v-else-if="thumbnail" :src="thumbnail" :srcset="srcset" sizes="(min-width: 768px) 640px, 100vw" alt="" class="u-featured aspect-video w-full rounded-lg border border-neutral-50 object-cover">
 
         <DetailList :rows="rows" />
 

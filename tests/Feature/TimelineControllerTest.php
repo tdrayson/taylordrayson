@@ -7,8 +7,11 @@ use App\Models\Food;
 use App\Models\Note;
 use App\Models\ThisWeekWith;
 use App\Support\PortableText;
+use App\Timeline\TimelineFilter;
 
 use function Pest\Laravel\get;
+
+beforeEach(fn () => $this->withCookie(TimelineFilter::COOKIE, 'everything'));
 
 it('returns 200 for the homepage', function () {
     get('/')->assertOk();
@@ -114,6 +117,49 @@ it('ignores a cursor that is not a date', function () {
             ->assertOk()
             ->assertInertia(fn ($page) => $page->has('groups', 1));
     }
+});
+
+it('remembers a chosen preset and returns to the front of the feed', function () {
+    get('/?filter=travel')
+        ->assertRedirect('/')
+        ->assertCookie(TimelineFilter::COOKIE, 'travel');
+});
+
+it('filters the feed to the remembered preset', function () {
+    Flight::factory()->create(['occurred_at' => now()->subDay()]);
+    Note::factory()->create(['occurred_at' => now()->subDays(2)]);
+
+    $this->withCookie(TimelineFilter::COOKIE, 'travel')
+        ->get('/')
+        ->assertInertia(fn ($page) => $page
+            ->where('filter', 'travel')
+            ->has('groups', 1)
+            ->where('groups.0.items.0.iconKey', 'flight')
+        );
+});
+
+it('falls back to everything for an unknown preset', function () {
+    Flight::factory()->create(['occurred_at' => now()->subDay()]);
+    Note::factory()->create(['occurred_at' => now()->subDays(2)]);
+
+    $this->withCookie(TimelineFilter::COOKIE, 'nonsense')->get('/')->assertInertia(fn ($page) => $page
+        ->where('filter', 'everything')
+        ->has('groups', 2)
+        ->where('groups.0.items.0.iconKey', 'flight')
+    );
+});
+
+it('only links to older pages the filter has entries on', function () {
+    foreach (range(1, 50) as $minute) {
+        Activity::factory()->create(['occurred_at' => now()->subDay()->setTime(12, $minute)]);
+    }
+    Flight::factory()->create(['occurred_at' => now()->subDays(3)]);
+
+    get('/')->assertInertia(fn ($page) => $page->whereNot('olderUrl', null));
+
+    $this->withCookie(TimelineFilter::COOKIE, 'health')
+        ->get('/')
+        ->assertInertia(fn ($page) => $page->where('olderUrl', null));
 });
 
 it('offers every year the timeline holds something in', function () {

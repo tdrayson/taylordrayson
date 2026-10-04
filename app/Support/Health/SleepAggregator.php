@@ -37,9 +37,9 @@ class SleepAggregator
     private const SESSION_GAP = 10800;
 
     /**
-     * Reduce raw `sleep_analysis` segments into one record per night, choosing a
-     * single source per night by preference. "In Bed" segments are treated as
-     * the sleep-window envelope, never as a stage.
+     * Reduce raw `sleep_analysis` segments into one record per night, led by the
+     * preferred source with gaps filled from the rest. "In Bed" segments are
+     * treated as the sleep-window envelope, never as a stage.
      *
      * @param  array<int, array<string, mixed>>  $segments
      * @return array<string, array<string, mixed>> Records keyed by night date (Y-m-d).
@@ -70,18 +70,52 @@ class SleepAggregator
         $records = [];
 
         foreach ($grouped as $night => $bySource) {
-            $source = $this->preferredSource(array_keys($bySource));
+            $sources = $this->rankedSources(array_keys($bySource));
 
-            if ($source === null) {
+            if ($sources === []) {
                 continue;
             }
 
-            $records[$night] = $this->buildRecord($night, $source, $bySource[$source]);
+            $records[$night] = $this->buildRecord($night, $sources[0], $this->merged($bySource, $sources));
         }
 
         ksort($records);
 
         return $records;
+    }
+
+    /**
+     * The preferred source's segments, with gaps outside its span filled from
+     * the other sources in priority order, the way Apple Health merges sources.
+     *
+     * @param  array<string, array<int, array{value: string, start: string, end: string}>>  $bySource
+     * @param  non-empty-list<string>  $sources  Most preferred first.
+     * @return array<int, array{value: string, start: string, end: string}>
+     */
+    private function merged(array $bySource, array $sources): array
+    {
+        $merged = $bySource[$sources[0]];
+
+        foreach (array_slice($sources, 1) as $source) {
+            $from = min(array_column($merged, 'start'));
+            $to = max(array_column($merged, 'end'));
+
+            foreach ($bySource[$source] as $segment) {
+                if ($segment['value'] === 'In Bed') {
+                    continue;
+                }
+
+                if ($segment['start'] < $from) {
+                    $merged[] = [...$segment, 'end' => min($segment['end'], $from)];
+                }
+
+                if ($segment['end'] > $to) {
+                    $merged[] = [...$segment, 'start' => max($segment['start'], $to)];
+                }
+            }
+        }
+
+        return $merged;
     }
 
     /**
@@ -143,7 +177,7 @@ class SleepAggregator
 
         usort($stages, fn (array $first, array $second): int => strcmp($first['start'], $second['start']));
 
-        $bounds = $envelope !== [] ? $envelope : $stages;
+        $bounds = [...$envelope, ...$stages];
         $bedtime = $bounds !== [] ? min(array_column($bounds, 'start')) : null;
         $wakeTime = $bounds !== [] ? max(array_column($bounds, 'end')) : null;
 
@@ -277,17 +311,14 @@ class SleepAggregator
 
     /**
      * @param  list<string>  $available
+     * @return list<string> Most preferred first.
      */
-    private function preferredSource(array $available): ?string
+    private function rankedSources(array $available): array
     {
-        foreach (self::SOURCE_PRIORITY as $source) {
-            if (in_array($source, $available, true)) {
-                return $source;
-            }
-        }
+        $preferred = array_values(array_intersect(self::SOURCE_PRIORITY, $available));
+        $others = array_diff($available, self::SOURCE_PRIORITY);
+        sort($others);
 
-        sort($available);
-
-        return $available[0] ?? null;
+        return [...$preferred, ...$others];
     }
 }

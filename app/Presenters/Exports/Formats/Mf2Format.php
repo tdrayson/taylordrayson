@@ -2,6 +2,7 @@
 
 namespace App\Presenters\Exports\Formats;
 
+use App\Data\Aspects\Imagery;
 use App\Data\Aspects\Span;
 use App\Data\ExportData;
 use App\Data\ExportLink;
@@ -81,6 +82,16 @@ final class Mf2Format extends Format
             ]];
         }
 
+        $imagery = $data->aspect(Imagery::class);
+
+        if ($imagery?->featured !== null) {
+            $properties['featured'] = [['value' => $imagery->featured, 'alt' => $imagery->featuredAlt]];
+        }
+
+        if ($imagery !== null && $imagery->photos !== []) {
+            $properties['photo'] = array_map(fn (string $url): array => ['value' => $url, 'alt' => ''], $imagery->photos);
+        }
+
         $categories = array_map(fn (ExportLink $link): string => $link->title, $data->linksWithRel('category'));
 
         if ($categories !== []) {
@@ -132,7 +143,7 @@ final class Mf2Format extends Format
         return [
             'type' => ['h-card'],
             'properties' => [
-                'photo' => [['value' => url(config('identity.avatar')), 'alt' => config('identity.name')]],
+                'photo' => [url(config('identity.photo'))],
                 'name' => [config('identity.name')],
                 'url' => $urls,
                 'uid' => [$url],

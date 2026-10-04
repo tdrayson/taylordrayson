@@ -2,11 +2,11 @@
 
 namespace App\Stories;
 
+use App\Enums\CoffeeDrink;
 use App\Models\Food;
 use App\Support\OgMeta;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
-use Illuminate\Support\Str;
 
 /**
  * Computes the figures and chart series behind the food data story from live
@@ -317,14 +317,13 @@ class FoodStory implements Story
      */
     private function topFoods(Collection $items): array
     {
-        $coffee = ['coffee', 'cappuccino', 'latte', 'americano', 'espresso', 'flat white', 'macchiato', 'mocha', 'cortado'];
         $counts = [];
 
         foreach ($items as $item) {
             $name = trim((string) $item->name);
             $lower = strtolower($name);
 
-            if (Str::contains($lower, $coffee)) {
+            if (CoffeeDrink::matches($name)) {
                 $label = 'Coffee';
             } elseif (str_contains($lower, 'coke')) {
                 $label = 'Coke';

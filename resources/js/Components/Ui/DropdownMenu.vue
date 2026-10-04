@@ -12,7 +12,7 @@ import { useListboxNavigation } from '../../composables/useListboxNavigation.js'
  * icon button share nothing but the popover.
  */
 const props = defineProps({
-    // [{ label, href, icon?, description?, external? }]
+    // [{ label, href, icon?, description?, external?, visit? }], `visit` being router.visit options.
     items: { type: Array, required: true },
     // Which edge the panel is pinned to.
     align: { type: String, default: 'right' },
@@ -61,7 +61,7 @@ const { activeIndex, onKeydown } = useListboxNavigation(navigable, {
         if (item.external) {
             window.open(item.href, '_blank', 'noopener');
         } else {
-            router.visit(item.href);
+            router.visit(item.href, item.visit ?? {});
         }
     },
 });
@@ -119,6 +119,7 @@ watch(isOpen, (open) => {
                 v-for="(item, index) in items"
                 :id="rowId(index)"
                 :key="item.href"
+                v-bind="item.external ? {} : item.visit"
                 role="menuitem"
                 :href="item.href"
                 :target="item.external ? '_blank' : undefined"

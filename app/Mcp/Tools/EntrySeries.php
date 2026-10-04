@@ -2,6 +2,7 @@
 
 namespace App\Mcp\Tools;
 
+use App\Queries\EntryAtUrl;
 use App\Support\EntryColumns;
 use Illuminate\Contracts\JsonSchema\JsonSchema;
 use Laravel\Mcp\Request;
@@ -12,7 +13,10 @@ use Laravel\Mcp\Server\Tool;
 #[Description('One sampled series from an entry: a GPS track, an altitude or speed profile, a night\'s sleep stages. Large, so call entry first to see which exist and what each costs.')]
 class EntrySeries extends Tool
 {
-    public function __construct(private readonly EntryColumns $columns) {}
+    public function __construct(
+        private readonly EntryColumns $columns,
+        private readonly EntryAtUrl $entryAtUrl,
+    ) {}
 
     public function handle(Request $request): Response
     {
@@ -21,7 +25,7 @@ class EntrySeries extends Tool
             'series' => ['required', 'string'],
         ]);
 
-        $model = Entry::resolve($input['url']);
+        $model = $this->entryAtUrl->forPath($input['url']);
 
         if ($model === null) {
             return Response::error('No entry at that URL.');

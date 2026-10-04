@@ -2,6 +2,7 @@
 
 namespace App\Presenters\Exports;
 
+use App\Data\Aspects\Imagery;
 use App\Data\Aspects\Span;
 use App\Data\ExportData;
 use App\Data\ExportField;
@@ -52,6 +53,7 @@ final class ThisWeekWithExport
             body: $model->show_notes,
             aspects: array_filter([
                 Span::class => Span::moment($model->occurred_at, $model->duration, $model->timezone()),
+                Imagery::class => Imagery::of($model->wideArtworkSrc() ?: $model->squareArtworkSrc()),
             ]),
         );
     }

@@ -12,7 +12,7 @@ use Laravel\Mcp\Response;
 use Laravel\Mcp\Server\Attributes\Description;
 use Laravel\Mcp\Server\Tool;
 
-#[Description('Whether each kind of data is arriving: the newest entry of every type, when it was recorded, and how far behind that leaves it. Start here for "has today\'s X come through".')]
+#[Description('Whether each kind of data is arriving: the newest entry of every type, when it was recorded, and how far behind that leaves it. Start here for "has today\'s X come through". Only a synced type falling behind means a stalled sync; the rest are logged by hand.')]
 class DataFreshness extends Tool
 {
     public function handle(Request $request): Response
@@ -29,7 +29,7 @@ class DataFreshness extends Tool
             $entry = $newest[$type] ?? null;
 
             if ($entry === null) {
-                $types[] = ['type' => $type, 'label' => $count->label, 'entries' => $count->count];
+                $types[] = ['type' => $type, 'label' => $count->label, 'entries' => $count->count, 'synced' => $count->synced];
 
                 continue;
             }
@@ -41,6 +41,7 @@ class DataFreshness extends Tool
                 'type' => $type,
                 'label' => $count->label,
                 'entries' => $count->count,
+                'synced' => $count->synced,
                 'newest' => $occurred->toDateTimeString(),
                 'behind' => $occurred->diffForHumans($now, syntax: Carbon::DIFF_ABSOLUTE),
                 'recorded' => $recorded?->toDateTimeString(),

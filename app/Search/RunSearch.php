@@ -3,6 +3,7 @@
 namespace App\Search;
 
 use App\Actions\BuildTimelineFeed;
+use App\Enums\EntryStatus;
 use App\Models\Scopes\ListedScope;
 use App\Models\TimelineEntry;
 use App\Support\FeedInteractions;
@@ -30,9 +31,10 @@ final class RunSearch
      * @param  array<int, array<string, mixed>>  $groups  Validated filter groups.
      * @param  int  $page  The 1-based results page to load.
      * @param  string  $order  'newest' (default) or 'oldest', by occurrence.
+     * @param  EntryStatus|null  $status  Only entries with this status; null leaves visibility to the compiler.
      * @return array{groups: array<int, mixed>, interactions: mixed, total: int, currentPage: int, lastPage: int}
      */
-    public function __invoke(array $groups, int $page, string $order = 'newest'): array
+    public function __invoke(array $groups, int $page, string $order = 'newest', ?EntryStatus $status = null): array
     {
         if ($groups === []) {
             return ['groups' => [], 'interactions' => [], 'total' => 0, 'currentPage' => 1, 'lastPage' => 1];
@@ -42,6 +44,10 @@ final class RunSearch
             ->withCardRelations();
 
         $this->compiler->apply($query, $groups);
+
+        if ($status !== null) {
+            $query->where('timeline_entries.status', $status->value);
+        }
 
         $paginated = $query
             ->orderBy('occurred_at', $order === 'oldest' ? 'asc' : 'desc')

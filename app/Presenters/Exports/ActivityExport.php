@@ -3,6 +3,7 @@
 namespace App\Presenters\Exports;
 
 use App\Data\Aspects\Geometry;
+use App\Data\Aspects\Imagery;
 use App\Data\Aspects\Span;
 use App\Data\ExportData;
 use App\Data\ExportField;
@@ -53,6 +54,7 @@ final class ActivityExport
             aspects: array_filter([
                 Geometry::class => $this->track($model),
                 Span::class => Span::moment($model->occurred_at, $model->duration, $model->timezone()),
+                Imagery::class => Imagery::gallery($model->galleryPhotos()),
             ]),
         );
     }

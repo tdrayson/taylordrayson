@@ -33,7 +33,7 @@ const rows = computed(() => [
             v-else-if="entry.poster"
             :src="entry.poster"
             :alt="`Cover of ${entry.title}`"
-            class="w-32 rounded-lg shadow-card"
+            class="u-featured w-32 rounded-lg shadow-card"
         >
 
         <div v-if="entry.rating" class="flex items-center gap-2">
