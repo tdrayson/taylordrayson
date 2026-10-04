@@ -5,6 +5,7 @@ use App\Http\Middleware\HandleInertiaRequests;
 use App\Http\Middleware\VerifyStravaWebhookSecret;
 use App\Models\LeaderboardEntry;
 use App\Models\TimelineEntry;
+use App\Models\Tombstone;
 use App\Support\OgMeta;
 use App\Support\Preferences;
 use Illuminate\Foundation\Application;
@@ -79,6 +80,25 @@ return Application::configure(basePath: dirname(__DIR__))
                     'path' => $request->path(),
                     'errors' => $exception instanceof ValidationException ? array_keys($exception->errors()) : null,
                 ]);
+            }
+
+            // Checked only once nothing live answered, so a post later published
+            // at a deleted post's address simply replaces its tombstone.
+            $tombstone = $response->getStatusCode() === 404 && ! $request->expectsJson()
+                ? Tombstone::query()->firstWhere('path', '/'.ltrim($request->path(), '/'))
+                : null;
+
+            if ($tombstone !== null) {
+                $deletedAt = $tombstone->deleted_at->setTimezone(config('app.home_timezone'));
+
+                return Inertia::render('Deleted', [
+                    'og' => OgMeta::deleted(),
+                    'url' => $request->url(),
+                    'deletedAt' => $deletedAt->toIso8601String(),
+                    'deletedOn' => $deletedAt->format('j F Y'),
+                ])
+                    ->toResponse($request)
+                    ->setStatusCode(410);
             }
 
             if ($response->getStatusCode() === 404 && ! $request->expectsJson()) {

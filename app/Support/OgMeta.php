@@ -232,6 +232,18 @@ class OgMeta
     }
 
     /**
+     * @return OgPayload
+     */
+    public static function deleted(): array
+    {
+        return self::make([
+            'title' => 'Deleted',
+            'description' => 'This post has been deleted.',
+            'noindex' => true,
+        ]);
+    }
+
+    /**
      * @param  int  $status  The HTTP status code (e.g. 404).
      * @return OgPayload
      */

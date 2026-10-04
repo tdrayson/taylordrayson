@@ -171,3 +171,17 @@ it('gives each kind of response its own property, not an unnamed child', functio
     'a repost' => ['repost', 'repost'],
     'a bookmark' => ['bookmark', 'bookmark'],
 ]);
+
+// A reader that ignores the 410 still replaces its copy with this.
+it('marks a deleted post up as an h-entry with dt-deleted', function () {
+    $note = Note::factory()->create(['occurred_at' => '2024-03-03 09:00:00']);
+    $url = $note->url();
+    $note->delete();
+
+    $entry = microformatItem(microformatsOf($url), 'h-entry');
+
+    expect($entry['properties']['name'][0])->toBe('Deleted')
+        ->and($entry['properties']['content'][0]['value'])->toBe('This post has been deleted.')
+        ->and($entry['properties']['url'][0])->toEndWith($url)
+        ->and($entry['properties']['deleted'][0])->not->toBeEmpty();
+});
