@@ -28,13 +28,14 @@ const addressLine = computed(() =>
     [props.entry.address, props.entry.postcode, props.entry.city].filter(Boolean).join(', '),
 );
 
-// Purchase figures in the display stats. Economy / card saving sit in the
-// detail list below — StatGrid and DetailList both drop blank rows.
+// Purchase figures in the display stats, Cost being what was actually paid.
+// Economy / card saving sit in the detail list below — StatGrid and
+// DetailList both drop blank rows.
 // Odometer is stored in miles; convert to metres so StatGrid can honour the
 // visitor's mi/km distance setting.
 const stats = computed(() => [
     { label: 'Volume', value: number(props.entry.litres, 1), unit: 'L' },
-    { label: 'Cost', value: measure('money', props.entry.cost, money(props.entry.cost)), exact: exactMeasure('money', props.entry.cost, money(props.entry.cost)) },
+    { label: 'Cost', value: measure('money', props.entry.paid, money(props.entry.paid)), exact: exactMeasure('money', props.entry.paid, money(props.entry.paid)) },
     {
         label: 'Per litre',
         value: sillyUnits.value === 'on' && props.entry.price_per_litre ? `${measure('money', props.entry.price_per_litre, '')} a litre` : pencePerLitre(props.entry.price_per_litre),
@@ -47,6 +48,8 @@ const stats = computed(() => [
 ]);
 
 const details = computed(() => [
+    // Cost above is the card price, so the pump price only shows when they differ.
+    { label: 'Pump price', value: saving.value ? measure('money', props.entry.cost, money(props.entry.cost)) : null, title: exactMeasure('money', props.entry.cost, money(props.entry.cost)) },
     { label: 'Fuel card saving', value: measure('money', saving.value, money(saving.value)), title: exactMeasure('money', saving.value, money(saving.value)) },
     {
         label: 'Range',

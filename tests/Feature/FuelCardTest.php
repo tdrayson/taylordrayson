@@ -27,6 +27,22 @@ it('names no place when no station is set', function () {
     expect(CardPresenter::for($fuel)->title)->toBe('£41.13 at the pump');
 });
 
+it('leads with the card price and says what the card brought the litre down to', function () {
+    $fuel = Fuel::factory()->create([
+        'station_name' => 'M25 Clacket Lane',
+        'city' => 'Westerham',
+        'litres' => 30.89,
+        'cost' => 58.66,
+        'fuel_card_cost' => 51.89,
+        'price_per_litre' => 1.899,
+    ]);
+
+    $card = CardPresenter::for($fuel);
+
+    expect($card->title)->toBe('£51.89 at M25 Clacket Lane')
+        ->and($card->subtitle)->toBe('I filled up with 30.89L in Westerham. Fuel was 189.9p/L, but my fuel card brought it down to 168.0p/L.');
+});
+
 afterEach(function () {
     File::delete(public_path('logos/brands/testco.png'));
 });

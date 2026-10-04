@@ -279,7 +279,17 @@ final class EntryDescription
         $lead = sprintf('I filled my car with %sL', number_format((float) $model->litres, 2));
         $lead = $where === '' ? $lead : "{$lead} {$where}";
 
-        $cost = number_format((float) $model->cost, 2);
+        $cost = number_format($model->paid, 2);
+
+        if ($model->card_price_per_litre !== null) {
+            return sprintf(
+                '%s. Fuel was %s/L, but my fuel card brought it down to %s/L, so it cost £%s.',
+                $lead,
+                Units::pencePerLitre($model->price_per_litre),
+                Units::pencePerLitre($model->card_price_per_litre),
+                $cost,
+            );
+        }
 
         // One subject, two verbs: the price and the total are both things the
         // fuel did, so neither needs a connective to carry it.

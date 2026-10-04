@@ -59,7 +59,7 @@ class Fuel extends Model implements HasMedia, Timelineable
     /**
      * @var list<string>
      */
-    protected $appends = ['logo_url'];
+    protected $appends = ['logo_url', 'paid'];
 
     /**
      * Public path to the stored brand logo, or null when the brand is unset or
@@ -77,6 +77,32 @@ class Fuel extends Model implements HasMedia, Timelineable
             return file_exists(public_path("logos/brands/{$slug}.png"))
                 ? "/logos/brands/{$slug}.png"
                 : null;
+        });
+    }
+
+    /**
+     * What the fill actually cost: the fuel-card price when one was logged,
+     * otherwise the pump price.
+     */
+    protected function paid(): Attribute
+    {
+        return Attribute::get(fn (): float => (float) ($this->fuel_card_cost ?? $this->cost));
+    }
+
+    /**
+     * The per-litre price the fuel card worked out at, or null unless the fill
+     * went on the card and that undercut the pump price.
+     */
+    protected function cardPricePerLitre(): Attribute
+    {
+        return Attribute::get(function (): ?float {
+            if ($this->fuel_card_cost === null || (float) $this->litres <= 0 || ! $this->price_per_litre) {
+                return null;
+            }
+
+            $perLitre = round((float) $this->fuel_card_cost / (float) $this->litres, 3);
+
+            return $perLitre < (float) $this->price_per_litre ? $perLitre : null;
         });
     }
 

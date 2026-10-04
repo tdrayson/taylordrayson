@@ -26,7 +26,7 @@ it('computes kpis, price swing and mpg from fills', function () {
         ->and($story['kpis']['avgMpg'])->toBe(34.1);
 });
 
-it('builds a running cumulative of the fuel-card saving', function () {
+it('builds a running cumulative of the fuel-card saving and counts the card price as spend', function () {
     Fuel::factory()->create(['occurred_at' => '2024-01-10 09:00:00', 'cost' => 50.00, 'fuel_card_cost' => 47.00]);
     Fuel::factory()->create(['occurred_at' => '2024-02-10 09:00:00', 'cost' => 60.00, 'fuel_card_cost' => 55.00]);
 
@@ -34,6 +34,7 @@ it('builds a running cumulative of the fuel-card saving', function () {
 
     expect($card['fills'])->toBe(2)
         ->and($card['saved'])->toBe(8.0)
+        ->and(app(FuelStory::class)->build()['kpis']['spend'])->toBe(102.0)
         ->and($card['cumulative'])->toBe([
             ['date' => '2024-01-10', 'saved' => 3.0],
             ['date' => '2024-02-10', 'saved' => 8.0],

@@ -1,5 +1,6 @@
 <?php
 
+use App\Jobs\SendWebmention;
 use App\Jobs\SendWebmentions;
 use App\Models\Note;
 use App\Models\Page;
@@ -7,6 +8,7 @@ use App\Models\WebmentionSend;
 use App\Support\PortableText;
 use Illuminate\Http\Client\Request;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Queue;
 use Saloon\Http\Faking\MockResponse;
 use Saloon\Laravel\Facades\Saloon;
 
@@ -84,6 +86,22 @@ it('does not send again when nothing about the post changed', function () {
     (new SendWebmentions($note))->handle();
 
     expect(sendsFor(LINKED))->toBe(1);
+});
+
+// One job per target keeps each one inside the worker timeout, however many
+// slow sites a post links to.
+it('queues each link as its own send rather than sending inline', function () {
+    fakeReceiver();
+    Queue::fake();
+    $note = noteLinking([LINKED, 'https://example.com/second']);
+
+    (new SendWebmentions($note))->handle();
+
+    Queue::assertPushed(SendWebmention::class, 2);
+    Queue::assertPushed(fn (SendWebmention $job): bool => $job->target === LINKED
+        && $job->sourceType === $note->getMorphClass()
+        && $job->sourceId === $note->id);
+    expect(sendsFor(LINKED))->toBe(0);
 });
 
 it('ignores a save that could not have touched a link', function () {
