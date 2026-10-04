@@ -149,6 +149,7 @@ class EntryController extends Controller
         }
 
         $authorable = AuthorableTypes::forModel($model);
+        $editing = Auth::check() && request()->has('edit');
 
         return [
             'entry' => $model instanceof Food
@@ -160,7 +161,10 @@ class EntryController extends Controller
             // is loaded on demand.
             'conversation' => Conversation::shownFor($model, request()),
             'polyline' => data_get($model, 'meta.polyline'),
-            'editing' => Auth::check() && request()->has('edit'),
+            'editing' => $editing,
+            // The editor's menu duplicates, deletes and previews a hand-written entry by its id.
+            'entryId' => $editing && $authorable !== null ? $model->getKey() : null,
+            'authoringType' => $editing ? $authorable : null,
             // A synced type edits its status alone: a field the sync also writes
             // would be silently overwritten by the next run.
             'editAction' => match (true) {

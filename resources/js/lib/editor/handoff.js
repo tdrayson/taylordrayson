@@ -1,10 +1,6 @@
 /**
- * Carrying half-written words from one type's editor into another's.
- *
- * A note that outgrows its limit becomes an article, and the whole point is not
- * having to copy the words out and paste them back in. Nothing is saved on the
- * way across: a note has no draft state, so until it is posted there is no row
- * to convert, redirect or clean up.
+ * Carrying unsaved values into the editor about to open, e.g. a note grown into
+ * an article or a duplicated entry. Nothing is saved on the way across.
  */
 const KEY = 'entry-handoff';
 

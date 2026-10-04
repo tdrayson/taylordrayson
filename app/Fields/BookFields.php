@@ -3,6 +3,7 @@
 namespace App\Fields;
 
 use App\Data\FieldData;
+use App\Enums\EditorTab;
 use App\Enums\EntryStatus;
 use App\Enums\FieldType;
 use App\Enums\Source;
@@ -36,12 +37,12 @@ final class BookFields
             ...$progress,
             FieldData::primary('occurred_at', 'Finished', FieldType::DateTime, required: true, defaultsToNow: true),
             FieldData::optional('started_at', 'Started', FieldType::DateTime),
-            FieldData::optional('timezone', 'Timezone', FieldType::Lookup, source: 'timezone'),
+            FieldData::optional('timezone', 'Timezone', FieldType::Lookup, source: 'timezone', sidebar: true),
             FieldData::optional('rating', 'Rating', FieldType::Rating, suffix: '/10'),
-            FieldData::optional('overview', 'Overview', FieldType::Textarea),
-            FieldData::optional('meta.year', 'Publication year', FieldType::Number),
-            FieldData::optional('meta.isbn', 'ISBN', FieldType::Text),
-            FieldData::primary('tags', 'Tags', FieldType::Tags),
+            FieldData::optional('overview', 'Overview', FieldType::Textarea, tab: EditorTab::Details),
+            FieldData::optional('meta.year', 'Publication year', FieldType::Number, tab: EditorTab::Details),
+            FieldData::optional('meta.isbn', 'ISBN', FieldType::Text, tab: EditorTab::Details),
+            FieldData::primary('tags', 'Tags', FieldType::Tags, sidebar: true),
             FieldData::primary('status', 'Status', FieldType::Status, EntryStatus::options()),
             FieldData::hidden('password', 'Password', FieldType::Text),
         ];

@@ -3,6 +3,7 @@
 namespace App\Fields;
 
 use App\Data\FieldData;
+use App\Enums\EditorTab;
 use App\Enums\EntryStatus;
 use App\Enums\FieldType;
 
@@ -23,7 +24,7 @@ final class EventFields
             FieldData::primary('occurred_at', 'Starts', FieldType::DateTime, required: true, defaultsToNow: true),
             FieldData::optional('ends_at', 'Ends', FieldType::DateTime, relativeTo: 'occurred_at'),
             FieldData::optional('all_day', 'All day', FieldType::Boolean),
-            FieldData::optional('timezone', 'Timezone', FieldType::Lookup, source: 'timezone'),
+            FieldData::optional('timezone', 'Timezone', FieldType::Lookup, source: 'timezone', sidebar: true),
             FieldData::primary('venue_name', 'Venue', FieldType::Location, source: 'place'),
             FieldData::optional('address', 'Street', FieldType::Text, group: 'Address'),
             FieldData::optional('postcode', 'Postcode', FieldType::Text, group: 'Address'),
@@ -31,8 +32,8 @@ final class EventFields
             FieldData::optional('country', 'Country', FieldType::Text, group: 'Address'),
             FieldData::hidden('latitude', 'Latitude', FieldType::Number),
             FieldData::hidden('longitude', 'Longitude', FieldType::Number),
-            FieldData::primary('tags', 'Category', FieldType::Tags, required: true),
-            FieldData::optional('photos', 'Photos', FieldType::Gallery, collection: 'photos'),
+            FieldData::primary('tags', 'Category', FieldType::Tags, required: true, sidebar: true),
+            FieldData::optional('photos', 'Photos', FieldType::Gallery, collection: 'photos', tab: EditorTab::Summary),
             FieldData::optional('organiser', 'Organiser', FieldType::Text),
             FieldData::optional('url', 'Link', FieldType::Url),
             FieldData::optional('description', 'About', FieldType::Textarea),

@@ -8,6 +8,16 @@
 const MEDIA_TYPES = ['image', 'book-cover', 'gallery'];
 
 /**
+ * Whether a field holds media rather than a scalar.
+ *
+ * @param {{type: string}} field
+ * @returns {boolean}
+ */
+export function isMedia(field) {
+    return MEDIA_TYPES.includes(field.type);
+}
+
+/**
  * The ids behind a media field's value, dropping anything without one.
  *
  * Accepts a bare id as well as an item, because an existing attachment and a
@@ -34,7 +44,7 @@ export function withMediaIds(fields, values) {
     const reduced = { ...values };
 
     for (const field of fields) {
-        if (MEDIA_TYPES.includes(field.type)) {
+        if (isMedia(field)) {
             reduced[field.name] = mediaIds(reduced[field.name]);
         }
     }
