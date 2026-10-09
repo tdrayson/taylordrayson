@@ -9,6 +9,7 @@ use App\Data\SubtitleToken;
 use App\Enums\TimelineType;
 use App\Models\Appearance;
 use App\Presenters\SubtitleText;
+use App\Support\Text;
 
 /**
  * Builds the timeline card for an Appearance: show name as the subtitle and
@@ -38,6 +39,7 @@ final class AppearanceCard
                 duration: $model->duration,
                 url: $model->url(),
             )),
+            summary: Text::prose($model->description),
         );
     }
 

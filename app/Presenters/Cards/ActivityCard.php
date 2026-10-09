@@ -10,6 +10,7 @@ use App\Enums\TimelineType;
 use App\Models\Activity;
 use App\Presenters\SubtitleText;
 use App\Support\Distance;
+use App\Support\Text;
 use Illuminate\Support\Str;
 
 /**
@@ -71,6 +72,7 @@ final class ActivityCard
                 map: $model->optimisedUrl('map'),
                 mapDark: $model->optimisedUrl('map_dark'),
             ),
+            summary: Text::prose($model->description),
         );
     }
 

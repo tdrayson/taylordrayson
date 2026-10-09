@@ -180,6 +180,7 @@ it('reproduces the pre-refactor appearance card shape', function () {
         'video_url' => 'https://www.youtube.com/watch?v=W7rO_mZTuWM',
         'audio_url' => null,
         'duration' => 1800,
+        'description' => 'How I built a lifelog with Laravel.',
     ]);
 
     expect(CardPresenter::for($appearance)->toArray())->toEqual([
@@ -192,6 +193,7 @@ it('reproduces the pre-refactor appearance card shape', function () {
             ['t' => 'dur', 's' => 1800, 'u' => 'minutes', 'sep' => ' '],
             ['t' => 'text', 'v' => 'long.', 'sep' => ' '],
         ],
+        'summary' => 'How I built a lifelog with Laravel.',
         'occurred_at' => $appearance->occurred_at,
         'meta' => [
             'media' => [
