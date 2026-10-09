@@ -72,8 +72,10 @@ final class SafeFetch
 
             $status = $response->status();
             $finalUrl = $url;
+            // Repeated headers are folded into one comma list, as HTTP defines,
+            // so a second Link header is not dropped.
             $responseHeaders = array_change_key_case(
-                array_map(fn (array $values): string => $values[0] ?? '', $response->headers()),
+                array_map(fn (array $values): string => implode(', ', $values), $response->headers()),
             );
             $location = $response->header('location');
 

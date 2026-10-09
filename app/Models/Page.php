@@ -6,6 +6,7 @@ use App\Models\Concerns\HasAttachments;
 use App\Models\Concerns\HasDynamicContent;
 use App\Models\Concerns\HasInteractions;
 use App\Models\Concerns\HasStatus;
+use App\Models\Concerns\LeavesTombstone;
 use App\Models\Concerns\RecordsMentions;
 use App\Models\Concerns\SendsWebmentions;
 use App\Observers\LinkFaviconObserver;
@@ -38,6 +39,7 @@ class Page extends Model implements HasMedia
 
     use HasInteractions;
     use HasStatus;
+    use LeavesTombstone;
     use RecordsMentions;
     use SendsWebmentions;
 
