@@ -10,7 +10,6 @@ import Heading from '../Components/Ui/Heading.vue';
 defineOptions({ layout: AppLayout, inheritAttrs: false });
 
 const props = defineProps({
-    og: { type: Object, default: () => ({}) },
     title: { type: String, required: true },
     days: { type: Number, required: true },
     // { day, month, year, time, label, iso, offset }, formatted server-side in
@@ -31,7 +30,7 @@ const dayCount = computed(() => `${props.days} ${props.days === 1 ? 'day' : 'day
 </script>
 
 <template>
-    <AppHead :og="og" />
+    <AppHead />
 
     <header>
         <Heading as="h1" size="display">{{ title }}</Heading>

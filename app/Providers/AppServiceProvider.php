@@ -18,11 +18,13 @@ use App\DynamicTags\Streaks\StreakLongest;
 use App\Http\Controllers\ArchiveController;
 use App\Listeners\AlertOnFailedJob;
 use App\Listeners\AlertOnScheduledTaskFailure;
+use App\Presenters\Heads\SiteHeads;
 use App\Queries\DayFoodTotals;
 use App\Queries\NowState;
 use App\Support\AmbientZone;
 use App\Support\ApiHttp;
 use App\Support\DisplayFormat;
+use App\Support\Head;
 use App\Support\OptimisingFileAdder;
 use App\Support\ZoneHistory;
 use App\Timeline\TypeRegistry;
@@ -35,6 +37,7 @@ use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
 use Inertia\Inertia;
+use Inertia\Response as InertiaResponse;
 use Laravel\Passport\Passport;
 use Laravel\Passport\Scope;
 use Spatie\MediaLibrary\MediaCollections\FileAdder;
@@ -65,6 +68,9 @@ class AppServiceProvider extends ServiceProvider
         // resolve the same instance, and StateStore::entries() runs once per
         // request no matter how many ambient readings are referenced.
         $this->app->scoped(NowState::class);
+
+        // One head per request, so any layer can add to the page's definition.
+        $this->app->scoped(Head::class);
 
         // The single registration path for every dynamic tag, including ones
         // generated at runtime rather than written as classes: bind an
@@ -131,15 +137,19 @@ class AppServiceProvider extends ServiceProvider
         // Rendered through Inertia to match the rest of the site; the approve
         // and deny controls inside it are plain forms, because completing the
         // request redirects to the client and an XHR visit cannot follow that.
-        Passport::authorizationView(fn (array $parameters) => Inertia::render('Auth/Authorize', [
-            'client' => $parameters['client']->name,
-            'scopes' => array_map(fn (Scope $scope): array => [
-                'id' => $scope->id,
-                'description' => $scope->description,
-            ], $parameters['scopes']),
-            'authToken' => $parameters['authToken'],
-            'csrf' => csrf_token(),
-        ]));
+        Passport::authorizationView(function (array $parameters): InertiaResponse {
+            app(Head::class)->set(SiteHeads::authorise());
+
+            return Inertia::render('Auth/Authorize', [
+                'client' => $parameters['client']->name,
+                'scopes' => array_map(fn (Scope $scope): array => [
+                    'id' => $scope->id,
+                    'description' => $scope->description,
+                ], $parameters['scopes']),
+                'authToken' => $parameters['authToken'],
+                'csrf' => csrf_token(),
+            ]);
+        });
 
         // Failures that otherwise only ever reached the log.
         Event::listen(ScheduledTaskFailed::class, AlertOnScheduledTaskFailure::class);

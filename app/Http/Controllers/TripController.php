@@ -6,11 +6,12 @@ use App\Actions\BuildTimelineFeed;
 use App\Data\TagLink;
 use App\Models\Tag;
 use App\Models\Trip;
+use App\Presenters\Heads\SiteHeads;
 use App\Queries\TripEntries;
 use App\Support\DisplayFormat;
 use App\Support\FeedInteractions;
+use App\Support\Head;
 use App\Support\LocalTime;
-use App\Support\OgMeta;
 use Carbon\CarbonImmutable;
 use Carbon\CarbonInterface;
 use Inertia\Inertia;
@@ -41,8 +42,9 @@ class TripController extends Controller
             ])
             ->all();
 
+        app(Head::class)->set(SiteHeads::trips());
+
         return Inertia::render('Trips', [
-            'og' => OgMeta::trips(),
             'trips' => $trips,
         ]);
     }
@@ -85,8 +87,9 @@ class TripController extends Controller
 
         $entries = ($this->entries)($trip);
 
+        app(Head::class)->set(SiteHeads::trip($trip->title));
+
         return Inertia::render('Trip', [
-            'og' => OgMeta::trip($trip->title),
             'title' => $trip->title,
             'days' => $trip->days(),
             'start' => $this->datePartsFor($trip->starts_at, $trip->timezone),

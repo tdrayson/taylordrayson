@@ -14,7 +14,6 @@ import Heading from '../Components/Ui/Heading.vue';
 defineOptions({ layout: AppLayout, inheritAttrs: false });
 
 const props = defineProps({
-    og: { type: Object, default: () => ({}) },
     schema: { type: Array, default: () => [] },
     presets: { type: Array, default: () => [] },
     filter: { type: Array, default: () => [] },
@@ -58,7 +57,7 @@ function goToPage(page) {
 </script>
 
 <template>
-    <AppHead :og="og" />
+    <AppHead />
 
     <header>
         <Heading as="h1" size="display">Search</Heading>

@@ -2,8 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Presenters\Heads\SiteHeads;
 use App\Queries\StatsForType;
-use App\Support\OgMeta;
+use App\Support\Head;
 use App\Support\TypeColors;
 use App\Timeline\TypeRegistry;
 use Illuminate\Http\Request;
@@ -31,9 +32,13 @@ class StatsController extends Controller
         [$start, $end] = $this->range($request);
         $compareMode = (string) $request->query('compare', 'previous-period');
 
+        $head = SiteHeads::stats($label, $typeKey);
+        app(Head::class)->set($head);
+
         return Inertia::render('Stats', [
             'type' => $type,
-            'og' => OgMeta::stats($label, $typeKey),
+            'heading' => $head->card->heading,
+            'eyebrow' => $head->card->eyebrow,
             'accent' => '#'.TypeColors::hex($typeKey),
             ...($this->stats)((string) $typeKey, $start, $end, $compareMode),
         ]);

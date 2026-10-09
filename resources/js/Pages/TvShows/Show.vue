@@ -60,7 +60,7 @@ setLayoutProps({
 </script>
 
 <template>
-    <AppHead :og="{ title: show.title, heading: show.title, eyebrow: 'TV', accent: 'tv-episode', image: show.backdrop || show.poster }" />
+    <AppHead />
 
     <header class="flex flex-col gap-6 sm:flex-row sm:items-start">
         <!-- Without a backdrop there is no hero to carry the poster, so it sits

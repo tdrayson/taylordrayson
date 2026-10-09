@@ -5,6 +5,8 @@ namespace App\Http\Controllers\Auth;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\LoginRequest;
 use App\Models\User;
+use App\Presenters\Heads\SiteHeads;
+use App\Support\Head;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -23,6 +25,8 @@ class AuthenticatedSessionController extends Controller
         if ($this->shouldAutoLogin()) {
             return $this->autoLogin($request);
         }
+
+        app(Head::class)->set(SiteHeads::signIn());
 
         return Inertia::render('Auth/Login', [
             'status' => session('status'),
@@ -71,6 +75,8 @@ class AuthenticatedSessionController extends Controller
             ->first() ?? User::query()->oldest('id')->first();
 
         if ($user === null) {
+            app(Head::class)->set(SiteHeads::signIn());
+
             return Inertia::render('Auth/Login', [
                 'status' => 'No account exists yet. Run `php artisan db:seed --class=UserSeeder`.',
             ]);

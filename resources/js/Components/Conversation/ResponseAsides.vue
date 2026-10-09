@@ -1,21 +1,22 @@
 <script setup>
 import { computed, defineAsyncComponent, nextTick, ref } from 'vue';
 import { copyText } from '../../lib/clipboard.js';
-import { useOgCard } from '../../composables/useOgCard.js';
+import { usePage } from '@inertiajs/vue3';
 import Accordion from '../Ui/Accordion.vue';
 
 const props = defineProps({
     // The canonical, absolute URL of the thing being responded to.
     url: { type: String, required: true },
-    // The page's Open Graph payload, the same one AppHead publishes.
-    og: { type: Object, default: () => ({}) },
 });
 
 // Only the handful of readers who open this panel need the form's chunk.
 const WebmentionForm = defineAsyncComponent(() => import('./WebmentionForm.vue'));
 
-// The card a scraper would fetch, resolved the same way as the og:image tag.
-const cardUrl = useOgCard(() => props.og);
+// The page's head, the same one AppHead publishes, so the preview matches what a scraper sees.
+const head = computed(() => usePage().props.head);
+
+// The card a scraper would fetch: the og:image itself.
+const cardUrl = computed(() => head.value.image);
 
 const copied = ref(false);
 const sendingLink = ref(false);
@@ -120,8 +121,8 @@ async function copy() {
                 >
                 <figcaption class="space-y-1 p-4">
                     <p v-if="host" class="text-2xs font-semibold uppercase tracking-wider text-neutral-500">{{ host }}</p>
-                    <p v-if="og.title" class="text-base font-semibold text-neutral-900">{{ og.title }}</p>
-                    <p v-if="og.description" class="text-sm text-neutral-500">{{ og.description }}</p>
+                    <p v-if="head.title" class="text-base font-semibold text-neutral-900">{{ head.title }}</p>
+                    <p v-if="head.description" class="text-sm text-neutral-500">{{ head.description }}</p>
                 </figcaption>
             </figure>
 

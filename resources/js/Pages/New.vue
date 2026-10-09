@@ -35,7 +35,7 @@ const values = computed(() => ({ ...valuesFor(props.fields), ...carried }));
 </script>
 
 <template>
-    <AppHead :og="{ title: 'New' }" />
+    <AppHead />
 
     <div v-if="! type" class="max-w-2xl">
         <Heading as="h1" size="display">New</Heading>

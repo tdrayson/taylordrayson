@@ -2,9 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Presenters\Heads\SiteHeads;
 use App\Stories\Story;
 use App\Stories\StoryRegistry;
-use App\Support\OgMeta;
+use App\Support\Head;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -17,8 +18,9 @@ class StoryController extends Controller
      */
     public function index(): Response
     {
+        app(Head::class)->set(SiteHeads::stories());
+
         return Inertia::render('Stories/Index', [
-            'og' => OgMeta::stories(),
             'stories' => array_map(fn (Story $story): array => $story->card(), $this->registry->all()),
         ]);
     }
@@ -32,8 +34,9 @@ class StoryController extends Controller
 
         abort_if($found === null, 404);
 
+        app(Head::class)->set($found->head());
+
         return Inertia::render($found->component(), [
-            'og' => $found->og(),
             'story' => $found->build(),
         ]);
     }

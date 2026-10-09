@@ -41,8 +41,9 @@ it('shows a guest the prompt with no body in props or HTML, and no caching', fun
             ->missing('media')
             // No format is offered while locked: each one 404s, so advertising
             // them would only point at dead links.
-            ->where('formats', [])
-            ->has('og.title'));
+            ->where('exportFormats', [])
+            ->where('head.links', [])
+            ->has('head.title'));
 });
 
 it('offers the formats again once the entry is unlocked', function () {
@@ -52,7 +53,8 @@ it('offers the formats again once the entry is unlocked', function () {
         ->get('/2026/06/15/kept-close')
         ->assertInertia(fn (Assert $page) => $page
             ->where('locked', false)
-            ->has('formats.0.extension'));
+            ->has('exportFormats.0.extension')
+            ->where('head.links.0.rel', 'alternate'));
 });
 
 it('refuses a wrong password and unlocks on the right one for the rest of the session', function () {
@@ -171,7 +173,7 @@ it('keeps a private note\'s body out of everything a guest receives, while the o
 
     $response->assertOk()
         ->assertDontSee('Zanzibar')
-        ->assertInertia(fn (Assert $page) => $page->where('og.title', 'Note - 15 Jun 2026'));
+        ->assertInertia(fn (Assert $page) => $page->where('head.title', 'Note - 15 Jun 2026'));
 
     $entry = TimelineEntry::withoutGlobalScope(ListedScope::class)->where('entry_id', $note->id)->with('entry')->sole();
 
@@ -191,5 +193,5 @@ it('describes a private entry by its written excerpt alone', function () {
 
     privateArticle();
 
-    $this->get('/2026/06/15/kept-close')->assertInertia(fn (Assert $page) => $page->where('og.description', 'A public teaser'));
+    $this->get('/2026/06/15/kept-close')->assertInertia(fn (Assert $page) => $page->where('head.description', 'A public teaser'));
 });

@@ -12,7 +12,6 @@ import Heading from '../Components/Ui/Heading.vue';
 defineOptions({ layout: AppLayout, inheritAttrs: false });
 
 const props = defineProps({
-    og: { type: Object, default: () => ({}) },
     date: { type: String, required: true }, // today's day + month, e.g. "5 July"
     entriesCount: { type: Number, default: 0 },
     yearsCount: { type: Number, default: 0 },
@@ -50,7 +49,7 @@ setLayoutProps({
 </script>
 
 <template>
-    <AppHead :og="og" />
+    <AppHead />
 
     <!-- Not a data-type page: plain H1, no eyebrow. -->
     <ViewHeader title="On this day" :subtitle="subtitle" />

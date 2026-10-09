@@ -8,7 +8,6 @@ import Heading from '../../Components/Ui/Heading.vue';
 defineOptions({ layout: AppLayout });
 
 defineProps({
-    og: { type: Object, default: () => ({}) },
     // [{ slug, type, title, description, accent }]
     stories: { type: Array, default: () => [] },
 });
@@ -17,7 +16,7 @@ setLayoutProps({ breadcrumb: [{ label: 'Data stories' }] });
 </script>
 
 <template>
-    <AppHead :og="og" />
+    <AppHead />
 
     <header>
         <Heading as="h1" size="display" class="max-w-2xl text-neutral-900">Data stories</Heading>

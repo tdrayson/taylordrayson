@@ -15,7 +15,6 @@ const props = defineProps({
     year: { type: Number, required: true },
     month: { type: Number, required: true },
     day: { type: Number, required: true },
-    og: { type: Object, default: () => ({}) },
     items: { type: Array, default: () => [] },
     stats: { type: Array, default: () => [] },
     rings: { type: Object, default: null },
@@ -72,7 +71,7 @@ setLayoutProps({
 </script>
 
 <template>
-    <AppHead :og="og" />
+    <AppHead />
 
     <FutureNote v-if="isFuture" unit="day" />
 

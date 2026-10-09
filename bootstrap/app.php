@@ -6,7 +6,8 @@ use App\Http\Middleware\VerifyStravaWebhookSecret;
 use App\Models\LeaderboardEntry;
 use App\Models\TimelineEntry;
 use App\Models\Tombstone;
-use App\Support\OgMeta;
+use App\Presenters\Heads\SiteHeads;
+use App\Support\Head;
 use App\Support\Preferences;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
@@ -91,8 +92,9 @@ return Application::configure(basePath: dirname(__DIR__))
             if ($tombstone !== null) {
                 $deletedAt = $tombstone->deleted_at->setTimezone(config('app.home_timezone'));
 
+                app(Head::class)->set(SiteHeads::deleted());
+
                 return Inertia::render('Deleted', [
-                    'og' => OgMeta::deleted(),
                     'url' => $request->url(),
                     'deletedAt' => $deletedAt->toIso8601String(),
                     'deletedOn' => $deletedAt->format('j F Y'),
@@ -107,8 +109,9 @@ return Application::configure(basePath: dirname(__DIR__))
                 // Cast: the Redis cache store hands a numeric value back as a
                 // string, and the page formats it with toLocaleString(), which
                 // is a no-op on a string.
+                app(Head::class)->set(SiteHeads::error(404));
+
                 return Inertia::render('Error', [
-                    'og' => OgMeta::error(404),
                     'status' => 404,
                     'entries' => (int) $entries,
                     'leaderboard' => LeaderboardEntry::topEntries(5),

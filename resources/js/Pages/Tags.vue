@@ -8,7 +8,6 @@ import Heading from '../Components/Ui/Heading.vue';
 defineOptions({ layout: AppLayout, inheritAttrs: false });
 
 const props = defineProps({
-    og: { type: Object, default: () => ({}) },
     // [{ name, slug, url, count }], already name-ordered by the server.
     tags: { type: Array, default: () => [] },
 });
@@ -22,7 +21,7 @@ const featured = computed(() =>
 </script>
 
 <template>
-    <AppHead :og="og" />
+    <AppHead />
 
     <header>
         <Heading as="h1" size="display">Tags</Heading>

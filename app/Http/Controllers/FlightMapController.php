@@ -2,8 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Presenters\Heads\SiteHeads;
 use App\Queries\FlightMapData;
-use App\Support\OgMeta;
+use App\Support\Head;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -14,6 +15,8 @@ class FlightMapController extends Controller
      */
     public function __invoke(FlightMapData $data): Response
     {
-        return Inertia::render('Flights/Map', [...$data(), 'og' => OgMeta::flightMap()]);
+        app(Head::class)->set(SiteHeads::flightMap());
+
+        return Inertia::render('Flights/Map', $data());
     }
 }

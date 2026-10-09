@@ -19,7 +19,6 @@ import { formatDate } from '../../lib/dateFormat.js';
 defineOptions({ layout: AppLayout, inheritAttrs: false });
 
 const props = defineProps({
-    og: { type: Object, default: () => ({}) },
     story: { type: Object, default: () => ({}) },
 });
 
@@ -231,7 +230,7 @@ const topFoodsOptions = baseOptions({
 </script>
 
 <template>
-    <AppHead :og="og" />
+    <AppHead />
 
     <StoryHero :meta="dateline" :kpis="heroKpis" icon="UtensilsIcon" accent="var(--color-food)">
         <template #title>The most-logged thing in my diet is coffee</template>

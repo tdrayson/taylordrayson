@@ -4,7 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Actions\BuildLinkFavicons;
 use App\Actions\BuildLinkPreviews;
-use App\Support\OgMeta;
+use App\Presenters\Heads\SiteHeads;
+use App\Support\Head;
 use App\Support\PortableText;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -15,8 +16,9 @@ class DesignSystemController extends Controller
     {
         $document = $this->smartLinkSample();
 
+        app(Head::class)->set(SiteHeads::designSystem());
+
         return Inertia::render('DesignSystem', [
-            'og' => OgMeta::designSystem(),
             'smartLinks' => $document,
             'linkPreviews' => app(BuildLinkPreviews::class)($document),
             'linkFavicons' => (new BuildLinkFavicons)($document),

@@ -11,7 +11,6 @@ use App\Models\Place;
 use App\Models\Sleep;
 use App\Models\Tag;
 use App\Models\TvEpisode;
-use App\Support\OgMeta;
 
 use function Pest\Laravel\get;
 
@@ -33,8 +32,8 @@ it('describes a sleep entry with its duration, date and window', function () {
     get('/'.$sleep->occurred_at->format('Y/m/d').'/'.$sleep->slug())
         ->assertOk()
         ->assertInertia(fn ($page) => $page
-            ->where('og.title', 'I slept for 9h 21m - 24 Aug 2026')
-            ->where('og.description', 'I went to bed at 11:30pm and woke at 8:51am. My sleep score was 80.')
+            ->where('head.title', 'I slept for 9h 21m - 24 Aug 2026')
+            ->where('head.description', 'I went to bed at 11:30pm and woke at 8:51am. My sleep score was 80.')
         );
 });
 
@@ -45,7 +44,7 @@ it('dates a log entry title so repeated names stay distinct', function () {
     $titleOf = function (Activity $activity): string {
         $response = get('/'.$activity->occurred_at->format('Y/m/d').'/'.$activity->slug())->assertOk();
 
-        return $response->viewData('page')['props']['og']['title'];
+        return $response->viewData('page')['props']['head']['title'];
     };
 
     expect($titleOf($first))->toBe('Walk - 15 Mar 2026')
@@ -65,8 +64,8 @@ it('names the show in front of an episode title', function () {
     get('/'.$episode->occurred_at->format('Y/m/d').'/'.$episode->slug())
         ->assertOk()
         ->assertInertia(fn ($page) => $page
-            ->where('og.title', 'Formula 1: Netherlands (Race) - 23 Aug 2026')
-            ->where('og.description', fn (string $value): bool => str_starts_with($value, 'I watched season 2026, episode 69 of Formula 1.'))
+            ->where('head.title', 'Formula 1: Netherlands (Race) - 23 Aug 2026')
+            ->where('head.description', fn (string $value): bool => str_starts_with($value, 'I watched season 2026, episode 69 of Formula 1.'))
         );
 });
 
@@ -82,7 +81,7 @@ it('describes a check-in with its venue, category and town as a sentence', funct
     get('/'.$place->occurred_at->format('Y/m/d').'/'.$place->slug())
         ->assertOk()
         ->assertInertia(fn ($page) => $page
-            ->where('og.description', 'I checked in at Starbucks, a Coffee Shop in Bracknell.')
+            ->where('head.description', 'I checked in at Starbucks, a Coffee Shop in Bracknell.')
         );
 });
 
@@ -98,8 +97,8 @@ it('prefers an article excerpt over its opening prose', function () {
     get('/'.$article->occurred_at->format('Y/m/d').'/'.$article->slug())
         ->assertOk()
         ->assertInertia(fn ($page) => $page
-            ->where('og.title', 'A Title')
-            ->where('og.description', 'The hand-written summary.')
+            ->where('head.title', 'A Title')
+            ->where('head.description', 'The hand-written summary.')
         );
 });
 
@@ -117,7 +116,7 @@ it('gives a private article with no excerpt the site description, never its body
 
     $response->assertOk()
         ->assertDontSee('Only after the password appears anywhere')
-        ->assertInertia(fn ($page) => $page->where('og.description', OgMeta::page('Any page', null)['description']));
+        ->assertInertia(fn ($page) => $page->where('head.description', config('identity.bio')));
 });
 
 it('falls back to a note body for its own description', function () {
@@ -129,7 +128,7 @@ it('falls back to a note body for its own description', function () {
     get('/'.$note->occurred_at->format('Y/m/d').'/'.$note->slug())
         ->assertOk()
         ->assertInertia(fn ($page) => $page
-            ->where('og.description', 'A short thought worth indexing.')
+            ->where('head.description', 'A short thought worth indexing.')
         );
 });
 
@@ -139,8 +138,8 @@ it('counts the archive it describes', function () {
     get('/activities')
         ->assertOk()
         ->assertInertia(fn ($page) => $page
-            ->where('og.title', 'All Activities')
-            ->where('og.description', "All 3 activities I've logged, newest first.")
+            ->where('head.title', 'All Activities')
+            ->where('head.description', "All 3 activities I've logged, newest first.")
         );
 });
 
@@ -150,7 +149,7 @@ it('counts a taxonomy archive it describes', function () {
     get('/places/coffee-shop')
         ->assertOk()
         ->assertInertia(fn ($page) => $page
-            ->where('og.description', 'Coffee Shops: all 2, newest first.')
+            ->where('head.description', 'Coffee Shops: all 2, newest first.')
         );
 });
 
@@ -162,7 +161,7 @@ it('counts the entries behind a tag', function () {
     get('/tags/coffee')
         ->assertOk()
         ->assertInertia(fn ($page) => $page
-            ->where('og.description', 'Everything tagged coffee: 1 entry from across every type I track, newest first.')
+            ->where('head.description', 'Everything tagged coffee: 1 entry from across every type I track, newest first.')
         );
 });
 
@@ -178,7 +177,7 @@ it('uses page prose when a page has no excerpt', function () {
     get('/colophon')
         ->assertOk()
         ->assertInertia(fn ($page) => $page
-            ->where('og.description', 'How this site is built.')
+            ->where('head.description', 'How this site is built.')
         );
 });
 
@@ -197,7 +196,7 @@ it('keeps a private page description to the generic fallback, never its body, wi
     $response->assertOk()
         ->assertDontSee('Only after the password appears anywhere')
         ->assertInertia(fn ($page) => $page
-            ->where('og.description', fn (string $value): bool => ! str_contains($value, 'Only after the password')));
+            ->where('head.description', fn (string $value): bool => ! str_contains($value, 'Only after the password')));
 });
 
 it('publishes what I wrote on Strava rather than the numbers it could generate', function () {
@@ -211,7 +210,7 @@ it('publishes what I wrote on Strava rather than the numbers it could generate',
     get('/'.$activity->occurred_at->format('Y/m/d').'/'.$activity->slug())
         ->assertOk()
         ->assertInertia(fn ($page) => $page
-            ->where('og.description', 'Watched the solar eclipse while playing')
+            ->where('head.description', 'Watched the solar eclipse while playing')
         );
 });
 
@@ -230,7 +229,7 @@ it('describes an activity with no words of its own from its numbers', function (
     get('/'.$activity->occurred_at->format('Y/m/d').'/'.$activity->slug())
         ->assertOk()
         ->assertInertia(fn ($page) => $page
-            ->where('og.description', fn (string $value): bool => str_starts_with($value, 'I walked')
+            ->where('head.description', fn (string $value): bool => str_starts_with($value, 'I walked')
                 && ! str_contains($value, 'Evening Walk'))
         );
 });
@@ -248,7 +247,7 @@ it('keeps a check-in note whole and hangs the place off the end', function () {
     get('/'.$place->occurred_at->format('Y/m/d').'/'.$place->slug())
         ->assertOk()
         ->assertInertia(fn ($page) => $page
-            ->where('og.description', 'Watching One Night Only with Gordon at Cineworld, Crawley.')
+            ->where('head.description', 'Watching One Night Only with Gordon at Cineworld, Crawley.')
         );
 });
 
@@ -263,7 +262,7 @@ it('starts a new sentence when the note it follows already ended one', function 
     get('/'.$place->occurred_at->format('Y/m/d').'/'.$place->slug())
         ->assertOk()
         ->assertInertia(fn ($page) => $page
-            ->where('og.description', 'Great flat white. At Costa, Croydon.')
+            ->where('head.description', 'Great flat white. At Costa, Croydon.')
         );
 });
 
@@ -277,7 +276,7 @@ it('leaves room for the site name when it cuts a long title', function () {
     ]);
 
     $response = get('/'.$activity->occurred_at->format('Y/m/d').'/'.$activity->slug())->assertOk();
-    $title = $response->viewData('page')['props']['og']['title'];
+    $title = $response->viewData('page')['props']['head']['title'];
 
     expect(mb_strlen($title.' | Taylor Drayson'))->toBeLessThanOrEqual(60);
 });
@@ -298,7 +297,7 @@ it('names the airports the title could only code', function () {
     get('/'.$flight->occurred_at->format('Y/m/d').'/'.$flight->slug())
         ->assertOk()
         ->assertInertia(fn ($page) => $page
-            ->where('og.description', fn (string $value): bool => str_starts_with(
+            ->where('head.description', fn (string $value): bool => str_starts_with(
                 $value,
                 'I flew from Kraków John Paul II International Airport to London Gatwick Airport',
             ))
@@ -321,7 +320,7 @@ it('names a fill-up by its brand rather than its forecourt', function () {
     get('/'.$fuel->occurred_at->format('Y/m/d').'/'.$fuel->slug())
         ->assertOk()
         ->assertInertia(fn ($page) => $page
-            ->where('og.description', 'I filled my car with 31.28L at a BP garage in Croydon. Fuel was 161.9p/L and cost £50.64.')
+            ->where('head.description', 'I filled my car with 31.28L at a BP garage in Croydon. Fuel was 161.9p/L and cost £50.64.')
         );
 });
 
@@ -341,7 +340,7 @@ it('still reads as a sentence when a fill-up has no garage on it', function () {
     get('/'.$fuel->occurred_at->format('Y/m/d').'/'.$fuel->slug())
         ->assertOk()
         ->assertInertia(fn ($page) => $page
-            ->where('og.description', 'I filled my car with 40.00L. Fuel was 150.0p/L and cost £60.00.')
+            ->where('head.description', 'I filled my car with 40.00L. Fuel was 150.0p/L and cost £60.00.')
         );
 });
 
@@ -359,6 +358,6 @@ it('plays a sport rather than covering it', function () {
     get('/'.$padel->occurred_at->format('Y/m/d').'/'.$padel->slug())
         ->assertOk()
         ->assertInertia(fn ($page) => $page
-            ->where('og.description', 'I played padel for 1h 46m, covering 2.2 mi.')
+            ->where('head.description', 'I played padel for 1h 46m, covering 2.2 mi.')
         );
 });

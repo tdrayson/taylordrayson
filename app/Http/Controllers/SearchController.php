@@ -2,12 +2,13 @@
 
 namespace App\Http\Controllers;
 
+use App\Presenters\Heads\SiteHeads;
 use App\Search\FilterValidator;
 use App\Search\RunSearch;
 use App\Search\SearchPresets;
 use App\Search\SearchSchema;
 use App\Search\SuggestSearch;
-use App\Support\OgMeta;
+use App\Support\Head;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -40,8 +41,9 @@ class SearchController extends Controller
         $order = $request->input('order') === 'oldest' ? 'oldest' : 'newest';
         $results = ($this->runSearch)($groups, $page, $order);
 
+        app(Head::class)->set(SiteHeads::search());
+
         return Inertia::render('Search', [
-            'og' => OgMeta::search(),
             'schema' => SearchSchema::forClient(),
             'presets' => SearchPresets::all(),
             'filter' => $groups,

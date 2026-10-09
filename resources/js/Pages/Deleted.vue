@@ -13,7 +13,6 @@ defineOptions({ layout: AppLayout, inheritAttrs: false });
  * ignores the status still replaces its copy with this instead of the post.
  */
 defineProps({
-    og: { type: Object, default: () => ({}) },
     url: { type: String, required: true },
     deletedAt: { type: String, required: true },
     deletedOn: { type: String, required: true },
@@ -21,7 +20,7 @@ defineProps({
 </script>
 
 <template>
-    <AppHead :og="og" />
+    <AppHead />
 
     <article class="h-entry max-w-2xl">
         <a class="u-url" :href="url" hidden></a>

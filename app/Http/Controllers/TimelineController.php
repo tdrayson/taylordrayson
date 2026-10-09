@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Actions\BuildMonthCalendar;
 use App\Actions\BuildTimelineFeed;
 use App\Models\TimelineEntry;
+use App\Presenters\Heads\SiteHeads;
 use App\Queries\DayStats;
 use App\Queries\HeatmapDays;
 use App\Queries\MonthsInYear;
@@ -14,7 +15,7 @@ use App\Queries\TimelinePage;
 use App\Queries\TimelineYears;
 use App\Support\FeedInteractions;
 use App\Support\GalleryPhotos;
-use App\Support\OgMeta;
+use App\Support\Head;
 use App\Timeline\FeedPresets;
 use App\Timeline\TimelineFilter;
 use Illuminate\Database\Eloquent\Builder;
@@ -60,8 +61,9 @@ class TimelineController extends Controller
         $groups = $this->feed->groupByDay($page->entries);
         $dates = collect($groups)->pluck('date');
 
+        app(Head::class)->set(SiteHeads::timeline());
+
         return Inertia::render('Timeline', [
-            'og' => OgMeta::timeline(),
             'groups' => $groups,
             'interactions' => FeedInteractions::defer($page->entries),
             'range' => $dates->isEmpty() ? null : ['from' => $dates->last(), 'to' => $dates->first()],
@@ -145,8 +147,9 @@ class TimelineController extends Controller
 
         $years = $entries->map(fn (TimelineEntry $entry): string => $entry->occurred_at->format('Y'))->unique();
 
+        app(Head::class)->set(SiteHeads::onThisDay($today));
+
         return Inertia::render('OnThisDay', [
-            'og' => OgMeta::onThisDay($today),
             'date' => $today->format('j F'),
             'entriesCount' => $entries->count(),
             'yearsCount' => $years->count(),
@@ -170,9 +173,10 @@ class TimelineController extends Controller
         $start = Carbon::create($year, 1, 1)->startOfDay();
         $end = (clone $start)->endOfYear()->endOfDay();
 
+        app(Head::class)->set(SiteHeads::year($year));
+
         return Inertia::render('Year', [
             'year' => $year,
-            'og' => OgMeta::year($year),
             'entriesCount' => TimelineEntry::whereBetween('occurred_at', [$start, $end])->count(),
             // On every page, not just the first: the heatmap below is the only
             // other way into a month, and it stops rendering past page one.
@@ -198,10 +202,11 @@ class TimelineController extends Controller
             ->filter(fn (TimelineEntry $entry): bool => $entry->entry !== null)
             ->values();
 
+        app(Head::class)->set(SiteHeads::month($year, $month));
+
         return Inertia::render('Month', [
             'year' => $year,
             'month' => $month,
-            'og' => OgMeta::month($year, $month),
             'entriesCount' => $entries->count(),
             ...$this->monthSummary($entries, $start, $end),
             ...$this->periodTail($start, $end),
@@ -259,11 +264,12 @@ class TimelineController extends Controller
             ->filter(fn (TimelineEntry $entry): bool => $entry->entry !== null)
             ->values();
 
+        app(Head::class)->set(SiteHeads::day($date));
+
         return Inertia::render('Day', [
             'year' => $year,
             'month' => $month,
             'day' => $day,
-            'og' => OgMeta::day($date),
             'items' => $this->feed->items($entries),
             'interactions' => FeedInteractions::defer($entries),
             'stats' => ($this->dayStats)($entries, $date),

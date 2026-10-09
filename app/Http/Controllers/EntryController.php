@@ -35,13 +35,14 @@ use App\Presenters\Entries\FuelEntry;
 use App\Presenters\ExportPresenter;
 use App\Presenters\Exports\Formats\Format;
 use App\Presenters\Exports\Formats\Formats;
+use App\Presenters\Heads\EntryHead;
 use App\Queries\DayFood;
 use App\Queries\EntryArtwork;
 use App\Queries\EntryAtUrl;
 use App\Queries\TripForEntry;
 use App\Support\EntryMeta;
+use App\Support\Head;
 use App\Support\LocalTime;
-use App\Support\OgMeta;
 use App\Support\ShowTitle;
 use App\Timeline\TypeRegistry;
 use Illuminate\Database\Eloquent\Model;
@@ -101,6 +102,12 @@ class EntryController extends Controller
 
         $card = CardPresenter::for($model);
 
+        // A locked entry offers no formats: each would 404, and there is
+        // nothing left to put in one.
+        $export = $locked ? null : ExportPresenter::for($model);
+
+        app(Head::class)->set(EntryHead::for($entry, $model, $card, $export));
+
         $props = [
             'type' => $card->type->value,
             'accent' => $card->accent,
@@ -109,7 +116,6 @@ class EntryController extends Controller
             'title' => $card->type === TimelineType::Note ? null : $card->title,
             'titleTokens' => $card->titleTokens,
             ...$this->occurredFields($model),
-            'og' => OgMeta::entry($entry, $model, $card),
             'dayUrl' => $dayUrl,
             'trip' => $this->trip($model),
             // The header stays for context while locked; the source link does not.
@@ -118,9 +124,7 @@ class EntryController extends Controller
             'unlockUrl' => $locked
                 ? route('unlock', ['dataset' => $model->getMorphClass(), 'id' => $model->getKey()], false)
                 : null,
-            // A locked entry offers no formats: each would 404, and there is
-            // nothing left to put in one.
-            'formats' => $locked ? [] : $this->formats(ExportPresenter::for($model)),
+            'exportFormats' => $export === null ? [] : $this->exportFormats($export),
         ];
 
         $response = Inertia::render('Entry', [
@@ -399,18 +403,15 @@ class EntryController extends Controller
     }
 
     /**
-     * Every format this export supports, shaped for AppHead's alternate
-     * links and the footer's format list.
+     * Every format this export supports, for the footer's "View as" list.
      *
-     * @return list<array{extension: string, type: string, label: string, url: string}>
+     * @return list<array{extension: string, url: string}>
      */
-    private function formats(ExportData $export): array
+    private function exportFormats(ExportData $export): array
     {
         return array_values(array_map(
             fn (Format $format): array => [
                 'extension' => $format->format()->value,
-                'type' => $format->format()->contentType(),
-                'label' => $format->format()->label(),
                 'url' => $export->url.'.'.$format->format()->value,
             ],
             Formats::for($export),

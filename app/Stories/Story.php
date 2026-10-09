@@ -2,6 +2,7 @@
 
 namespace App\Stories;
 
+use App\Data\Head\HeadData;
 use App\Http\Controllers\StoryController;
 
 /**
@@ -25,12 +26,8 @@ interface Story
      */
     public function card(): array;
 
-    /**
-     * The Open Graph / document metadata payload.
-     *
-     * @return array<string, mixed>
-     */
-    public function og(): array;
+    /** The story's document head. */
+    public function head(): HeadData;
 
     /**
      * The computed figures and chart series handed to the page as `story`.

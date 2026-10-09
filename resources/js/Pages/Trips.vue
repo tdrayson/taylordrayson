@@ -10,7 +10,6 @@ import Heading from '../Components/Ui/Heading.vue';
 defineOptions({ layout: AppLayout, inheritAttrs: false });
 
 const props = defineProps({
-    og: { type: Object, default: () => ({}) },
     // [{ title, href, days, start, end, year }], newest first from the server.
     // Tags are deliberately absent: they belong to the trip page.
     trips: { type: Array, default: () => [] },
@@ -36,7 +35,7 @@ const byYear = computed(() => {
 </script>
 
 <template>
-    <AppHead :og="og" />
+    <AppHead />
 
     <header>
         <Heading as="h1" size="display">Trips</Heading>

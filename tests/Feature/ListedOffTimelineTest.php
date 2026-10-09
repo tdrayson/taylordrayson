@@ -62,7 +62,7 @@ it('tells crawlers not to index unlisted entries and private pages', function ()
     Page::factory()->create(['slug' => 'locked', 'status' => EntryStatus::Private, 'password' => 'hunter2']);
     Page::factory()->create(['slug' => 'open']);
 
-    get('/2026/06/15/'.$article->slug)->assertInertia(fn (Assert $page) => $page->where('og.noindex', true));
-    get('/locked')->assertInertia(fn (Assert $page) => $page->where('og.noindex', true));
-    get('/open')->assertInertia(fn (Assert $page) => $page->where('og.noindex', false));
+    get('/2026/06/15/'.$article->slug)->assertInertia(fn (Assert $page) => $page->where('head.noindex', true));
+    get('/locked')->assertInertia(fn (Assert $page) => $page->where('head.noindex', true));
+    get('/open')->assertInertia(fn (Assert $page) => $page->where('head.noindex', false));
 });

@@ -7,7 +7,7 @@ const props = defineProps({
     source: { type: Object, default: null },
     // Linkable tags [{ name, slug, url }]; only taggable types (notes, articles, projects, events) carry any.
     tags: { type: Array, default: () => [] },
-    // [{ extension, type, label, url }] this entry can be exported as.
+    // [{ extension, url }] this entry can be exported as.
     formats: { type: Array, default: () => [] },
 });
 

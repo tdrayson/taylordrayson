@@ -83,11 +83,11 @@ it('shows each status only where it belongs', function (bool $owner) {
     // Entry URL.
     $this->get('/2026/06/15/matrix-draft')->assertStatus($owner ? 200 : 404);
     $this->get('/2026/06/15/matrix-published')->assertOk()
-        ->assertInertia(fn (Assert $page) => $page->where('locked', false)->where('og.noindex', false));
+        ->assertInertia(fn (Assert $page) => $page->where('locked', false)->where('head.noindex', false));
     $this->get('/2026/06/15/matrix-unlisted')->assertOk()
-        ->assertInertia(fn (Assert $page) => $page->where('locked', false)->where('og.noindex', true));
+        ->assertInertia(fn (Assert $page) => $page->where('locked', false)->where('head.noindex', true));
     $this->get('/2026/06/15/matrix-private')->assertOk()
-        ->assertInertia(fn (Assert $page) => $page->where('locked', ! $owner)->where('og.noindex', true)->has('og.title'));
+        ->assertInertia(fn (Assert $page) => $page->where('locked', ! $owner)->where('head.noindex', true)->has('head.title'));
 
     // Listings: the same for both viewers.
     expect(matrixSlugsIn($this->withCookie(TimelineFilter::COOKIE, 'everything')->get('/')->inertiaProps('groups')))->toBe($listed)
@@ -129,7 +129,7 @@ it('shows each status only where it belongs', function (bool $owner) {
         $path = 'og/'.OgRenderer::generation()."/entry/{$entry->id}-".BuildEntryOgData::entryTimestamp($entry).'.png';
         Storage::disk('local')->put($path, 'fake-png-bytes');
 
-        $this->get($this->get("/2026/06/15/matrix-{$status}")->inertiaProps('og.image'))->assertOk();
+        $this->get($this->get("/2026/06/15/matrix-{$status}")->inertiaProps('head.image'))->assertOk();
         $this->get("/og/entry/{$entry->id}.png")->assertStatus($status === 'published' ? 200 : 404);
     }
 

@@ -2,8 +2,9 @@
 
 namespace App\Stories;
 
+use App\Data\Head\HeadData;
 use App\Models\Fuel;
-use App\Support\OgMeta;
+use App\Presenters\Heads\SiteHeads;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 
@@ -32,12 +33,9 @@ class FuelStory implements Story
         return 'Stories/Fuel';
     }
 
-    /**
-     * @return array<string, mixed>
-     */
-    public function og(): array
+    public function head(): HeadData
     {
-        return OgMeta::fuelStory();
+        return SiteHeads::fuelStory();
     }
 
     /**
@@ -45,14 +43,14 @@ class FuelStory implements Story
      */
     public function card(): array
     {
-        $og = $this->og();
+        $head = $this->head();
 
         return [
             'slug' => $this->slug(),
             'type' => 'fuel',
-            'title' => $og['heading'],
-            'description' => $og['description'],
-            'accent' => $og['accent'],
+            'title' => $head->card->heading,
+            'description' => $head->description,
+            'accent' => $head->card->accent,
         ];
     }
 
