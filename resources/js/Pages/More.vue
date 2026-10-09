@@ -15,7 +15,6 @@ defineProps({
     // [{ type, label, href, count }] straight from the TypeRegistry.
     tracked: { type: Array, default: () => [] },
     total: { type: Number, default: 0 },
-    og: { type: Object, default: () => ({}) },
 });
 
 setLayoutProps({
@@ -40,7 +39,7 @@ const site = [
 </script>
 
 <template>
-    <AppHead title="More" :og="og" />
+    <AppHead />
 
     <header>
         <Heading as="h1" size="display" class="max-w-2xl">More</Heading>

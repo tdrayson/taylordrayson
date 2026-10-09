@@ -20,7 +20,6 @@ defineOptions({ layout: AppLayout, inheritAttrs: false });
 const props = defineProps({
     year: { type: Number, required: true },
     month: { type: Number, required: true },
-    og: { type: Object, default: () => ({}) },
     entriesCount: { type: Number, default: 0 },
     days: { type: Object, default: () => ({}) },
     stats: { type: Array, default: () => [] },
@@ -71,7 +70,7 @@ setLayoutProps({
 </script>
 
 <template>
-    <AppHead :og="og" />
+    <AppHead />
 
     <FutureNote v-if="isFuture" unit="month" />
     <template v-else>

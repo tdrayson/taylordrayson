@@ -48,7 +48,7 @@ it('404s a card url no page signed', function () {
 });
 
 it('points the home page at its signed card, with the bio beneath', function () {
-    $image = $this->get('/')->inertiaProps('og.image');
+    $image = $this->get('/')->inertiaProps('head.image');
 
     parse_str((string) parse_url($image, PHP_URL_QUERY), $query);
 
@@ -94,7 +94,7 @@ it('serves a hidden entry\'s card only through the signed url its page emits', f
 
     $this->get("/og/entry/{$entry->id}.png")->assertNotFound();
 
-    $image = $this->get('/2026/06/15/hidden-card')->inertiaProps('og.image');
+    $image = $this->get('/2026/06/15/hidden-card')->inertiaProps('head.image');
 
     $this->get($image)->assertOk()->assertHeader('content-type', 'image/png');
     $this->get(str_replace('signature=', 'signature=0', $image))->assertNotFound();
@@ -110,7 +110,7 @@ it('serves a published entry\'s card at its plain url', function () {
     $entry = TimelineEntry::query()->where('entry_id', $note->id)->sole();
     Storage::disk('local')->put('og/'.OgRenderer::generation()."/entry/{$entry->id}-".BuildEntryOgData::entryTimestamp($entry).'.png', 'fake-png-bytes');
 
-    $image = $this->get('/2026/06/15/open-card')->inertiaProps('og.image');
+    $image = $this->get('/2026/06/15/open-card')->inertiaProps('head.image');
 
     expect($image)->not->toContain('signature=');
     $this->get("/og/entry/{$entry->id}.png")->assertOk();
@@ -179,7 +179,7 @@ it('stamps an entry card url with the design and the entry it describes', functi
     $activity = Activity::factory()->create(['name' => 'Walk', 'type' => 'walk', 'occurred_at' => '2026-03-15 07:30:00']);
     $url = fn (): string => $this->get('/2026/03/15/'.$activity->slug())
         ->assertOk()
-        ->viewData('page')['props']['og']['image'];
+        ->viewData('page')['props']['head']['image'];
 
     $before = $url();
 

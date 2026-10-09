@@ -25,7 +25,7 @@ class OgImageController extends Controller
 
     /**
      * Render (and cache) a page's 1200x630 Open Graph card. Only the signed URL
-     * OgMeta emits is served, and `for` names the page so its old cards go.
+     * SiteHeads emits is served, and `for` names the page so its old cards go.
      */
     public function show(Request $request): BinaryFileResponse
     {

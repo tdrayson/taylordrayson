@@ -3,9 +3,10 @@
 namespace App\Http\Controllers;
 
 use App\Models\TvShow;
+use App\Presenters\Heads\SiteHeads;
 use App\Queries\TvShowData;
 use App\Queries\WatchedTvShowsIndex;
-use App\Support\OgMeta;
+use App\Support\Head;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -21,9 +22,10 @@ class TvShowController extends Controller
      */
     public function index(): Response
     {
+        app(Head::class)->set(SiteHeads::tvShows());
+
         return Inertia::render('TvShows/Index', [
             'shows' => ($this->watchedTvShowsIndex)(),
-            'og' => OgMeta::tvShows(),
         ]);
     }
 
@@ -35,14 +37,14 @@ class TvShowController extends Controller
     {
         $data = ($this->tvShowData)($tvShow);
 
-        return Inertia::render('TvShows/Show', [
-            ...$data->toArray(),
-            'og' => OgMeta::tvShow(
-                $data->show->title,
-                $data->stats->episodesWatched,
-                $data->stats->seasons,
-                $data->stats->watchSpan,
-            ),
-        ]);
+        app(Head::class)->set(SiteHeads::tvShow(
+            $data->show->title,
+            $data->stats->episodesWatched,
+            $data->stats->seasons,
+            $data->stats->watchSpan,
+            $data->show->backdrop ?: $data->show->poster,
+        ));
+
+        return Inertia::render('TvShows/Show', $data->toArray());
     }
 }

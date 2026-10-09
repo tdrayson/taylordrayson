@@ -9,7 +9,6 @@ import Heading from '../Components/Ui/Heading.vue';
 defineOptions({ layout: AppLayout, inheritAttrs: false });
 
 const props = defineProps({
-    og: { type: Object, default: () => ({}) },
     name: { type: String, required: true },
     groups: { type: Array, default: () => [] },
 });
@@ -20,7 +19,7 @@ setLayoutProps({
 </script>
 
 <template>
-    <AppHead :og="og" />
+    <AppHead />
 
     <header>
         <Heading as="h1" size="display">Tagged {{ name }}</Heading>

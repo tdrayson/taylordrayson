@@ -33,7 +33,6 @@ const props = defineProps({
     entry: { type: Object, default: null },
     polyline: { type: String, default: null },
     source: { type: Object, default: null },
-    og: { type: Object, default: () => ({}) },
     // One ConversationData, server-rendered so the responses read without JS.
     conversation: { type: Object, default: null },
     occurredLabel: { type: String, default: '' },
@@ -51,8 +50,8 @@ const props = defineProps({
     password: { type: String, default: null },
     locked: { type: Boolean, default: false },
     unlockUrl: { type: String, default: null },
-    // [{ extension, type, label, url }] this entry can be exported as.
-    formats: { type: Array, default: () => [] },
+    // [{ extension, url }] this entry can be exported as, for the footer.
+    exportFormats: { type: Array, default: () => [] },
 });
 
 const { tokenText, tokenTitle } = useTokenText();
@@ -134,7 +133,7 @@ setLayoutProps({ minimal: props.editing, breadcrumb: breadcrumb() });
 </script>
 
 <template>
-    <AppHead :og="og" :formats="formats" />
+    <AppHead />
 
     <!-- Editing replaces the entry rather than sitting under it: the editor
          draws its own title and body, so showing both repeats them. Same split
@@ -195,10 +194,10 @@ setLayoutProps({ minimal: props.editing, breadcrumb: breadcrumb() });
         <EntryFooter
             :source="source"
             :tags="tags"
-            :formats="formats"
+            :formats="exportFormats"
             class="mt-10"
         />
 
-        <Conversation v-if="conversation" :conversation="conversation" :og="og" class="mt-12" />
+        <Conversation v-if="conversation" :conversation="conversation" class="mt-12" />
     </article>
 </template>

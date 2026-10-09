@@ -23,7 +23,6 @@ import ThisWeekWithWidget from '../Components/Now/ThisWeekWithWidget.vue';
 defineOptions({ layout: AppLayout, inheritAttrs: false });
 
 const props = defineProps({
-    og: { type: Object, default: () => ({}) },
     episode: { type: Object, default: null },
     // Real sleep data ({ nights, stageHours }) or null when there is none.
     sleep: { type: Object, default: null },
@@ -33,8 +32,6 @@ const props = defineProps({
     photos: { type: Array, default: () => [] },
     // The book on the go ({ title, author, cover, percent }), or null when none is matched.
     reading: { type: Object, default: null },
-    // [{ extension, type, label, url }] /now can be exported as.
-    formats: { type: Array, default: () => [] },
 });
 
 setLayoutProps({
@@ -226,7 +223,7 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-    <AppHead :og="og" :formats="formats" />
+    <AppHead />
 
     <div class="breakout mx-auto w-full max-w-5xl">
         <header class="flex items-start justify-between gap-4">

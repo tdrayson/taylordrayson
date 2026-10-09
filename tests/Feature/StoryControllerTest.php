@@ -12,7 +12,7 @@ it('renders a registered story by slug', function (string $slug, Closure $seed, 
 
     get("/stories/{$slug}")->assertOk()->assertInertia(fn ($page) => $page
         ->component($component)
-        ->has('og')
+        ->where('head.card.eyebrow', 'Data Story')
         ->where('story.hasData', true)
     );
 })->with([
@@ -37,7 +37,7 @@ it('404s an unknown story slug', function () {
 it('lists every data story on the archive', function () {
     get('/stories')->assertOk()->assertInertia(fn ($page) => $page
         ->component('Stories/Index')
-        ->has('og')
+        ->where('head.title', 'Data Stories')
         ->has('stories', 3)
         ->where('stories.0.slug', 'fuel')
         ->where('stories.1.slug', 'food')

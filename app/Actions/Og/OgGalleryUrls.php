@@ -5,7 +5,8 @@ namespace App\Actions\Og;
 use App\Data\SegmentData;
 use App\Enums\TimelineType;
 use App\Models\TimelineEntry;
-use App\Support\OgMeta;
+use App\Presenters\Heads\EntryHead;
+use App\Presenters\Heads\SiteHeads;
 use App\Support\OgRenderer;
 use App\Support\StaticMap;
 use App\Support\TypeCatalogue;
@@ -114,26 +115,26 @@ final class OgGalleryUrls
 
     /**
      * Card URLs (via /og.png) for the regularly-hit pages, built from the same
-     * OgMeta the real pages use, so the gallery never drifts from production.
+     * SiteHeads the real pages use, so the gallery never drifts from production.
      *
      * @return array<int, array{label: string, url: string}>
      */
     private function pageCardUrls(): array
     {
         $pages = [
-            ['label' => 'Home', 'path' => '/', 'og' => OgMeta::timeline()],
-            ['label' => 'Now', 'path' => '/now', 'og' => OgMeta::now()],
-            ['label' => 'Search', 'path' => '/search', 'og' => OgMeta::search()],
-            ['label' => 'Feeds', 'path' => '/feeds', 'og' => OgMeta::feeds()],
-            ['label' => 'Leaderboard', 'path' => '/leaderboard', 'og' => OgMeta::leaderboard()],
-            ['label' => 'Year', 'path' => '/2026', 'og' => OgMeta::year(2026)],
-            ['label' => 'Month', 'path' => '/2026/06', 'og' => OgMeta::month(2026, 6)],
-            ['label' => 'Day', 'path' => '/2026/06/26', 'og' => OgMeta::day(Carbon::create(2026, 6, 26))],
+            ['label' => 'Home', 'path' => '/', 'head' => SiteHeads::timeline()],
+            ['label' => 'Now', 'path' => '/now', 'head' => SiteHeads::now()],
+            ['label' => 'Search', 'path' => '/search', 'head' => SiteHeads::search()],
+            ['label' => 'Feeds', 'path' => '/feeds', 'head' => SiteHeads::feeds()],
+            ['label' => 'Leaderboard', 'path' => '/leaderboard', 'head' => SiteHeads::leaderboard()],
+            ['label' => 'Year', 'path' => '/2026', 'head' => SiteHeads::year(2026)],
+            ['label' => 'Month', 'path' => '/2026/06', 'head' => SiteHeads::month(2026, 6)],
+            ['label' => 'Day', 'path' => '/2026/06/26', 'head' => SiteHeads::day(Carbon::create(2026, 6, 26))],
         ];
 
         return array_map(fn (array $page): array => [
             'label' => "{$page['label']} ({$page['path']})",
-            'url' => OgMeta::cardUrl($page['og'], $page['path']),
+            'url' => SiteHeads::cardUrl($page['head'], $page['path']),
         ], $pages);
     }
 
@@ -151,7 +152,7 @@ final class OgGalleryUrls
 
             $cards[] = [
                 'label' => $label,
-                'url' => OgMeta::cardUrl(OgMeta::archive($type->value, $label, $label, $type->accent(), false, Str::lower(Str::singular($label)), 0), "gallery-{$type->value}"),
+                'url' => SiteHeads::cardUrl(SiteHeads::archive($type->value, $label, $label, $type->accent(), false, Str::lower(Str::singular($label)), 0), "gallery-{$type->value}"),
             ];
         }
 
@@ -204,7 +205,7 @@ final class OgGalleryUrls
                 ->first();
 
             if ($entry !== null) {
-                $cards[] = ['label' => "Entry: {$label}", 'url' => OgMeta::entryCardUrl($entry)];
+                $cards[] = ['label' => "Entry: {$label}", 'url' => EntryHead::cardUrl($entry)];
             }
         }
 

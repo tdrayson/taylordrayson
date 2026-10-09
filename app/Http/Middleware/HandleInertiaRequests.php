@@ -2,11 +2,12 @@
 
 namespace App\Http\Middleware;
 
+use App\Data\Head\HeadData;
 use App\Fields\AuthorableTypes;
 use App\Queries\Hub\NeedsAttention;
 use App\Queries\LoggingStreak;
 use App\Queries\NowState;
-use App\Support\FeedDiscovery;
+use App\Support\Head;
 use App\Support\Preferences;
 use App\Support\TodaySteps;
 use Illuminate\Http\Request;
@@ -49,12 +50,8 @@ class HandleInertiaRequests extends Middleware
             // Name, avatar, bio and rel="me" profiles: the one place every
             // component reads the owner's identity from.
             'identity' => config('identity'),
-            // Type-narrowed feed links for the current route, rendered by
-            // AppHead rather than the Blade root: the root is only rendered on a
-            // cold load, so after a client-side visit its links would still
-            // advertise the previous page's type. The site-wide feeds stay in
-            // the Blade partial, being the same on every view.
-            'contextualFeeds' => FeedDiscovery::forRoute($request->route()),
+            // A closure because share() runs before the controller has set it.
+            'head' => fn (): HeadData => app(Head::class)->resolve(),
             // Colour scheme and unit choices, read from cookies so the first
             // render already matches what the visitor picked.
             'preferences' => Preferences::for($request),

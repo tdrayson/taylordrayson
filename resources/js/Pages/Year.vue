@@ -17,7 +17,6 @@ defineOptions({ layout: AppLayout, inheritAttrs: false });
 
 const props = defineProps({
     year: { type: Number, required: true },
-    og: { type: Object, default: () => ({}) },
     entriesCount: { type: Number, default: 0 },
     stats: { type: Array, default: () => [] },
     heatmap: { type: Object, default: () => ({}) },
@@ -39,7 +38,7 @@ setLayoutProps({
 </script>
 
 <template>
-    <AppHead :og="og" />
+    <AppHead />
 
     <FutureNote v-if="isFuture" unit="year" />
 

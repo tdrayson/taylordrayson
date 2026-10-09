@@ -19,7 +19,6 @@ import { PALETTE, baseOptions } from '../../lib/chart.js';
 defineOptions({ layout: AppLayout, inheritAttrs: false });
 
 const props = defineProps({
-    og: { type: Object, default: () => ({}) },
     story: { type: Object, default: () => ({}) },
 });
 
@@ -244,7 +243,7 @@ const savingsOptions = baseOptions({
 </script>
 
 <template>
-    <AppHead :og="og" />
+    <AppHead />
 
     <StoryHero :meta="dateline" :kpis="heroKpis" icon="PetrolPumpIcon">
         <template #title>The pandemic and a war, in my fuel receipts</template>

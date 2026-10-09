@@ -28,7 +28,6 @@ import CountSegment from '../Components/Ui/CountSegment.vue';
 defineOptions({ layout: AppLayout, inheritAttrs: false });
 
 defineProps({
-    og: { type: Object, default: () => ({}) },
     // A sample document exercising every link treatment, with the maps the
     // chips resolve against, exactly as an entry page supplies them.
     smartLinks: { type: Array, default: () => [] },
@@ -138,7 +137,7 @@ function swatchInk(step) {
 </script>
 
 <template>
-    <AppHead :og="og" />
+    <AppHead />
 
     <article class="ds space-y-16 pb-12">
         <header>

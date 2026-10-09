@@ -1,32 +1,19 @@
 <script setup>
-import { computed } from 'vue';
+import { computed, h } from 'vue';
 import { Head, usePage } from '@inertiajs/vue3';
-import { ogMeta } from '../lib/og.js';
-import { useOgCard } from '../composables/useOgCard.js';
 
 /**
- * Per-view document head: title plus description, canonical, Open Graph, and
- * Twitter meta. Driven by a single `og` object (built server-side by
- * App\Support\OgMeta) so the copy lives in one place. Every tag carries a
- * `head-key` so Inertia replaces (rather than duplicates) it on each client-side
- * navigation, keeping the head in sync with the current view.
+ * The document head, rendered from the `head` payload App\Support\Head shares
+ * with every page. Every tag carries a `head-key` so Inertia replaces (rather
+ * than duplicates) it on each client-side navigation.
  */
-const props = defineProps({
-    og: { type: Object, default: () => ({}) },
-    // [{ extension, type, label, url }] for the resource this view
-    // shows, built server-side from Formats::for() so the head only ever
-    // advertises a format the resource can actually be rendered as.
-    formats: { type: Array, default: () => [] },
-});
-
 const page = usePage();
+
+// The page's resolved head: title, description, share image, and extra tags.
+const head = computed(() => page.props.head);
 
 // The one site-identity name, shared from config/identity.php.
 const SITE_NAME = computed(() => page.props.identity.name);
-
-const meta = computed(() => ogMeta(props.og, page.props.identity.bio));
-
-const imageUrl = useOgCard(() => props.og);
 
 // Absolute base URL, sourced from the server-shared appUrl so og:url resolves
 // correctly during SSR (where window is undefined), with a browser fallback.
@@ -40,48 +27,45 @@ const origin = computed(() => {
     return typeof window === 'undefined' ? '' : window.location.origin;
 });
 
-// Feed links narrowed to the current view's timeline type, built server-side by
-// App\Support\FeedDiscovery and empty on any view that isn't type-scoped.
-const contextualFeeds = computed(() => page.props.contextualFeeds ?? []);
+// The page's own address, which og:url keeps even when the canonical points elsewhere.
+const pageUrl = computed(() => `${origin.value}${page.url}`);
 
-const canonical = computed(() => `${origin.value}${page.url}`);
-const fullTitle = computed(() => (meta.value.title ? `${meta.value.title} | ${SITE_NAME.value}` : SITE_NAME.value));
+// The canonical the head names, or the page's own address.
+const canonical = computed(() => head.value.canonical ?? pageUrl.value);
+
+const fullTitle = computed(() => (head.value.title ? `${head.value.title} | ${SITE_NAME.value}` : SITE_NAME.value));
+
+// The head's extra meta and link tags as vnodes. Built here rather than with
+// v-bind in a v-for, which adds a ref_for prop that Head prints as an attribute.
+const extraTags = computed(() => [
+    ...head.value.meta.map((tag) => h('meta', {
+        'head-key': `meta:${tag.attribute}:${tag.key}`,
+        [tag.attribute]: tag.key,
+        content: tag.content,
+    })),
+    // Keyed on type as well, matching Head's dedupe, so two formats at one href both survive.
+    ...head.value.links.map((link) => h('link', { 'head-key': `link:${link.rel}:${link.href}:${link.type ?? ''}`, ...link })),
+]);
 </script>
 
 <template>
-    <Head :title="meta.title">
-        <meta head-key="description" name="description" :content="meta.description" />
+    <Head :title="head.title">
+        <meta head-key="description" name="description" :content="head.description" />
         <link head-key="canonical" rel="canonical" :href="canonical" />
-        <link
-            v-for="feed in contextualFeeds"
-            :key="feed.type"
-            :head-key="`feed:${feed.type}`"
-            rel="alternate"
-            :type="feed.type"
-            :title="feed.title"
-            :href="feed.href"
-        />
-        <link
-            v-for="format in formats"
-            :key="format.extension"
-            :head-key="`format:${format.extension}`"
-            rel="alternate"
-            :type="format.type"
-            :title="`${meta.title ?? SITE_NAME} (${format.label})`"
-            :href="format.url"
-        />
-        <meta v-if="meta.noindex" head-key="robots" name="robots" content="noindex, nofollow" />
+        <meta v-if="head.noindex" head-key="robots" name="robots" content="noindex, nofollow" />
 
-        <meta head-key="og:type" property="og:type" :content="meta.type" />
+        <meta head-key="og:type" property="og:type" :content="head.type" />
         <meta head-key="og:site_name" property="og:site_name" :content="SITE_NAME" />
         <meta head-key="og:title" property="og:title" :content="fullTitle" />
-        <meta head-key="og:description" property="og:description" :content="meta.description" />
-        <meta head-key="og:url" property="og:url" :content="canonical" />
-        <meta v-if="imageUrl" head-key="og:image" property="og:image" :content="imageUrl" />
+        <meta head-key="og:description" property="og:description" :content="head.description" />
+        <meta head-key="og:url" property="og:url" :content="pageUrl" />
+        <meta v-if="head.image" head-key="og:image" property="og:image" :content="head.image" />
 
         <meta head-key="twitter:card" name="twitter:card" content="summary_large_image" />
         <meta head-key="twitter:title" name="twitter:title" :content="fullTitle" />
-        <meta head-key="twitter:description" name="twitter:description" :content="meta.description" />
-        <meta v-if="imageUrl" head-key="twitter:image" name="twitter:image" :content="imageUrl" />
+        <meta head-key="twitter:description" name="twitter:description" :content="head.description" />
+        <meta v-if="head.image" head-key="twitter:image" name="twitter:image" :content="head.image" />
+
+        <component :is="tag" v-for="tag in extraTags" :key="tag.props['head-key']" />
     </Head>
 </template>

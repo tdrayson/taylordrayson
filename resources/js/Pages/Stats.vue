@@ -18,7 +18,8 @@ defineOptions({ layout: AppLayout, inheritAttrs: false });
 
 const props = defineProps({
     type: { type: String, required: true },
-    og: { type: Object, default: () => ({}) },
+    heading: { type: String, required: true },
+    eyebrow: { type: String, default: 'Stats' },
     accent: { type: String, default: '#2ea06b' },
     range: { type: Object, default: () => ({ from: '', to: '', label: '' }) },
     compare: { type: Object, default: () => ({ mode: 'previous-period', label: 'previous period' }) },
@@ -102,18 +103,18 @@ const trendOptions = baseOptions({
 });
 
 setLayoutProps({
-    breadcrumb: [{ label: props.og?.eyebrow ?? 'Stats' }],
+    breadcrumb: [{ label: props.eyebrow }],
 });
 </script>
 
 <template>
-    <AppHead :og="og" />
+    <AppHead />
 
     <div class="full-width-inset mx-auto flex w-full max-w-dashboard flex-col gap-5">
         <!-- Plain title (no eyebrow) with the range picker alongside; deltas below
              each metric are measured against the previous period. -->
         <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-            <Heading as="h1" size="display">{{ og.heading }}</Heading>
+            <Heading as="h1" size="display">{{ heading }}</Heading>
             <div class="flex flex-wrap items-center gap-3">
                 <ComparisonSelect :mode="compare.mode" @change="onCompare" />
                 <DateRangePicker :label="range.label" @change="onRange" />

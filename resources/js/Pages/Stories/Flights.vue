@@ -22,7 +22,6 @@ import { PALETTE, baseOptions } from '../../lib/chart.js';
 defineOptions({ layout: AppLayout, inheritAttrs: false });
 
 const props = defineProps({
-    og: { type: Object, default: () => ({}) },
     story: { type: Object, default: () => ({}) },
 });
 
@@ -150,7 +149,7 @@ const seatsOptions = baseOptions({
 </script>
 
 <template>
-    <AppHead :og="og" />
+    <AppHead />
 
     <StoryHero :meta="dateline" :kpis="heroKpis" icon="AirplaneTakeOff01Icon" accent="var(--color-flight)">
         <template #title>The year I flew somewhere new every month</template>

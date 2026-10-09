@@ -2,9 +2,10 @@
 
 namespace App\Stories;
 
+use App\Data\Head\HeadData;
 use App\Enums\CoffeeDrink;
 use App\Models\Food;
-use App\Support\OgMeta;
+use App\Presenters\Heads\SiteHeads;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 
@@ -35,12 +36,9 @@ class FoodStory implements Story
         return 'Stories/Food';
     }
 
-    /**
-     * @return array<string, mixed>
-     */
-    public function og(): array
+    public function head(): HeadData
     {
-        return OgMeta::foodStory();
+        return SiteHeads::foodStory();
     }
 
     /**
@@ -48,14 +46,14 @@ class FoodStory implements Story
      */
     public function card(): array
     {
-        $og = $this->og();
+        $head = $this->head();
 
         return [
             'slug' => $this->slug(),
             'type' => 'food',
-            'title' => $og['heading'],
-            'description' => $og['description'],
-            'accent' => $og['accent'],
+            'title' => $head->card->heading,
+            'description' => $head->description,
+            'accent' => $head->card->accent,
         ];
     }
 

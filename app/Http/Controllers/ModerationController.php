@@ -6,6 +6,8 @@ use App\Actions\Comments\NotifyOfReply;
 use App\Enums\CommentStatus;
 use App\Models\Comment;
 use App\Models\Webmention;
+use App\Presenters\Heads\SiteHeads;
+use App\Support\Head;
 use App\Support\PortableText;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\RedirectResponse;
@@ -23,6 +25,8 @@ class ModerationController extends Controller
 {
     public function index(): Response
     {
+        app(Head::class)->set(SiteHeads::moderation());
+
         return Inertia::render('Moderation', [
             'pending' => [
                 'comments' => self::comments(CommentStatus::Pending),

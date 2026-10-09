@@ -3,7 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\TimelineEntry;
-use App\Support\OgMeta;
+use App\Presenters\Heads\SiteHeads;
+use App\Support\Head;
 use App\Timeline\TypeRegistry;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -31,10 +32,11 @@ class MoreController extends Controller
             ->values()
             ->all();
 
+        app(Head::class)->set(SiteHeads::more());
+
         return Inertia::render('More', [
             'tracked' => $tracked,
             'total' => (int) $counts->sum(),
-            'og' => OgMeta::more(),
         ]);
     }
 }

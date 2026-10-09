@@ -26,14 +26,11 @@ const props = defineProps({
     fields: { type: Array, default: () => [] },
     // The record's own value per offered field, for the editor to start from.
     values: { type: Object, default: () => ({}) },
-    og: { type: Object, default: () => ({}) },
     // Map of href -> preview data for internal content links.
     linkPreviews: { type: Object, default: () => ({}) },
     linkFavicons: { type: Object, default: () => ({}) },
     locked: { type: Boolean, default: false },
     unlockUrl: { type: String, default: null },
-    // [{ extension, type, label, url }] this page can be exported as.
-    formats: { type: Array, default: () => [] },
 });
 
 provideLinkContext(computed(() => ({ previews: props.linkPreviews, favicons: props.linkFavicons })));
@@ -49,7 +46,7 @@ const editorValues = computed(() => valuesFor(props.fields, props.values));
 </script>
 
 <template>
-    <AppHead :og="og" :formats="formats" />
+    <AppHead />
 
     <!-- Editing uses the same surface as every other type, so the page does
          not drift into having its own editor. -->
@@ -92,7 +89,7 @@ const editorValues = computed(() => valuesFor(props.fields, props.values));
         <PasswordPrompt v-else :action="unlockUrl" class="mt-8" />
 
         <div v-if="conversation" class="mt-10 space-y-10 border-t border-neutral-50 pt-6">
-            <Conversation :conversation="conversation" :og="og" />
+            <Conversation :conversation="conversation" />
         </div>
     </article>
 </template>

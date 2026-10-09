@@ -3,9 +3,11 @@
 namespace App\Http\Controllers;
 
 use App\Actions\Hub\MarkSeen;
+use App\Presenters\Heads\SiteHeads;
 use App\Queries\Hub\EntryCounts;
 use App\Queries\Hub\NeedsAttention;
 use App\Queries\Hub\RecentResponses;
+use App\Support\Head;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -41,6 +43,8 @@ class HubController extends Controller
         // query leaves the stamp where it was and the next attempt still
         // sees the same "new since" line.
         ($this->markSeen)($user);
+
+        app(Head::class)->set(SiteHeads::hub());
 
         return Inertia::render('Hub', $props);
     }

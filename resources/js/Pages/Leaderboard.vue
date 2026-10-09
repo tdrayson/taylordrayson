@@ -9,7 +9,6 @@ import Heading from '../Components/Ui/Heading.vue';
 defineOptions({ layout: AppLayout, inheritAttrs: false });
 
 const props = defineProps({
-    og: { type: Object, default: () => ({}) },
     entries: { type: Array, default: () => [] },
 });
 
@@ -26,7 +25,7 @@ onMounted(() => {
 </script>
 
 <template>
-    <AppHead :og="og" />
+    <AppHead />
 
     <div class="mx-auto max-w-lg">
         <Heading as="h1" size="display">Leaderboard</Heading>

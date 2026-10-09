@@ -49,7 +49,7 @@ onBeforeUnmount(() => document.removeEventListener('keydown', handleEscape));
 
 <template>
     <div class="relative size-full">
-        <AppHead :og="{ title: 'Flights map' }" />
+        <AppHead />
 
         <FlightGlobe
             class="absolute inset-0"
