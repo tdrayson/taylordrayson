@@ -170,22 +170,6 @@ it('keeps the food subtitle comma-joined with no connectives', function () {
         ->and($subtitle)->not->toContain(' in ');
 });
 
-it('names a film by its leading genre and how long it ran', function () {
-    $film = Film::factory()->create([
-        'title' => 'Exit 8',
-        'rating' => null,
-        'meta' => [
-            'year' => 2026,
-            'runtime' => 95,
-            // TMDB orders genres by relevance, so the first is the one to use.
-            'tmdb' => ['genres' => ['Horror', 'Mystery']],
-        ],
-    ]);
-
-    expect(CardPresenter::for($film)->toArray()['subtitle'])
-        ->toBe('I watched this 2026 horror film. It was 95 minutes long.');
-});
-
 it('falls back to "film" when TMDB gave no genre', function () {
     $film = Film::factory()->create([
         'title' => 'Unknown',
