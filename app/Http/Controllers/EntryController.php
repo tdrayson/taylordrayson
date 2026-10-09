@@ -115,6 +115,7 @@ class EntryController extends Controller
             // truncated content, which the detail body already shows in full.
             'title' => $card->type === TimelineType::Note ? null : $card->title,
             'titleTokens' => $card->titleTokens,
+            'titleLabel' => $card->type === TimelineType::Note ? null : $card->titleLabel,
             ...$this->occurredFields($model),
             'dayUrl' => $dayUrl,
             'trip' => $this->trip($model),

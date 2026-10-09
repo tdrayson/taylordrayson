@@ -55,12 +55,12 @@ it('covers every type whose card says its title needs context', function () {
     }
 
     $unnamed = array_filter(
-        [Sleep::class, Food::class, Place::class, Fuel::class],
+        [Sleep::class, Food::class, Flight::class, Place::class, Fuel::class],
         fn (string $class): bool => in_array($class, $needContext, true),
     );
 
     expect(array_values($unnamed))->toBe($needContext)
-        // A note is the fifth, with no title at all rather than one lacking context.
+        // A note is the sixth, with no title at all rather than one lacking context.
         ->and(EntryName::isUnnamed(Note::factory()->create()))->toBeTrue();
 });
 
