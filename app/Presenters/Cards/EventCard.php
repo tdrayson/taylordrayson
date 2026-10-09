@@ -47,6 +47,28 @@ final class EventCard
         );
     }
 
+    /** My note where I left one, else a sentence naming the event and where it was. */
+    public function description(Event $model): string
+    {
+        $note = Text::prose($model->description);
+
+        if ($note !== null) {
+            return $note;
+        }
+
+        $where = match (true) {
+            (bool) $model->venue_name && (bool) $model->city => " at {$model->venue_name}, {$model->city}",
+            (bool) $model->venue_name => " at {$model->venue_name}",
+            (bool) $model->city => " in {$model->city}",
+            default => '',
+        };
+
+        $sentence = "I went to {$model->name}{$where}";
+
+        // A name like "Cirque Berserk!" already closes the sentence.
+        return preg_match('/[.!?]$/u', $sentence) === 1 ? $sentence : "{$sentence}.";
+    }
+
     public function title(Event $model): string
     {
         return $model->name;

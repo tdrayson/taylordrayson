@@ -1,6 +1,8 @@
 <?php
 
+use App\Models\Airport;
 use App\Models\Article;
+use App\Models\Flight;
 use Saloon\Http\Faking\MockResponse;
 use Saloon\Laravel\Facades\Saloon;
 
@@ -53,5 +55,39 @@ it('exposes previews only for internal, previewable content links', function () 
             ->where("linkPreviews.$targetHref.excerpt", 'A short summary.')
             ->where("linkPreviews.$targetHref.type", 'article')
             ->where("linkPreviews.$targetHref.url", $targetHref)
+        );
+});
+
+it('names the airports in a flight link preview, not just their codes', function () {
+    Airport::factory()->create(['iata_code' => 'KRK', 'name' => 'Kraków John Paul II International Airport']);
+    Airport::factory()->create(['iata_code' => 'LGW', 'name' => 'London Gatwick Airport']);
+
+    $flight = Flight::factory()->create([
+        'occurred_at' => '2026-05-01 10:00:00',
+        'origin_iata' => 'KRK',
+        'destination_iata' => 'LGW',
+    ]);
+    $flightHref = '/2026/05/01/'.$flight->timelineEntry->url_slug;
+
+    $source = Article::factory()->create([
+        'occurred_at' => '2026-05-02 10:00:00',
+        'slug' => 'source-post',
+        'status' => 'published',
+        'content' => [[
+            '_type' => 'block',
+            'markDefs' => [
+                ['_key' => 'a', '_type' => 'link', 'href' => $flightHref],
+            ],
+            'children' => [
+                ['_type' => 'span', 'marks' => ['a'], 'text' => 'flight'],
+            ],
+        ]],
+    ]);
+
+    get('/2026/05/02/source-post')
+        ->assertOk()
+        ->assertInertia(fn ($page) => $page
+            ->where("linkPreviews.$flightHref.excerpt", fn (string $excerpt) => str_contains($excerpt, 'Kraków John Paul II International Airport')
+                && str_contains($excerpt, 'London Gatwick Airport'))
         );
 });

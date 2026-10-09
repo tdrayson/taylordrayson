@@ -65,11 +65,11 @@ it('names the show in front of an episode title', function () {
         ->assertOk()
         ->assertInertia(fn ($page) => $page
             ->where('head.title', 'Formula 1: Netherlands (Race) - 23 Aug 2026')
-            ->where('head.description', fn (string $value): bool => str_starts_with($value, 'I watched season 2026, episode 69 of Formula 1.'))
+            ->where('head.description', fn (string $value): bool => str_starts_with($value, 'I watched season 2026 episode 69 of Formula 1'))
         );
 });
 
-it('describes a check-in with its venue, category and town as a sentence', function () {
+it('describes a check-in with its venue and town, never its category', function () {
     $place = Place::factory()->create([
         'venue_name' => 'Starbucks',
         'type' => 'Coffee Shop',
@@ -81,7 +81,7 @@ it('describes a check-in with its venue, category and town as a sentence', funct
     get('/'.$place->occurred_at->format('Y/m/d').'/'.$place->slug())
         ->assertOk()
         ->assertInertia(fn ($page) => $page
-            ->where('head.description', 'I checked in at Starbucks, a Coffee Shop in Bracknell.')
+            ->where('head.description', 'I checked in at Starbucks in Bracknell.')
         );
 });
 
@@ -304,9 +304,7 @@ it('names the airports the title could only code', function () {
         );
 });
 
-// "A BP garage" is what anyone would call it. "Beddington Lane Service Station"
-// is a name only its own paperwork uses.
-it('names a fill-up by its brand rather than its forecourt', function () {
+it('describes a fill-up with its card title and sentence', function () {
     $fuel = Fuel::factory()->create([
         'brand' => 'BP',
         'station_name' => 'Beddington Lane Service Station',
@@ -320,7 +318,7 @@ it('names a fill-up by its brand rather than its forecourt', function () {
     get('/'.$fuel->occurred_at->format('Y/m/d').'/'.$fuel->slug())
         ->assertOk()
         ->assertInertia(fn ($page) => $page
-            ->where('head.description', 'I filled my car with 31.28L at a BP garage in Croydon. Fuel was 161.9p/L and cost £50.64.')
+            ->where('head.description', '£50.64 at Beddington Lane Service Station. I filled up with 31.28L in Croydon. Fuel was 161.9p/L.')
         );
 });
 
@@ -340,7 +338,7 @@ it('still reads as a sentence when a fill-up has no garage on it', function () {
     get('/'.$fuel->occurred_at->format('Y/m/d').'/'.$fuel->slug())
         ->assertOk()
         ->assertInertia(fn ($page) => $page
-            ->where('head.description', 'I filled my car with 40.00L. Fuel was 150.0p/L and cost £60.00.')
+            ->where('head.description', '£60.00 at the pump. I filled up with 40.00L. Fuel was 150.0p/L.')
         );
 });
 

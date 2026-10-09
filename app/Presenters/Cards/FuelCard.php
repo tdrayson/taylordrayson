@@ -37,6 +37,12 @@ final class FuelCard
         );
     }
 
+    /** Title and sentence together, so the price leads as it does on the card. */
+    public function description(Fuel $model): string
+    {
+        return "{$this->title($model)}. ".SubtitleText::for($this->tokens($model));
+    }
+
     /**
      * What was paid leads, since it is the one figure every row has. The
      * imported rows carry no station, city, brand or coordinates at all, so

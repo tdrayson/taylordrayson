@@ -12,11 +12,19 @@ use App\Presenters\SubtitleText;
 use App\Support\Text;
 
 /**
- * Builds the timeline card for an Appearance: show name as the subtitle and
- * the audio/video/thumbnail media payload for the inline player.
+ * Builds the timeline card for an Appearance: a sentence naming the show, the
+ * description as its summary, and the media payload for the inline player.
  */
 final class AppearanceCard
 {
+    /**
+     * Kinds where I was the one presenting. Everything else, including a kind
+     * added later, is me as a guest on someone's show.
+     *
+     * @var list<string>
+     */
+    private const SPOKEN = ['talk', 'workshop'];
+
     public function present(Appearance $model): CardData
     {
         $tokens = $this->tokens($model);
@@ -43,14 +51,21 @@ final class AppearanceCard
         );
     }
 
+    /** My description where I wrote one, else the sentence naming the show. */
+    public function description(Appearance $model): string
+    {
+        return Text::prose($model->description) ?? (string) $this->sentence($model);
+    }
+
     /**
-     * Where I spoke, then how long it ran as its own sentence.
+     * Where I spoke or appeared, then how long it ran as its own sentence.
      *
      * @return list<SubtitleToken>
      */
     private function tokens(Appearance $model): array
     {
-        $tokens = $model->show_name ? [SubtitleToken::text("I spoke at {$model->show_name}.")] : [];
+        $sentence = $this->sentence($model);
+        $tokens = $sentence === null ? [] : [SubtitleToken::text($sentence)];
 
         if ($model->duration) {
             $tokens[] = SubtitleToken::text('It was', ' ');
@@ -59,6 +74,18 @@ final class AppearanceCard
         }
 
         return $tokens;
+    }
+
+    /** "I spoke at Laracon EU." for a talk or workshop, "I appeared on WP Builds." for anything else. */
+    private function sentence(Appearance $model): ?string
+    {
+        if (! $model->show_name) {
+            return null;
+        }
+
+        return in_array($model->type, self::SPOKEN, true)
+            ? "I spoke at {$model->show_name}."
+            : "I appeared on {$model->show_name}.";
     }
 
     public function title(Appearance $model): string
