@@ -223,6 +223,11 @@ final class SiteHeads
         return self::make(title: 'Unsubscribed');
     }
 
+    public static function deleted(): HeadData
+    {
+        return self::make(title: 'Deleted', description: 'This post has been deleted.', noindex: true);
+    }
+
     /**
      * @param  int  $status  The HTTP status code (e.g. 404).
      */

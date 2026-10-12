@@ -78,10 +78,15 @@ class Webmention extends Model
      */
     protected function authorUrl(): Attribute
     {
-        return Attribute::set(fn (?string $value): array => [
-            'author_url' => $value,
-            'author_host' => $value === null ? null : Links::host($value),
-        ]);
+        return Attribute::set(function (?string $value): array {
+            // Rendered as a link, so a javascript: URL from a stranger's h-card would be stored XSS.
+            $value = in_array(strtolower((string) parse_url((string) $value, PHP_URL_SCHEME)), ['http', 'https'], true) ? $value : null;
+
+            return [
+                'author_url' => $value,
+                'author_host' => $value === null ? null : Links::host($value),
+            ];
+        });
     }
 
     /** @return MorphTo<Model, $this> */

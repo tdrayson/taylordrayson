@@ -32,7 +32,7 @@ it('keeps suffixes stable when an earlier duplicate is deleted', function () {
     expect($second->fresh()->url())->toBe('/2026/03/15/morning-walk-2');
 
     get('/2026/03/15/morning-walk-2')->assertSuccessful();
-    get('/2026/03/15/morning-walk')->assertNotFound();
+    get('/2026/03/15/morning-walk')->assertStatus(410);
 });
 
 it('assigns suffixes by insert order so backfilled entries never shift existing urls', function () {

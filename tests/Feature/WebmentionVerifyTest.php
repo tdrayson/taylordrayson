@@ -645,3 +645,21 @@ it('keeps a mention the moderator marked as spam when the sender re-sends it', f
 
     expect($mention->fresh()->status)->toBe(CommentStatus::Spam);
 });
+
+// The author URL is rendered as a link, so a javascript: one would run script
+// on this site for anyone who clicked the author's name (checkmention-hcardxss).
+it('drops an author URL that is not http or https', function () {
+    $note = Note::factory()->create();
+    $target = rtrim(config('app.url'), '/').$note->url();
+
+    $mention = verify($note, <<<HTML
+    <html><body><div class="h-entry">
+        <a class="p-author h-card" href="javascript:alert('hcard')">Does clicking me alert?</a>
+        <a class="u-in-reply-to" href="{$target}">re</a>
+    </div></body></html>
+    HTML);
+
+    expect($mention->author_name)->toBe('Does clicking me alert?')
+        ->and($mention->author_url)->toBeNull()
+        ->and($mention->author_host)->toBeNull();
+});

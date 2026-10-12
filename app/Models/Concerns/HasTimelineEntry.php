@@ -13,6 +13,7 @@ use Illuminate\Database\Eloquent\Relations\MorphOne;
 trait HasTimelineEntry
 {
     use HasInteractions;
+    use LeavesTombstone;
     use RecordsMentions;
     use SendsWebmentions;
 

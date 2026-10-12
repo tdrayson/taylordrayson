@@ -35,10 +35,9 @@ it('renders an h-entry with the properties a parser expects', function () {
         ->and($item['properties'])->not->toHaveKey('summary');
 });
 
-// AuthorRef.vue renders a bare h-card (name + site root, nothing else) inside
-// the entry; the full details live once, on the representative h-card below.
-// Carrying both would put the same card in the document twice.
-it('nests a bare author on the h-entry, with the full card only as a second top-level item', function () {
+// AuthorRef.vue renders a small h-card (name, site root, photo) inside the
+// entry; the bio and profiles live once, on the representative h-card below.
+it('nests a small author on the h-entry, with the full card only as a second top-level item', function () {
     $data = ExportPresenter::for(krkToLgw());
     $mf2 = json_decode(Formats::find($data, ExportFormat::Mf2)->render($data), true);
 
@@ -49,6 +48,7 @@ it('nests a bare author on the h-entry, with the full card only as a second top-
         ->and($author['properties'])->toBe([
             'name' => ['Taylor Drayson'],
             'url' => [config('app.url').'/'],
+            'photo' => [url(config('identity.photo'))],
         ])
         ->and($card['type'])->toBe(['h-card'])
         ->and($card['properties']['photo'][0])->toContain(config('identity.photo'))

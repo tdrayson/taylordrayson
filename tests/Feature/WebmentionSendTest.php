@@ -171,6 +171,21 @@ it('records a site that takes no webmentions and stops probing it', function () 
         ->and(sendsFor('https://example.com/bare'))->toBe(0);
 });
 
+it('finds the endpoint in a second Link header when the first is some other rel', function () {
+    Http::fake([
+        LINKED => Http::response('<p>No endpoint in the body.</p>', 200, ['Link' => [
+            '<https://example.com/other>; rel="other"',
+            '<'.ENDPOINT.'>; rel="webmention"',
+        ]]),
+        ENDPOINT => Http::response('', 202),
+    ]);
+
+    noteLinking([LINKED]);
+
+    expect(sendsFor(LINKED))->toBe(1)
+        ->and(WebmentionSend::query()->firstWhere('target_url', LINKED)->endpoint)->toBe(ENDPOINT);
+});
+
 // The local database holds the same posts as the live one, so a seed or a test
 // run would tell every linked site again, from a URL none of them can fetch.
 it('sends nothing at all from a site that is not the live one', function () {

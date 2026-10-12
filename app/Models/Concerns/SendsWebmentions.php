@@ -2,13 +2,15 @@
 
 namespace App\Models\Concerns;
 
+use App\Jobs\SendWebmention;
 use App\Jobs\SendWebmentions;
+use App\Models\WebmentionSend;
 use App\Support\InteractionTarget;
 use App\Support\OutboundLinks;
 use Illuminate\Database\Eloquent\Model;
 
 /**
- * Dispatches outgoing webmentions when a post that carries links is saved.
+ * Dispatches outgoing webmentions when a post that carries links is saved or deleted.
  *
  * Hooked on the model rather than a controller because entries arrive from the
  * authoring form, Micropub, the API and the sync commands, and only the model
@@ -16,6 +18,9 @@ use Illuminate\Database\Eloquent\Model;
  */
 trait SendsWebmentions
 {
+    /** Stands in for the content fingerprint on a retraction, so a post later published at the same URL reads as changed. */
+    private const DELETED_HASH = 'deleted';
+
     public static function bootSendsWebmentions(): void
     {
         // Two events rather than one `saved`, because `wasRecentlyCreated`
@@ -26,6 +31,12 @@ trait SendsWebmentions
             // nothing to send and nothing to retract either.
             if (OutboundLinks::for($model) !== []) {
                 self::queueWebmentions($model);
+            }
+        });
+
+        static::deleted(function (Model $model): void {
+            if (config('webmentions.send') && InteractionTarget::sendsMentions($model)) {
+                self::queueRetraction($model);
             }
         });
 
@@ -48,6 +59,24 @@ trait SendsWebmentions
         $before = (clone $model)->setRawAttributes($model->getRawOriginal());
 
         return ! InteractionTarget::sendsMentions($before) && InteractionTarget::sendsMentions($model);
+    }
+
+    /**
+     * One last send to every site that took a mention from the post, so each
+     * re-fetches it, gets the 410 and drops its copy.
+     */
+    private static function queueRetraction(Model $model): void
+    {
+        $sourceUrl = rtrim((string) config('app.url'), '/').$model->url();
+
+        $targets = WebmentionSend::query()
+            ->where('source_url', $sourceUrl)
+            ->whereIn('status', ['sent', 'failed'])
+            ->pluck('target_url');
+
+        foreach ($targets as $target) {
+            SendWebmention::dispatch($sourceUrl, $target, self::DELETED_HASH)->afterCommit();
+        }
     }
 
     private static function queueWebmentions(Model $model): void
