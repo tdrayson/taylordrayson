@@ -107,6 +107,27 @@ it('fills a lie-in only the Apple Watch saw onto the Oura night, as Apple Health
         ->and($night['awake'])->toBe(1200);
 });
 
+it('counts a night Oura wrote more than once only once', function () {
+    $segments = [];
+
+    // Oura re-writes the same night to Apple Health, each copy offset by 30s.
+    foreach (['00', '30'] as $second) {
+        $segments[] = ['value' => 'Awake', 'source' => 'Oura', 'start' => "2026-10-13 23:00:{$second} +0100", 'end' => "2026-10-13 23:30:{$second} +0100"];
+        $segments[] = ['value' => 'Core', 'source' => 'Oura', 'start' => "2026-10-13 23:30:{$second} +0100", 'end' => "2026-10-14 03:00:{$second} +0100"];
+        $segments[] = ['value' => 'Deep', 'source' => 'Oura', 'start' => "2026-10-14 03:00:{$second} +0100", 'end' => "2026-10-14 04:00:{$second} +0100"];
+        $segments[] = ['value' => 'Awake', 'source' => 'Oura', 'start' => "2026-10-14 04:00:{$second} +0100", 'end' => "2026-10-14 04:30:{$second} +0100"];
+        $segments[] = ['value' => 'REM', 'source' => 'Oura', 'start' => "2026-10-14 04:30:{$second} +0100", 'end' => "2026-10-14 07:00:{$second} +0100"];
+    }
+
+    $night = app(SleepAggregator::class)->aggregate($segments)['2026-10-14'];
+
+    // Each overlap goes to the stage already under way, so stages shift 30s later.
+    expect($night['awake'])->toBe(3630)
+        ->and($night['core'] + $night['deep'] + $night['rem'])->toBe(25200)
+        ->and($night['duration'])->toBe(25200)
+        ->and($night['stages'])->toHaveCount(5);
+});
+
 it('keeps the longer night when a real nap is present the same sleep-day', function () {
     $segments = [
         // A 40-minute evening nap, same Apple sleep-day as the night.

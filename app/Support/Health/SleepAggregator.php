@@ -152,7 +152,7 @@ class SleepAggregator
      */
     private function buildRecord(string $night, string $source, array $segments): array
     {
-        $segments = $this->primarySession($segments);
+        $segments = $this->primarySession($this->flattened($segments));
 
         $stageSeconds = ['awake' => 0, 'rem' => 0, 'core' => 0, 'deep' => 0];
         $stages = [];
@@ -195,6 +195,49 @@ class SleepAggregator
             'source' => $source,
             'stages' => $stages,
         ];
+    }
+
+    /**
+     * Collapse overlapping stage segments into one timeline, the earliest-starting
+     * segment owning any overlap, and join touching segments of the same stage.
+     * Oura writes the same night to Apple Health more than once, a few seconds apart.
+     *
+     * @param  array<int, array{value: string, start: string, end: string}>  $segments
+     * @return array<int, array{value: string, start: string, end: string}>
+     */
+    private function flattened(array $segments): array
+    {
+        usort($segments, fn (array $first, array $second): int => strcmp($first['start'], $second['start']));
+
+        $flat = [];
+        $covered = null;
+
+        foreach ($segments as $segment) {
+            if ($segment['value'] === 'In Bed') {
+                $flat[] = $segment;
+
+                continue;
+            }
+
+            $start = ($covered !== null && $covered > $segment['start']) ? $covered : $segment['start'];
+            $last = array_key_last($flat);
+
+            if ($start >= $segment['end']) {
+                continue;
+            }
+
+            $covered = $segment['end'];
+
+            if ($last !== null && $flat[$last]['value'] === $segment['value'] && $flat[$last]['end'] === $start) {
+                $flat[$last]['end'] = $segment['end'];
+
+                continue;
+            }
+
+            $flat[] = [...$segment, 'start' => $start];
+        }
+
+        return $flat;
     }
 
     /**
