@@ -38,7 +38,7 @@ class StoreStravaActivity
     {
         $attributes = $this->attributesFor($detail);
 
-        $activity = $this->stored((string) $detail['id']);
+        $activity = $this->stored(Client::id($detail));
         $adopted = false;
 
         if ($activity === null) {
@@ -104,10 +104,10 @@ class StoreStravaActivity
             return 0;
         }
 
-        $photos = $this->strava->activityPhotos($detail['id']);
+        $photos = $this->strava->activityPhotos(Client::id($detail));
 
         if ($photos === null) {
-            Log::warning('strava photos fetch failed', ['activity' => $detail['id']]);
+            Log::warning('strava photos fetch failed', ['activity' => Client::id($detail)]);
 
             return 0;
         }
@@ -138,7 +138,7 @@ class StoreStravaActivity
             'average_heart_rate' => $data['average_heartrate'] ?? null,
             'max_heart_rate' => $data['max_heartrate'] ?? null,
             'source' => Source::Strava->value,
-            'source_id' => (string) $data['id'],
+            'source_id' => Client::id($data),
             'timezone' => $this->timezoneFor($data),
         ];
     }

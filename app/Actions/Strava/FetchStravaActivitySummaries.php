@@ -31,7 +31,7 @@ class FetchStravaActivitySummaries
             }
 
             foreach ($batch as $summary) {
-                $summaries[(string) $summary['id']] = [
+                $summaries[Client::id($summary)] = [
                     'start_date' => $summary['start_date'] ?? null,
                     'total_photo_count' => (int) ($summary['total_photo_count'] ?? 0),
                 ];

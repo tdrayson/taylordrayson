@@ -17,6 +17,16 @@ class Client
     public function __construct(private readonly Connector $connector) {}
 
     /**
+     * An activity or athlete's id as a string, preferring Strava's `id_str`.
+     *
+     * @param  array<string, mixed>  $object  An activity or athlete payload.
+     */
+    public static function id(array $object): string
+    {
+        return (string) ($object['id_str'] ?? $object['id']);
+    }
+
+    /**
      * The cached access token, refreshing when missing or when forced.
      *
      * @param  bool  $forceRefresh  Bypass the cache and re-authenticate.

@@ -93,7 +93,7 @@ final class PullStravaResponses
     {
         $mine = config('services.strava.athlete_id');
 
-        return filled($mine) && isset($athlete['id']) && (string) $athlete['id'] === (string) $mine;
+        return filled($mine) && isset($athlete['id']) && Client::id($athlete) === (string) $mine;
     }
 
     /** Strava gives a first name and an initial, and nothing else. */
