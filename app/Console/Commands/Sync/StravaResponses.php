@@ -71,7 +71,7 @@ class StravaResponses extends Command
         $incomplete = false;
 
         foreach ($this->summaries($strava, $after, $spent, $incomplete) as $summary) {
-            $sourceId = (string) $summary['id'];
+            $sourceId = Client::id($summary);
 
             // Summaries come back newest first, so everything above the cursor
             // was done on an earlier run. The cursor itself is the activity

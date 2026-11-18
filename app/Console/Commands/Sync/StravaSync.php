@@ -50,17 +50,18 @@ class StravaSync extends Command
             ->keyBy('source_id');
 
         [$existing, $newActivities] = collect($stravaActivities)
-            ->partition(fn (array $a): bool => $stored->has((string) $a['id']));
+            ->partition(fn (array $a): bool => $stored->has(Client::id($a)));
 
         $this->info("Found {$newActivities->count()} new activities to sync.");
 
         $created = 0;
 
         foreach ($newActivities as $stravaActivity) {
-            $detail = $strava->activity($stravaActivity['id']);
+            $id = Client::id($stravaActivity);
+            $detail = $strava->activity($id);
 
             if (! $detail) {
-                $this->warn("Failed to fetch activity {$stravaActivity['id']}");
+                $this->warn("Failed to fetch activity {$id}");
 
                 continue;
             }
@@ -104,16 +105,17 @@ class StravaSync extends Command
         $refreshed = 0;
 
         foreach ($summaries as $summary) {
-            $activity = $stored->get((string) $summary['id']);
+            $id = Client::id($summary);
+            $activity = $stored->get($id);
 
             if ($activity === null || (! $force && ! $this->hasChanged($summary, $activity))) {
                 continue;
             }
 
-            $detail = $strava->activity($summary['id']);
+            $detail = $strava->activity($id);
 
             if (! $detail) {
-                $this->warn("Failed to re-fetch activity {$summary['id']}");
+                $this->warn("Failed to re-fetch activity {$id}");
 
                 continue;
             }
